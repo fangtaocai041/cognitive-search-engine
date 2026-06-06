@@ -2,17 +2,18 @@
   🇨🇳 <a href="README.zh.md">中文</a>
 </p>
 
-# 🕸️ Cognitive Search Engine v4
+# 🕸️ Cognitive Search Engine v5
 
-> **Frontier species literature search** — Knowledge Graph Traversal + Energy Efficiency + Semiotics + Linguistics + DeepSeek Chain-of-Thought
+> **5-Layer Cognitive Agent** — BDI + ReAct + Multi-Layer Memory + Knowledge Graph Traversal + Semiotics
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-4.3-6366f1)](config/agent.yaml)
+[![Version](https://img.shields.io/badge/version-5.0-8b5cf6)](config/agent.yaml)
 [![Skills](https://img.shields.io/badge/skills-3-22c55e)](skills/)
 [![MCP](https://img.shields.io/badge/MCP-5-f59e0b)](config/mcp_servers.yaml)
+[![Architecture](https://img.shields.io/badge/architecture-5_layer_agent-ec4899)](docs/ARCHITECTURE.md)
 [![Multi-LLM](https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6)]()
+[![BDI](https://img.shields.io/badge/BDI-ReAct-22c55e)]()
 [![Living System](https://img.shields.io/badge/living_system-self_evolving-ec4899)]()
-[![Eng Lang](https://img.shields.io/badge/engineering_language-100%25-22c55e)]()
 
 ---
 
@@ -27,19 +28,43 @@ This engine is integrated as a git submodule in:
 
 ---
 
-## 🔺 Triangle-Inspired Architecture (S-T-V + D₀→D₃)
+## 🧠 v5.0: 5-Layer Standard Agent Architecture
 
-> **From DeepSeek & Gemini geometric philosophy**: "点动成线，线动成面，面动成体"
-> Three projects woven into an S-T-V rigid triangle: State → Transition → Validation
+> **BDI + ReAct + Memory** — aligning with academic AI (MDP/POMDP, ReAct, BDI) and industrial frameworks (LangChain, AutoGPT)
 
-| Dimension | Concept | Implementation |
-|:---------:|---------|---------------|
-| 🔺 **S-T-V Triangle** | State(fish) → Transition(porpoise) → Validation(cognitive) closed loop | `config/stv_protocol.yaml` |
-| D₀ **Point** | Atomic operations | Single tool calls, `search_exact()` |
-| D₁ **Line** | Causal trajectory | 11-layer protocol, 5-phase pipeline, FSM |
-| D₂ **Plane** | Topological mesh | Graph traversal, debate-validator (3-agent quorum), review mining |
-| D₃ **Body** | Self-healing ecosystem | `SelfHealingMonitor` (entropy → reset), `WorldModel` (pre-search simulation) |
-| 📐 **Triangulation** | ≥3 independent sources to verify | FB-1: `min_sources_core_claim = 3`, trust_score 5-level |
+| Layer | Function | Module |
+|:-----:|----------|--------|
+| **1. Perception** | Input parsing: species_id → genus/species/Chinese | `SearchRuleEngine.execute()` |
+| **2. Cognitive** | BDI policy π(Belief,Desire) → Intention + ReAct loop | `src/agent_core.py` |
+| **3. Memory** | Short-term (ContextTracker) + Long-term (GraphMemory) | `src/memory_layer.py` |
+| **4. Mapping** | Intention routing → tool selection → query serialization | `search_rules.yaml` + `PHASE_FUNCTIONS` |
+| **5. Execution** | PubMed · Crossref · MCP servers (5 engines) | `rule_engine._http_search()` |
+
+### BDI + ReAct Cognitive Loop
+
+```
+Think → Act → Observe → Reflect
+  │       │        │          │
+  │  form_intention  count    compare
+  │  (B,D)→I        papers   Belief vs
+  │                          Desire
+  ▼
+Desire satisfied? → STOP
+```
+
+📖 Full architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+## 🔺 S-T-V Triangle (Cross-Project)
+
+> Three projects: State(fish) → Transition(porpoise) → Validation(cognitive) closed loop
+
+| Component | Project | Function |
+|:---------:|---------|----------|
+| **S** | fish-ecology-assistant | State — knowledge, data, findings |
+| **T** | porpoise-agent | Transition — execution, pipeline |
+| **V** | cognitive-search-engine | Validation — verification, trust scoring |
+
+Config: `config/stv_protocol.yaml` — `min_sources_core_claim = 3`, trust_score 5-level triangulation.
 
 ## 🔧 Engineering Language Commitment
 
@@ -179,16 +204,24 @@ cognitive-search-engine/
 ├── LICENSE
 │
 ├── config/
-│   ├── agent.yaml                ← Energy efficiency + adaptive config
+│   ├── agent.yaml                ← v5.0: 5-layer architecture + BDI config
 │   ├── mcp_servers.yaml          ← 5 search engines
-│   ├── species_graph.yaml        ← Pre-built knowledge graph
+│   ├── species_graph.yaml        ← Long-term memory (16 entries + indexes)
 │   ├── component_registry.yaml   ← Living system: 12 components lifecycle
 │   ├── evolution.yaml            ← Self-evolution: 4 auto-adaptive params
-│   ├── search_rules.yaml         ← 🆕 YAML Rule Engine: 10 structured phases
-│   └── tools.json                ← 🆕 JSON Schema: DeepSeek+Gemini+OpenAI tools
+│   ├── search_rules.yaml         ← Phase definitions (mapping layer)
+│   ├── stv_protocol.yaml         ← Cross-project STV triangle protocol
+│   └── tools.json                ← JSON Schema: DeepSeek+Gemini+OpenAI tools
 │
-├── src/
-│   └── rule_engine.py            ← 🆕 Python executor: load YAML → execute
+├── src/                          ← 7 modules (5-layer cognitive agent)
+│   ├── agent_core.py             ← 🧠 CognitiveAgent — BDI + ReAct loop
+│   ├── memory_layer.py           ← 🗄️  MemorySystem — short-term + long-term
+│   ├── world_model.py            ← 🧬 BDI WorldModel — Belief/Desire/Intention
+│   ├── rule_engine.py            ← ⚙️  SearchRuleEngine — phases + execution
+│   ├── variant_generator.py      ← 🔤 OCR variant auto-generation
+│   ├── graph_updater.py          ← 📊 Graph persistence + reverse indexes
+│   ├── mcp_client.py             ← 🔌 MCP stdio client (5 servers)
+│   └── parallel_search.py        ← ⚡ Multi-query parallel executor
 │
 ├── skills/
 │   ├── graph-search-engine.md    ← v4 core: graph traversal + Pareto-optimal
@@ -196,6 +229,7 @@ cognitive-search-engine/
 │   └── self-evolve.md            ← 🧬 Post-search feedback → auto-adjust
 │
 ├── docs/
+│   ├── ARCHITECTURE.md           ← 🆕 5-layer agent architecture (full docs)
 │   └── UNIFIED_EVOLUTION.md      ← 3-project co-evolution architecture
 │
 └── .github/workflows/
@@ -206,15 +240,23 @@ cognitive-search-engine/
 
 ## 🔬 How It Works
 
-### Graph Traversal Algorithm
+### BDI + ReAct Cognitive Loop
 
 ```
-1. LOAD species from graph (0 tokens — pre-computed)
-2. IF known papers ≥ 8 → SATISFICED, return immediately
-3. TRAVERSE edges: authors → journals → citations
-4. LINGUISTIC FILTER: root similarity > 0.80
-5. MERGE new papers into graph (persist for next time)
-6. STOP when satisfied or diminishing returns
+1. INIT Belief: load known papers from graph (0 tokens)
+2. THINK:   π(Belief, Desire) → Intention (select phases)
+3. ACT:     Execute phase (PubMed, Crossref, MCP servers)
+4. OBSERVE: Count new papers, compute IG, update Belief
+5. REFLECT: Compare Belief vs Desire → continue / restructure / stop
+6. PERSIST: Merge new papers into graph (long-term memory)
+```
+
+### Graph-First Efficiency
+
+```
+IF known papers ≥ 8 → SATISFICED, return immediately (0 tokens)
+IF known papers < 8 → execute cheapest phases first
+IF consecutive zeros ≥ 2 → STOP (diminishing returns)
 ```
 
 ### Energy Efficiency
@@ -244,7 +286,8 @@ cognitive-search-engine/
 
 | Version | Date | Theme | What Changed |
 |:--------|:-----|:------|:-------------|
-| **v4.3** | 2026-06-06 | Engineering Language | + YAML Rule Engine (10 structured phases), + JSON Schema tools.json (DeepSeek+Gemini+OpenAI), + rule_engine.py, + multi-provider config, + self-evolve feedback loop, 100% engineering language compliance |
+| **v5.0** | 2026-07-14 | 5-Layer Agent Architecture | + BDI WorldModel (Belief/Desire/Intention), + CognitiveAgent (ReAct loop), + MemorySystem (short-term + long-term), + agent_core.py, + memory_layer.py, + variant_generator.py, + graph_updater.py, + mcp_client.py, + ARCHITECTURE.md |
+| **v4.3** | 2026-06-06 | Engineering Language | + YAML Rule Engine (10 structured phases), + JSON Schema tools.json, + rule_engine.py, + multi-provider config, + self-evolve feedback loop |
 | **v4.2** | 2026-06-06 | Living System | + component_registry (12 components), + evolution.yaml (4 adaptive params), + self-evolve Skill, + UNIFIED_EVOLUTION.md |
 | **v4.1** | 2026-06-06 | Adaptive Depth | + Adaptive search depth (exhaustive/classified/satisficing), + Phase 1.5 Review Mining, + Phase 1.6 Reference Verification (5-level trust scoring) |
 | **v4.0** | 2026-06-06 | Graph Engine | Initial release — Knowledge Graph Traversal, 12 search layers, energy efficiency, 5 search engines |
