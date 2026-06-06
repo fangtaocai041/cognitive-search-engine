@@ -3,36 +3,60 @@
 </p>
 
 <div align="center">
-  <h1>🕸️ 认知搜索引擎 v4</h1>
-  <p><strong>前沿物种文献搜索</strong> — 知识图谱遍历 + 能效最优 + 符号学 + 语言学 + DeepSeek 思维链</p>
-  <p>3 Skills · 5 搜索引擎 · 预建知识图谱 · 自适应搜索深度 · 活系统自进化</p>
+  <h1>🕸️ 认知搜索引擎 v5</h1>
+  <p><strong>5 层认知智能体</strong> — BDI + ReAct + 多层记忆 + 知识图谱遍历 + 符号学</p>
+  <p>7 模块 · 5 搜索引擎 · 5 层架构 · BDI 推理 · 活系统自进化</p>
 </div>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-4.3-6366f1?style=flat-square" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-5.0-8b5cf6?style=flat-square" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/skills-3-22c55e?style=flat-square" alt="Skills"></a>
   <a href="#"><img src="https://img.shields.io/badge/MCP-5-f59e0b?style=flat-square" alt="MCP"></a>
+  <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/架构-5层智能体-ec4899?style=flat-square" alt="架构"></a>
   <a href="#"><img src="https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6?style=flat-square" alt="Multi-LLM"></a>
+  <a href="#"><img src="https://img.shields.io/badge/BDI-ReAct-22c55e?style=flat-square" alt="BDI"></a>
   <a href="#"><img src="https://img.shields.io/badge/活系统-自进化-ec4899?style=flat-square" alt="活系统"></a>
-  <a href="#"><img src="https://img.shields.io/badge/工程语言-100%25-22c55e?style=flat-square" alt="工程语言"></a>
 </p>
 
 ---
 
-## 🔺 三角形启发的架构 (S-T-V + D₀→D₃)
+## 🧠 v5.0: 5 层标准智能体架构
 
-> **源自 DeepSeek & Gemini 几何哲学**: "点动成线，线动成面，面动成体"
-> 三个项目编织为 S-T-V 刚性三角形: State → Transition → Validation
+> **BDI + ReAct + 记忆系统** — 与学术 AI (MDP/POMDP, ReAct, BDI) 和工业框架 (LangChain, AutoGPT) 对齐
 
-| 维度 | 概念 | 实现 |
+| 层 | 功能 | 模块 |
+|:--:|------|------|
+| **1. 感知** | 输入解析: species_id → 属名/种名/中文名 | `SearchRuleEngine.execute()` |
+| **2. 认知** | BDI 策略 π(信念,愿望) → 意图 + ReAct 循环 | `src/agent_core.py` |
+| **3. 记忆** | 短期 (ContextTracker) + 长期 (GraphMemory) | `src/memory_layer.py` |
+| **4. 映射** | 意图路由 → 工具选择 → 查询序列化 | `search_rules.yaml` + `PHASE_FUNCTIONS` |
+| **5. 执行** | PubMed · Crossref · MCP 服务器 (5 引擎) | `rule_engine._http_search()` |
+
+### BDI + ReAct 认知循环
+
+```
+Think → Act → Observe → Reflect
+  │       │        │          │
+  │  形成意图    统计论文   对比信念
+  │  (B,D)→I    数量       与愿望
+  ▼
+愿望满足? → STOP
+```
+
+📖 完整架构: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+## 🔺 S-T-V 三角 (跨项目)
+
+> 三个项目: State(fish) → Transition(porpoise) → Validation(cognitive) 闭环
+
+| 组件 | 项目 | 功能 |
 |:----:|------|------|
-| 🔺 **S-T-V 三角** | fish(S)→porpoise(T)→cognitive(V) 闭环 | `config/stv_protocol.yaml` |
-| D₀ **点** | 原子操作 | 单次工具调用、`search_exact()` |
-| D₁ **线** | 因果轨迹 | 11 层协议、5 阶段流水线、FSM |
-| D₂ **面** | 拓扑网格 | 图谱遍历、debate-validator (3 Agent 辩论)、综述挖掘 |
-| D₃ **体** | 自愈生态 | `SelfHealingMonitor` (熵值→重置)、`WorldModel` (搜索前仿真) |
-| 📐 **三角验证** | ≥3 独立源才可信 | FB-1: `min_sources_core_claim = 3`, trust_score 5 级 |
+| **S** | fish-ecology-assistant | State — 知识、数据、发现 |
+| **T** | porpoise-agent | Transition — 执行、流水线 |
+| **V** | cognitive-search-engine | Validation — 验证、信任评分 |
+
+配置: `config/stv_protocol.yaml` — `min_sources_core_claim = 3`, trust_score 5 级三角验证。
 
 ## 🔧 工程语言承诺
 
@@ -209,15 +233,23 @@ cognitive-search-engine/
   • 输出分类概览 + "深入某类别"选项
 ```
 
-### 图谱遍历算法
+### BDI + ReAct 认知循环
 
 ```
-1. 从图谱加载已知论文（0 tokens — 预计算）
-2. 若已知论文 ≥ 8 → 满意，立即返回
-3. 遍历图谱边：作者 → 期刊 → 引用
-4. 语言学过滤：词根相似度 > 0.80
-5. 新论文合并入图谱（持久化，下次免费）
-6. 边际收益递减时停止
+1. 初始化信念: 从图谱加载已知论文 (0 tokens)
+2. 思考:     π(信念, 愿望) → 意图 (选择阶段)
+3. 行动:     执行阶段 (PubMed, Crossref, MCP 服务器)
+4. 观察:     统计新论文、计算 IG、更新信念
+5. 反思:     对比信念 vs 愿望 → 继续 / 重构 / 停止
+6. 持久化:   新论文合并入图谱 (长期记忆)
+```
+
+### 图谱优先效率
+
+```
+若已知论文 ≥ 8 → 满意，立即返回 (0 tokens)
+若已知论文 < 8 → 先执行最便宜阶段
+若连续零产出 ≥ 2 → 停止 (边际收益递减)
 ```
 
 ---
@@ -251,7 +283,8 @@ porpoise-agent 的 orchestrator 自动检测查询中的物种名，自动路由
 
 | 版本 | 日期 | 主题 | 变更内容 |
 |:------|:-----|:------|:-------------|
-| **v4.3** | 2026-06-06 | 工程语言化 | + YAML 规则引擎 (10 结构化阶段), + JSON Schema tools.json (三 LLM 通用), + rule_engine.py, + 多 Provider 配置, + 自进化反馈循环, 100% 工程语言合规 |
+| **v5.0** | 2026-07-14 | 5 层智能体架构 | + BDI WorldModel (信念/愿望/意图), + CognitiveAgent (ReAct 循环), + MemorySystem (短期+长期), + agent_core.py, + memory_layer.py, + variant_generator.py, + graph_updater.py, + mcp_client.py, + ARCHITECTURE.md |
+| **v4.3** | 2026-06-06 | 工程语言化 | + YAML 规则引擎 (10 结构化阶段), + JSON Schema tools.json (三 LLM 通用), + rule_engine.py, + 多 Provider 配置, + 自进化反馈循环 |
 | **v4.2** | 2026-06-06 | 活系统 | + component_registry (12 组件), + evolution.yaml (4 自适应参数), + self-evolve Skill, + UNIFIED_EVOLUTION.md |
 | **v4.1** | 2026-06-06 | 自适应深度 | + 自适应搜索深度 (穷举/分类/满意), + Phase 1.5 综述挖掘, + Phase 1.6 引用验证 (5 级信任评分) |
 | **v4.0** | 2026-06-06 | 图谱引擎 | 初始发布 — 知识图谱遍历, 12 搜索层, 能效最优, 5 搜索引擎 |
