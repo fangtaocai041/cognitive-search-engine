@@ -112,6 +112,79 @@
         },
         "required": ["search_result"]
       }
+    },
+    {
+      "name": "ncbi_esearch",
+      "description": "Search PubMed via NCBI E-utilities. Free, no API key needed.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "PubMed query" },
+          "maxResults": { "type": "integer", "default": 50, "maximum": 100 }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "scholar_search_literature_graph",
+      "description": "Search Google Scholar via Scholar MCP. Free.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" },
+          "limit": { "type": "integer", "default": 20 }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "article_search_literature",
+      "description": "Search Europe PMC + PubMed + Crossref via Article MCP. Free.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "keyword": { "type": "string" },
+          "max_results": { "type": "integer", "default": 10 }
+        },
+        "required": ["keyword"]
+      }
+    },
+    {
+      "name": "scholarly_search",
+      "description": "Multi-source academic search via Scholarly MCP (OpenAlex + Semantic Scholar). Free.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" },
+          "limit": { "type": "integer", "default": 15 }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "tavily_search",
+      "description": "AI-powered deep web search. Requires TAVILY_API_KEY.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" },
+          "max_results": { "type": "integer", "default": 15 },
+          "search_depth": { "type": "string", "enum": ["basic", "advanced"], "default": "advanced" }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "exa_web_search",
+      "description": "Semantic web search via Exa. Requires EXA_API_KEY.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" },
+          "num_results": { "type": "integer", "default": 10 }
+        },
+        "required": ["query"]
+      }
     }
   ]
 }

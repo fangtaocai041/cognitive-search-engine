@@ -36,6 +36,13 @@ openai:
   tools_schema: "config/tools.json"
 
 search:
+  # 搜索引擎列表 [v2.0 升级]
+  engines: ["ncbi","scholar","article","scholarly","tavily","exa","web_search"]
+  engine_categories:
+    academic: ["ncbi","scholar","article","scholarly"]
+    web: ["tavily","exa"]
+    fallback: ["web_search"]
+
   # 自适应搜索深度 (Adaptive Search Depth)
   adaptive:
     enabled: true

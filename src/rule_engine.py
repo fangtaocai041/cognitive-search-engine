@@ -1,6 +1,8 @@
 """
 Search Rule Engine — Load search_rules.yaml and execute phases.
 Replaces natural-language Skill instructions with structured, machine-executable rules.
+
+v4.1: +7-engine tool registry (ncbi+scholar+article+scholarly+tavily+exa+web_search)
 """
 
 import yaml
@@ -13,10 +15,75 @@ try:
 except ImportError:
     WorldModel = None  # graceful fallback
 
+# ===== 7-Engine Tool Registry (v4.1) =====
+TOOL_REGISTRY: dict[str, dict] = {
+    # 免费学术引擎
+    "ncbi": {
+        "server": "ncbi",
+        "tools": ["ncbi_ncbi_esearch", "ncbi_ncbi_esummary", "ncbi_ncbi_efetch"],
+        "requires_api_key": False,
+        "category": "academic",
+    },
+    "scholar": {
+        "server": "scholar",
+        "tools": ["scholar_search_literature_graph", "scholar_search_google_scholar_key_words"],
+        "requires_api_key": False,
+        "category": "academic",
+    },
+    "article": {
+        "server": "article",
+        "tools": ["article_search_literature", "article_get_article_details", "article_get_references"],
+        "requires_api_key": False,
+        "category": "academic",
+    },
+    "scholarly": {
+        "server": "scholarly",
+        "tools": ["scholarly_search"],
+        "requires_api_key": False,
+        "category": "academic",
+    },
+    # 付费网络搜索
+    "tavily": {
+        "server": "tavily",
+        "tools": ["tavily_search", "tavily_extract"],
+        "requires_api_key": True,
+        "category": "web",
+        "env_var": "TAVILY_API_KEY",
+    },
+    "exa": {
+        "server": "exa",
+        "tools": ["exa_web_search"],
+        "requires_api_key": True,
+        "category": "web",
+        "env_var": "EXA_API_KEY",
+    },
+    # 内置引擎
+    "web_search": {
+        "server": "reasonix_builtin",
+        "tools": ["web_search", "web_fetch"],
+        "requires_api_key": False,
+        "category": "builtin",
+    },
+}
+
+# Flattened list of all search tool names for availability checks
+ALL_SEARCH_TOOLS = [tool for engine in TOOL_REGISTRY.values() for tool in engine["tools"]]
+
+# Free vs paid classification
+FREE_SEARCH_TOOLS = [tool for engine in TOOL_REGISTRY.values() if not engine["requires_api_key"] for tool in engine["tools"]]
+PAID_SEARCH_TOOLS = [tool for engine in TOOL_REGISTRY.values() if engine["requires_api_key"] for tool in engine["tools"]]
+
+# Fallback chain by priority
+FALLBACK_CHAIN_ACADEMIC = ["scholar", "article", "scholarly", "ncbi", "web_search"]
+FALLBACK_CHAIN_WEB = ["tavily", "exa", "web_search"]
+
 # ===== Rule Engine =====
 
 class SearchRuleEngine:
-    """Load search_rules.yaml → execute phases → return papers."""
+    """Load search_rules.yaml → execute phases → return papers.
+
+    v4.1: 7-engine parallel with TOOL_REGISTRY for tool discovery and fallback.
+    """
 
     def __init__(self, config_path: str = "config/search_rules.yaml"):
         with open(config_path) as f:
@@ -89,18 +156,55 @@ class SearchRuleEngine:
         return False
 
     def _execute_phase(self, name: str, phase: dict, ctx: dict) -> dict:
-        """Execute a single phase. Stub — delegates to MCP tools in production."""
+        """Execute a single phase. Stub — delegates to MCP tools in production.
+
+        v4.1: Resolves tool names via TOOL_REGISTRY. In production, calls the
+        actual MCP tools; here returns stub for testing.
+        """
         fn = phase["function"]
         tools = phase.get("tools", [])
+        # Resolve which engines provide these tools
+        resolved_engines = []
+        for tool_name in tools:
+            for engine_name, engine_spec in TOOL_REGISTRY.items():
+                if tool_name in engine_spec["tools"]:
+                    resolved_engines.append(engine_name)
+                    break
+        resolved_engines = list(dict.fromkeys(resolved_engines))  # dedup preserve order
         # In production: call MCP tools, apply phase logic
-        return {"phase": name, "function": fn, "tools_used": tools, "new_papers": []}
+        return {
+            "phase": name,
+            "function": fn,
+            "tools_used": tools,
+            "engines_used": resolved_engines,
+            "new_papers": [],
+        }
+
+    def get_available_engines(self, api_keys: dict[str, bool]) -> dict[str, list[str]]:
+        """Check which engines are available given API key status.
+
+        api_keys: {"TAVILY_API_KEY": True, "EXA_API_KEY": True} etc.
+        Returns: {"free": [...], "paid": [...], "all": [...]}
+        """
+        free = [name for name, spec in TOOL_REGISTRY.items()
+                if not spec["requires_api_key"]]
+        paid = [name for name, spec in TOOL_REGISTRY.items()
+                if spec["requires_api_key"] and api_keys.get(spec.get("env_var", ""), False)]
+        return {"free": free, "paid": paid, "all": free + paid}
 
     def _builtins(self) -> dict:
         return {
             "len": len, "any": any, "max": max, "min": min, "filter": filter,
             "config": {
-                "search": {"energy": {"min_papers_satisfice": 8, "max_total_tokens": 50000}}
-            }
+                "search": {
+                    "energy": {"min_papers_satisfice": 8, "max_total_tokens": 50000},
+                    "engines": {
+                        "free": FREE_SEARCH_TOOLS,
+                        "paid": PAID_SEARCH_TOOLS,
+                        "all": ALL_SEARCH_TOOLS,
+                    },
+                }
+            },
         }
 
     def get_adaptive_params(self) -> dict:
@@ -108,7 +212,17 @@ class SearchRuleEngine:
         return {k: v["value"] for k, v in self.adaptive.items()}
 
 
-# ===== Usage =====
+# ===== Usage v4.1 =====
 # engine = SearchRuleEngine("config/search_rules.yaml")
 # result = engine.execute("Ochetobius_elongatus")
-# → {"papers": [...], "tokens_spent": 2000, "phases_executed": ["graph_lookup","exact_search"], "efficiency": 4.0}
+# → {
+#     "papers": [...],
+#     "tokens_spent": 2000,
+#     "phases_executed": ["graph_lookup","exact_search","variant_search"],
+#     "efficiency": 4.0,
+#     "world_model": {"predicted_volume": 8, "predicted_tokens": 3000, "accuracy": 0.85},
+#   }
+#
+# # Check engine availability:
+# engine.get_available_engines({"TAVILY_API_KEY": True})
+# → {"free": ["ncbi","scholar","article","scholarly","web_search"], "paid": ["tavily"], "all": [...]}
