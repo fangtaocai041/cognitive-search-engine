@@ -1,5 +1,5 @@
-# Self-Evolution Config — 自适应自进化
-# "活的系统": 搜索参数根据历史效果自动调整
+# ENGINEERING: params auto-adjusted per trigger conditions after each search.
+# All values are machine-readable; ranges define safe boundaries; triggers use exact thresholds.
 
 evolution:
   enabled: true

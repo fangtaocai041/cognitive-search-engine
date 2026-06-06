@@ -13,8 +13,8 @@ allowed-tools:
 ---
 # 🕸️ Graph-Based Cognitive Search Engine v4
 
-> **核心突破**: 不枚举，不穷举。用知识图谱遍历 + 能效最优理论替代线性 11 层搜索。
-> **v4.1 新增**: 自适应搜索深度 — 根据文献量自动切换穷举/分类/满意三种模式。
+> **Execution**: graph_traversal(species_id) replacing linear_11_layer_search. Mode: select_mode(estimate_volume(species_id)).
+> **v4.2**: +mine_review_references() +verify_references() +self_evolve feedback loop.
 
 ---
 
@@ -115,13 +115,11 @@ Phase 3: 迭代深化
 
 ## 0. Energy Efficiency Principle (能效最优理论)
 
-### 0.1 Satisficing (满意即止)
+### 0.1 satisfice(papers_found: int, threshold: int) → bool
 
 ```
-不是"找到所有论文" → 是"找到足够好的论文"
-不是 100% recall → 是 Pareto-optimal recall/cost
-
-Satisficing threshold (from agent.yaml):
+RETURN papers_found >= threshold
+# threshold from config.search.energy.min_papers_satisfice (default=8)
   min_papers: 8      → 找到 8 篇即满足
   target: 20          → 理想目标
   stop_if: IG_delta < 0.005 for 2 consecutive layers
@@ -202,8 +200,7 @@ Step D: Add discovered papers to graph
 
 ### 1.3 Layer 12: Review Paper Reference Mining (综述文献引用挖掘)
 
-> **核心洞察**: 综述文献是"二手搜索"——综述作者已经做了文献查找工作。
-> 找到一篇综述 = 免费获得其全部参考文献列表。
+> **Engineering**: review papers contain pre-compiled reference lists. mine_review_references() extracts these at ~500 tokens/review.
 
 ```
 DETECT review papers in results:

@@ -8,7 +8,7 @@ allowed-tools: []
 ---
 # 🧬 Self-Evolution Engine
 
-> **"活的系统"**: 不是固定的工具集。每次搜索都在学习，每个参数都在进化。
+> **Execution**: post_search_feedback_loop() → evaluate_search() → trigger_evolution() → log_evolution() → update_health(). Parameters auto-adjust per evolution.yaml triggers.
 
 ## PREFLIGHT
 
