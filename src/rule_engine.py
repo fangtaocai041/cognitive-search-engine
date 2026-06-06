@@ -7,6 +7,12 @@ import yaml
 from pathlib import Path
 from typing import Any
 
+# ===== D₃ World Model import =====
+try:
+    from src.world_model import WorldModel
+except ImportError:
+    WorldModel = None  # graceful fallback
+
 # ===== Rule Engine =====
 
 class SearchRuleEngine:
@@ -21,9 +27,16 @@ class SearchRuleEngine:
         self._all_papers: list[dict] = []
         self._tokens_spent: int = 0
         self._consecutive_zero: int = 0
+        # ===== D₃ World Model =====
+        self._world_model = WorldModel() if WorldModel else None
 
     def execute(self, species_id: str) -> dict[str, Any]:
         """Execute all active phases, respecting stop conditions and budget."""
+        # ===== D₃: Pre-search World Model prediction =====
+        prediction = None
+        if self._world_model:
+            prediction = self._world_model.predict(species_id, graph_known_count=0)
+
         context = {"species_id": species_id, "all_papers": self._all_papers}
         phases_executed = []
 
@@ -43,12 +56,23 @@ class SearchRuleEngine:
             else:
                 self._consecutive_zero += 1
 
-        return {
+        result = {
             "papers": self._all_papers,
             "tokens_spent": self._tokens_spent,
             "phases_executed": phases_executed,
             "efficiency": len(self._all_papers) / max(self._tokens_spent / 1000, 1),
         }
+
+        # ===== D₃: Update World Model with actual results =====
+        if prediction and self._world_model:
+            self._world_model.update(prediction, len(self._all_papers), self._tokens_spent)
+            result["world_model"] = {
+                "predicted_volume": prediction.estimated_volume,
+                "predicted_tokens": prediction.predicted_tokens,
+                "accuracy": round(self._world_model.prediction_accuracy, 2),
+            }
+
+        return result
 
     def _should_activate(self, phase: dict, ctx: dict) -> bool:
         """Check activation condition. None = always active."""
