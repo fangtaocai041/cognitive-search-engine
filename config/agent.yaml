@@ -3,8 +3,18 @@
 
 agent:
   name: "Cognitive Search Engine"
-  version: "4.0.0"
+  version: "4.3.0"
   description: "Frontier species literature search — semiotics + graph traversal + energy-efficient"
+
+# DeepSeek 标准配置 (YAML 1.2)
+llm:
+  provider: deepseek
+  model: deepseek-chat
+  api_base: https://api.deepseek.com/v1
+  api_key: ${DEEPSEEK_API_KEY}
+  params:
+    temperature: 0.7
+    max_tokens: 8192
 
 search:
   # 自适应搜索深度 (Adaptive Search Depth)
