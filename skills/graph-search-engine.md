@@ -20,38 +20,24 @@ allowed-tools:
 
 ## -1. Adaptive Search Depth (自适应搜索深度)
 
-### 核心问题
-
-> "满意即止"在文献量少时可能遗漏关键论文。"穷举搜索"在文献量大时浪费资源。
-> **解决方案**: 先估算文献量，再自动选择策略。
-
-### 三模式自适应切换
+### estimate_volume(species_id: str) → int
 
 ```
-PRE-SEARCH: Estimate literature volume
-  → Quick Google Scholar count (title-only)
-  → Graph node count for species
-  → Author publication frequency
+v1 = scholar_count(title="{species_name}", source="google_scholar")
+v2 = graph_node_count(species_id)
+v3 = Σ(author.papers_per_year × author.years_active) / |top_authors| for top 3 authors
+RETURN max(v1, v2, v3)
+```
 
+### select_mode(estimated_volume: int) → SearchMode
+
+```
 IF estimated_volume < 20:
-  → MODE: EXHAUSTIVE (穷举模式)
-     Goal: 100% recall
-     Satisficing: DISABLED
-     Layers: ALL 11 layers active
-     Graph depth: max (3)
-     Stop: only when no new papers for 2 consecutive layers
-
-ELIF estimated_volume 20-200:
-  → MODE: CLASSIFIED (分类归纳模式)
-     Phase 1: Quick classification by sub-topic
-     Phase 2: Human selects categories → exhaustive within each
-     Output: Classification tree with paper counts per category
-
-ELIF estimated_volume > 200:
-  → MODE: SATISFICING (满意模式)
-     Goal: representative sample
-     Satisficing: ENABLED (threshold = 8-15)
-     Output: Classification summary + "drill down" options
+  RETURN EXHAUSTIVE(satisficing=false, all_layers=true, graph_depth=3, stop="2_consecutive_zero")
+ELIF estimated_volume <= 200:
+  RETURN CLASSIFIED(phase1="classify_only", phase2="drill_down_on_select", phase3="iterative_deepen")
+ELSE:
+  RETURN SATISFICING(threshold=12, output="classification_summary")
 ```
 
 ### 体积估算方法
@@ -274,53 +260,44 @@ Search exact name → if satisficed, STOP
 Search by known authors from graph → if satisficed, STOP
 ```
 
-### Phase 1.5: Review Paper Mining (500 tokens per review) 🆕
-
-> **二手搜索**: 综述已做文献查找，我们只需挖掘其参考文献。
+### Phase 1.5: mine_review_references(results: list[Paper]) → list[Paper]
 
 ```
-AFTER Phase 1:
-  SCAN results for review papers:
-    Title contains: "review", "systematic review", "meta-analysis",
-                    "综述", "研究进展", "进展", "概述", "systematic review"
+review_pattern = regex("review|systematic.review|meta.analysis|综述|研究进展|进展|概述")
+reviews = filter(results, λp: review_pattern.matches(p.title))
+new_papers = []
 
-  IF review_found:
-    FOR EACH review:
-      1. GET references via article_get_references(DOI)
-      2. EXTRACT papers about our species
-      3. CROSS-CHECK: already found? → skip. New? → add! 🆕
-      4. FLAG: "via_review_{review_title_short}"
+FOR EACH review IN reviews:
+  refs = article_get_references(identifier=review.doi, max_results=100)
+  relevant = filter(refs, λr: (genus IN r.title) OR (species IN r.title) OR (chinese_name IN r.title))
+  FOR EACH r IN relevant:
+    IF r.doi NOT IN existing_dois:
+      r.source = "via_review_" + review.title[:50]
+      new_papers.append(r)
 
-    REVIEW_VALUE = new_papers / total_references
-    IF REVIEW_VALUE > 0:
-      LOG: "综述挖掘发现 {new_papers} 篇遗漏论文"
+review_value = len(new_papers) / max(len(reviews) * avg_refs_per_review, 1)
+IF review_value > 0: log(f"review_mining: +{len(new_papers)} papers, value={review_value:.2f}")
+RETURN new_papers
 ```
 
-### Phase 1.6: Reference Verification (引用验证) 🛡️
-
-> **原则**: "信任但验证" — 综述引用不准确是常见问题，需独立确认。
+### Phase 1.6: verify_references(papers: list[Paper]) → dict[Paper, TrustLevel]
 
 ```
-FOR EACH paper from review mining:
-  # L1: DOI 存在性
-  VERIFY doi_exists → no DOI AND no URL → ⚠️ SUSPICIOUS
+trust_score(p: Paper) → int:
+  score = 50
+  IF p.doi AND doi_resolves(p.doi): score += 20       # L1: DOI exists
+  IF scholar_search(exact_title=p.title).found: score += 15  # L2: independent search
+  citing_reviews = count_reviews_citing(p) - 1
+  score += min(20, 10 × citing_reviews)                # L3: triangulation
+  IF author_journal_year_consistent(p): score += 10    # L4: consistency
+  IF p.abstract AND (species IN p.abstract): score += 5  # L5: relevance
+  RETURN score
 
-  # L2: 独立搜索确认
-  SEARCH exact title in scholar → NOT found → 🔴 UNVERIFIED
-
-  # L3: 引用三角验证
-  ≥ 2 reviews cite it → 🟢 HIGH | =1 → 🟡 MEDIUM | =0 → ⚠️ LOW
-
-  # L4: 作者-期刊-年份一致性
-  author_journal_year_mismatch → 🔴 INCONSISTENT
-
-  # L5: 摘要匹配
-  abstract mentions species? → NO → ⚠️ MAY_BE_IRRELEVANT
-
-TRUST SCORE = 50 + 20(DOI) + 15(search) + 10×(reviews-1) + 10(consistent)
-  ≥ 80: 🟢 VERIFIED → include
-  50-79: 🟡 TENTATIVE → include with ⚠️ flag
-  < 50: 🔴 UNVERIFIED → appendix only
+FOR EACH p IN papers:
+  score = trust_score(p)
+  IF score >= 80:    p.trust = VERIFIED
+  ELIF score >= 50:  p.trust = TENTATIVE; p.warning = "⚠️ 综述引用，待独立确认"
+  ELSE:              p.trust = UNVERIFIED; move_to_appendix(p)
 ```
 
 ### Phase 2: Citation Traversal (1000 tokens)

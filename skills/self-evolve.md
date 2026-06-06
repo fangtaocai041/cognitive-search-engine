@@ -17,67 +17,62 @@ allowed-tools: []
 
 ## Post-Search Evolution Cycle
 
-### Step 1: Evaluate Search Effectiveness
+### evaluate_search(result: SearchResult) → Metrics
 
 ```
-AFTER each search completes:
-
-METRICS:
-  recall = papers_found / estimated_volume
-  new_rate = new_papers / total_papers
-  efficiency = papers_found / (tokens_spent / 1000)
-  fp_rate = unverified_papers / review_mined_papers
-
-COMPARE to baseline:
-  baseline = evolution.evolution_log (last 10 searches average)
+recall = result.papers_found / max(result.estimated_volume, 1)
+new_rate = len(result.new_papers) / max(result.total_papers, 1)
+efficiency = result.papers_found / max(result.tokens_spent / 1000, 1)
+fp_rate = len(filter(result.papers, λp: p.trust == UNVERIFIED)) / max(len(result.review_mined_papers), 1)
+baseline = avg(last_10_evolution_logs.metrics)
+RETURN Metrics(recall, new_rate, efficiency, fp_rate, baseline)
 ```
 
-### Step 2: Trigger Evolution
+### trigger_evolution(m: Metrics, config: EvolutionConfig) → list[Adaptation]
 
 ```
-CHECK evolution.evolution_triggers:
+adaptations = []
 
-  IF recall_drop triggered (3 consecutive < 50%):
-    → satisfice_threshold += 2
-    → activate previously pruned layers
-    → LOG: "recall_drop → increased satisfice to {new}"
+# Trigger 1: recall_drop
+IF m.recall < 0.5 FOR 3 CONSECUTIVE searches:
+  config.satisfice_threshold = min(20, config.satisfice_threshold + 2)
+  adaptations.append(Adaptation("recall_drop", "satisfice_threshold", +2))
 
-  IF efficiency_gain triggered (5 consecutive > baseline):
-    → prune lowest-IG layer
-    → LOG: "efficiency_gain → pruned layer {name}"
+# Trigger 2: efficiency_gain
+IF m.efficiency > m.baseline.efficiency × 1.2 FOR 5 CONSECUTIVE searches:
+  pruned = prune_lowest_ig_layer()
+  adaptations.append(Adaptation("efficiency_gain", "pruned_layer", pruned))
 
-  IF false_positive_spike triggered (2 consecutive > 15%):
-    → trust_score_threshold += 10
-    → LOG: "fp_spike → increased trust threshold to {new}"
+# Trigger 3: false_positive_spike
+IF m.fp_rate > 0.15 FOR 2 CONSECUTIVE searches:
+  config.trust_score_threshold = min(70, config.trust_score_threshold + 10)
+  adaptations.append(Adaptation("fp_spike", "trust_score_threshold", +10))
 
-  IF graph_grew (new nodes > 20%):
-    → suggest creating dedicated species_graph entry
-    → LOG: "graph_growth → new species discovered"
+RETURN adaptations
 ```
 
-### Step 3: Log Evolution
+### log_evolution(adaptations: list[Adaptation])
 
 ```
-APPEND to .evolution/evolution-log.jsonl:
-  {
-    "timestamp": "{now}",
-    "trigger": "{trigger_type}",
-    "param": "{param_name}",
-    "old_value": "{old}",
-    "new_value": "{new}",
-    "pre_metric": "{metric_before}",
-    "post_metric_expected": "{expected_improvement}"
-  }
+FOR EACH a IN adaptations:
+  append_jsonl(".evolution/evolution-log.jsonl", {
+    timestamp: now_iso(),
+    trigger: a.trigger,
+    param: a.param_name,
+    old_value: a.old_value,
+    new_value: a.new_value,
+    pre_metric: a.pre_metric,
+  })
 ```
 
-### Step 4: Update Component Health
+### update_health(adaptations: list[Adaptation])
 
 ```
 UPDATE component_registry.yaml:
-  affected_components.last_verified = now
-  affected_components.effectiveness = updated_metrics
-
-RECALCULATE living_system.health_score
+  FOR EACH affected_component IN adaptations.affected_components:
+    component.last_verified = now()
+    component.effectiveness = recompute_metrics()
+  living_system.health_score = recompute_health()
 ```
 
 ## Self-Evolution Report
