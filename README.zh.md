@@ -5,15 +5,16 @@
 <div align="center">
   <h1>🕸️ 认知搜索引擎 v4</h1>
   <p><strong>前沿物种文献搜索</strong> — 知识图谱遍历 + 能效最优 + 符号学 + 语言学 + DeepSeek 思维链</p>
-  <p>2 Skills · 5 搜索引擎 · 预建知识图谱 · 自适应搜索深度</p>
+  <p>3 Skills · 5 搜索引擎 · 预建知识图谱 · 自适应搜索深度 · 活系统自进化</p>
 </div>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/version-4.1.0-6366f1?style=flat-square" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/skills-2-22c55e?style=flat-square" alt="Skills"></a>
+  <a href="#"><img src="https://img.shields.io/badge/skills-3-22c55e?style=flat-square" alt="Skills"></a>
   <a href="#"><img src="https://img.shields.io/badge/MCP-5-f59e0b?style=flat-square" alt="MCP"></a>
-  <a href="#"><img src="https://img.shields.io/badge/DeepSeek-optimized-8b5cf6?style=flat-square" alt="DeepSeek"></a>
+  <a href="#"><img src="https://img.shields.io/badge/活系统-自进化-ec4899?style=flat-square" alt="活系统"></a>
+  <a href="#"><img src="https://img.shields.io/badge/DeepSeek-优化-8b5cf6?style=flat-square" alt="DeepSeek"></a>
 </p>
 
 ---
@@ -139,12 +140,18 @@ cognitive-search-engine/
 │
 ├── config/
 │   ├── agent.yaml                ← 能效配置 + 自适应搜索深度
-│   ├── mcp_servers.yaml          ← 5 搜索引擎 (Scholar/Article/Tavily/Exa/Scholarly)
-│   └── species_graph.yaml        ← 预建知识图谱（物种→作者→论文→期刊→引用边）
+│   ├── mcp_servers.yaml          ← 5 搜索引擎
+│   ├── species_graph.yaml        ← 预建知识图谱
+│   ├── component_registry.yaml   ← 活系统：12 组件生命周期
+│   └── evolution.yaml            ← 自进化：4 自适应参数
 │
 ├── skills/
-│   ├── graph-search-engine.md    ← v4.1 核心：图谱遍历 + Pareto 能效最优
-│   └── cognitive-species-search.md ← v3.1：符号学 + 语言学 + 语音学 + 逻辑学
+│   ├── graph-search-engine.md    ← v4 核心：图谱遍历 + 能效最优
+│   ├── cognitive-species-search.md ← v3：符号学 + 语言学 + 语音学
+│   └── self-evolve.md            ← 🧬 搜索后反馈 → 自动调参
+│
+├── docs/
+│   └── UNIFIED_EVOLUTION.md      ← 三项目协同进化架构
 │
 └── .github/workflows/
     └── validate.yml              ← CI/CD 自动验证

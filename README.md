@@ -7,11 +7,11 @@
 > **Frontier species literature search** — Knowledge Graph Traversal + Energy Efficiency + Semiotics + Linguistics + DeepSeek Chain-of-Thought
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-4.0.0-6366f1)](config/agent.yaml)
-[![Skills](https://img.shields.io/badge/skills-2-22c55e)](skills/)
+[![Version](https://img.shields.io/badge/version-4.2-6366f1)](config/agent.yaml)
+[![Skills](https://img.shields.io/badge/skills-3-22c55e)](skills/)
 [![MCP](https://img.shields.io/badge/MCP-5-f59e0b)](config/mcp_servers.yaml)
+[![Living System](https://img.shields.io/badge/living_system-self_evolving-ec4899)]()
 [![DeepSeek](https://img.shields.io/badge/DeepSeek-optimized-8b5cf6)]()
-[![submodule](https://img.shields.io/badge/git-submodule-ec4899)]()
 
 ---
 
@@ -147,13 +147,19 @@ cognitive-search-engine/
 ├── LICENSE
 │
 ├── config/
-│   ├── agent.yaml                ← Energy efficiency config
-│   ├── mcp_servers.yaml          ← 5 search engines (Scholar, Article, Tavily, Exa, Scholarly)
-│   └── species_graph.yaml        ← Pre-built knowledge graph
+│   ├── agent.yaml                ← Energy efficiency + adaptive config
+│   ├── mcp_servers.yaml          ← 5 search engines
+│   ├── species_graph.yaml        ← Pre-built knowledge graph
+│   ├── component_registry.yaml   ← Living system: 12 components lifecycle
+│   └── evolution.yaml            ← Self-evolution: 4 auto-adaptive params
 │
 ├── skills/
 │   ├── graph-search-engine.md    ← v4 core: graph traversal + Pareto-optimal
-│   └── cognitive-species-search.md ← v3: semiotics + linguistics + phonetics
+│   ├── cognitive-species-search.md ← v3: semiotics + linguistics + phonetics
+│   └── self-evolve.md            ← 🧬 Post-search feedback → auto-adjust
+│
+├── docs/
+│   └── UNIFIED_EVOLUTION.md      ← 3-project co-evolution architecture
 │
 └── .github/workflows/
     └── validate.yml              ← CI/CD
