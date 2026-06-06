@@ -226,6 +226,17 @@ cognitive-search-engine/
 
 ---
 
+## 📋 README Changelog
+
+| Version | Date | Theme | What Changed |
+|:--------|:-----|:------|:-------------|
+| **v4.3** | 2026-06-06 | Engineering Language | + YAML Rule Engine (10 structured phases), + JSON Schema tools.json (DeepSeek+Gemini+OpenAI), + rule_engine.py, + multi-provider config, + self-evolve feedback loop, 100% engineering language compliance |
+| **v4.2** | 2026-06-06 | Living System | + component_registry (12 components), + evolution.yaml (4 adaptive params), + self-evolve Skill, + UNIFIED_EVOLUTION.md |
+| **v4.1** | 2026-06-06 | Adaptive Depth | + Adaptive search depth (exhaustive/classified/satisficing), + Phase 1.5 Review Mining, + Phase 1.6 Reference Verification (5-level trust scoring) |
+| **v4.0** | 2026-06-06 | Graph Engine | Initial release — Knowledge Graph Traversal, 12 search layers, energy efficiency, 5 search engines |
+
+---
+
 ## 📜 License
 
 MIT © 2026 fangtaocai041

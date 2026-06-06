@@ -233,6 +233,17 @@ porpoise-agent 的 orchestrator 自动检测查询中的物种名，自动路由
 
 ---
 
+## 📋 README 变更记录
+
+| 版本 | 日期 | 主题 | 变更内容 |
+|:------|:-----|:------|:-------------|
+| **v4.3** | 2026-06-06 | 工程语言化 | + YAML 规则引擎 (10 结构化阶段), + JSON Schema tools.json (三 LLM 通用), + rule_engine.py, + 多 Provider 配置, + 自进化反馈循环, 100% 工程语言合规 |
+| **v4.2** | 2026-06-06 | 活系统 | + component_registry (12 组件), + evolution.yaml (4 自适应参数), + self-evolve Skill, + UNIFIED_EVOLUTION.md |
+| **v4.1** | 2026-06-06 | 自适应深度 | + 自适应搜索深度 (穷举/分类/满意), + Phase 1.5 综述挖掘, + Phase 1.6 引用验证 (5 级信任评分) |
+| **v4.0** | 2026-06-06 | 图谱引擎 | 初始发布 — 知识图谱遍历, 12 搜索层, 能效最优, 5 搜索引擎 |
+
+---
+
 ## 📜 许可证
 
 MIT © 2026 fangtaocai041
