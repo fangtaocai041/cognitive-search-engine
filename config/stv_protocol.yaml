@@ -1,0 +1,48 @@
+# S-T-V Triangular Protocol — 三角闭环协议
+# S: fish-ecology-assistant (State)
+# T: porpoise-agent (Transition)
+# V: cognitive-search-engine (Validation)
+
+stv_protocol:
+  version: "1.0.0"
+
+  roles:
+    S:
+      project: "fish-ecology-assistant"
+      function: "State — knowledge, data, findings, contradiction analysis"
+    T:
+      project: "porpoise-agent"
+      function: "Transition — execution, pipeline, tool calling"
+    V:
+      project: "cognitive-search-engine"
+      function: "Validation — verification, trust scoring, feedback"
+
+  closed_loop:
+    S_to_T:
+      protocol: "state_vector"
+      format: "json"
+      fields: [schema, findings, contradiction_type, confidence]
+    T_to_V:
+      protocol: "action_request"
+      format: "function_call"
+      fields: [search_query, species_id, mode, max_papers]
+    V_to_S:
+      protocol: "feedback_vector"
+      format: "trust_scored_json"
+      fields: [verified_papers, trust_scores, gaps, new_discoveries]
+
+  triangulation:
+    min_independent_sources: 3
+    independence_rules:
+      - "authors do not overlap"
+      - "institutions are different"
+      - "no direct citation chain between sources"
+    trust_levels:
+      verified: "≥3 independent sources converge"
+      tentative: "2 independent sources"
+      unverified: "<2 sources → BLOCK output"
+
+  fractal_self_similarity:
+    cross_project: { S: fish, T: porpoise, V: cognitive }
+    intra_project: "every Skill: State→Transition→Validation"
+    atomic: "every tool call: input(S)→execute(T)→validate(V)"
