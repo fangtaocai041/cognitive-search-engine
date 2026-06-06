@@ -13,8 +13,9 @@ allowed-tools:
 ---
 # 🕸️ Graph-Based Cognitive Search Engine v4
 
-> **Execution**: graph_traversal(species_id) replacing linear_11_layer_search. Mode: select_mode(estimate_volume(species_id)).
-> **v4.2**: +mine_review_references() +verify_references() +self_evolve feedback loop.
+> **Canonical execution**: `python src/rule_engine.py` — loads `config/search_rules.yaml` → executes phases → returns papers.
+> **Skill mode**: instruction reference for AI agents. **Code mode**: direct Python execution.
+> **v4.3**: +search_rules.yaml (structured rules) +rule_engine.py (Python executor)
 
 ---
 

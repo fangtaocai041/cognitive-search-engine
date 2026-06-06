@@ -1,0 +1,141 @@
+# Search Rule Engine — 可执行搜索规则
+# 替代自然语言 Skill 指令。orchestrator 直接 load → parse → execute。
+# 每条规则: function + inputs + tools + stop_condition + budget
+
+version: "1.0.0"
+
+phases:
+  graph_lookup:
+    function: load_known_papers
+    inputs: { species_id: "$species_id" }
+    source: "config/species_graph.yaml"
+    output: "list[Paper]"
+    budget: 0
+    priority: 0
+    stop_condition: "len(output) >= config.search.energy.min_papers_satisfice"
+
+  exact_search:
+    function: search_scholar_article
+    inputs: { query: "$genus $species" }
+    tools: [scholar_search_literature_graph, article_search_literature]
+    output: "list[Paper]"
+    budget: 500
+    priority: 1
+    stop_condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
+
+  author_crossref:
+    function: search_by_authors
+    inputs: { authors: "$graph.authors[species_id]", min_year: "$min_year" }
+    tools: [scholar_search_google_scholar_key_words, scholar_search_literature_graph]
+    output: "list[Paper]"
+    budget: 1500
+    priority: 2
+    activation: "len(all_papers) < config.search.energy.min_papers_satisfice"
+    stop_condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
+
+  review_mining:
+    function: mine_review_references
+    inputs: { papers: "$all_papers" }
+    tools: [article_get_references]
+    output: "list[Paper]"
+    budget: 500
+    priority: 3
+    activation: "any(filter(papers, λp: p.title matches review_pattern))"
+    stop_condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
+
+  reference_verification:
+    function: verify_references
+    inputs: { papers: "$review_mined_papers" }
+    tools: [scholar_search_literature_graph]
+    output: "dict[Paper, TrustLevel]"
+    budget: 1000
+    priority: 4
+    activation: "len(review_mined_papers) > 0"
+    params:
+      trust_threshold_verified: 80
+      trust_threshold_tentative: 50
+
+  citation_traversal:
+    function: traverse_citation_graph
+    inputs: { papers: "$all_papers_with_doi", max_depth: 3 }
+    tools: [article_get_references, article_get_literature_relations]
+    output: "list[Paper]"
+    budget: 1000
+    priority: 5
+    activation: "len(all_papers_with_doi) >= 3"
+    stop_condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
+
+  variant_search:
+    function: search_variants
+    inputs: { genus: "$genus", species: "$species", variants: "$graph.variants[species_id]" }
+    tools: [scholar_search_literature_graph, article_search_literature]
+    output: "list[Paper]"
+    budget: 2000
+    priority: 6
+    activation: "len(all_papers) < 10"
+
+  phonetic_search:
+    function: search_phonetic
+    inputs: { soundex: "$soundex(genus)", metaphone: "$metaphone(genus)" }
+    tools: [scholar_search_literature_graph]
+    output: "list[Paper]"
+    budget: 800
+    priority: 7
+    activation: "len(genus) > 6 AND len(all_papers) < 10"
+
+  journal_scan:
+    function: scan_target_journals
+    inputs: { journals: "$graph.journals[species_id]", keyword: "$chinese_name" }
+    tools: [scholar_search_literature_graph]
+    output: "list[Paper]"
+    budget: 1200
+    priority: 8
+    activation: "len(all_papers) < config.search.energy.min_papers_satisfice"
+
+  llm_expansion:
+    function: llm_query_expansion
+    inputs: { genus: "$genus", species: "$species", context: "$semiotic_context" }
+    tools: [thinking_sequentialthinking, scholar_search_literature_graph, tavily_tavily_search]
+    output: "list[Paper]"
+    budget: 3000
+    priority: 9
+    activation: "len(all_papers) < 5"
+
+  dedup_merge:
+    function: deduplicate_and_merge
+    inputs: { papers: "$all_papers" }
+    output: "list[Paper]"
+    budget: 0
+    priority: 99
+    params:
+      primary_key: "doi"
+      secondary_key: "title_similarity"
+      similarity_threshold: 0.90
+
+stop_conditions:
+  global:
+    - condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
+      action: "STOP_ALL"
+    - condition: "consecutive_zero_new >= 2"
+      action: "STOP_ALL"
+    - condition: "total_tokens >= config.search.energy.max_total_tokens"
+      action: "STOP_ALL"
+    - condition: "IG_per_token < 0.005 FOR 2 CONSECUTIVE phases"
+      action: "SKIP_REMAINING"
+
+adaptive_params:
+  satisfice_threshold:
+    value: 8
+    range: [5, 20]
+    step: 2
+    trigger: "recall < 0.5 FOR 3 CONSECUTIVE searches"
+  trust_threshold:
+    value: 50
+    range: [30, 70]
+    step: 10
+    trigger: "fp_rate > 0.15 FOR 2 CONSECUTIVE searches"
+  graph_depth:
+    value: 3
+    range: [1, 5]
+    step: 1
+    trigger: "new_papers_rate < 0.05 FOR 5 CONSECUTIVE searches"
