@@ -35,7 +35,12 @@ graph:
   - id: Elopichthys_bambusa
     name: Elopichthys bambusa
     chinese: 鳡
-    aliases: ["鳡鱼", "黄钻", "竿鱼", "水老虎", "铜头鱼"]
+    aliases:
+    - 鳡鱼
+    - 黄钻
+    - 竿鱼
+    - 水老虎
+    - 铜头鱼
     family: Xenocyprididae
     conservation: LC
     variants:
@@ -44,7 +49,10 @@ graph:
   - id: Luciobrama_macrocephalus
     name: Luciobrama macrocephalus
     chinese: 鯮
-    aliases: ["鯮鱼", "尖头鳡", "马头鯮"]
+    aliases:
+    - 鯮鱼
+    - 尖头鳡
+    - 马头鯮
     family: Xenocyprididae
     conservation: CR
     variants:
@@ -373,6 +381,638 @@ graph:
     - Ochetobius_elongatus
     type: mention
     note: Post-fishing ban survey, O. elongatus detected in Poyang Lake Basin
+  - doi: 10.1016/j.marpolbul.2026.119895
+    title: 'Novel attempt to assess marine mammal dynamics over the past 100 years
+      using sedimentary DNA: An example in finless porpoise.'
+    year: 2026
+    journal: Marine pollution bulletin
+    authors:
+    - Nakane Kai
+    - Kuwae Michinobu
+    - Doi Hideyuki
+    - Ochiai Mari
+    - Isobe Tomohiko
+    - Kunisue Tatsuya
+    - Tsugeki Narumi
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1371/journal.pone.0346095
+    title: Analysis of the population structure and physiological status differences
+      of yangtze finless porpoises (Neophocaena asiaeorientalis) across habitats in
+      Poyang lake.
+    year: 2026
+    journal: PloS one
+    authors:
+    - Huang Yi
+    - Yin Heng
+    - Wei Lingxia
+    - Zhang Yun
+    - Rao Rongcheng
+    - Yang Ying
+    - Liu Fangning
+    - Min Jialing
+    - Yu Jinxiang
+    - Que Jianglong
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1021/acs.est.5c13935
+    title: Quantitative in Vitro to in Vivo Extrapolation (QIVIVE) for Risk Assessment
+      of Persistent Organic Pollutant Mixtures in Cetaceans.
+    year: 2026
+    journal: Environmental science & technology
+    authors:
+    - Boukara Islem
+    - Endo Satoshi
+    - Ochiai Mari
+    - Henneberger Luise
+    - Escher Beate I
+    - Iwata Hisato
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1099/ijsem.0.007092
+    title: 'Hubeiibacter gen. nov., a new genus of Moraxellaceae: identification of
+      Hubeiibacter jixunmingi sp. nov. isolated from blowhole swab samples of Yangtze
+      finless porpoise (Neophocaena asiaeorientalis asiaeorientalis).'
+    year: 2026
+    journal: International journal of systematic and evolutionary microbiology
+    authors:
+    - Xiao Qun
+    - Du Ying
+    - Luo Wenbo
+    - Yang Hongyu
+    - Liu Yuqing
+    - Zheng Han
+    - Luo Xuelian
+    - Yang Jing
+    - Zheng Jinsong
+    - Kang Hui
+    - Hao Yujiang
+    - Li Songhai
+    - Xu Jianguo
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1016/j.cell.2023.08.029
+    title: Metatranscriptomic analyses of gut bacterial and viral communities in the
+      critically endangered Yangtze finless porpoise (Neophocaena asiaeorientalis
+      asiaeorientalis) under distinct environments.
+    year: 2026
+    journal: Animal microbiome
+    authors:
+    - Fan Sanling
+    - Liu Haizhou
+    - Yan Yi
+    - Xu Meng
+    - Wan Xiaoling
+    - Hao Yujiang
+    - Gong Cheng
+    - Wang Chaoqun
+    - Zhang Yuan
+    - Liu Di
+    - Zheng Jinsong
+    - Chen Jianjun
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1111/age.13408
+    title: Genome-Wide Development and Validation of KASP-Based SNP Markers in Neophocaena
+      asiaeorientalis asiaeorientalis.
+    year: 2026
+    journal: 'Animals : an open access journal from MDPI'
+    authors:
+    - Yin Denghua
+    - Zhang Han
+    - Tang Mengting
+    - Que Jianglong
+    - Lin Danqing
+    - Ying Congping
+    - Zhang Jialu
+    - Yu Jinxiang
+    - Liu Kai
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1121/10.0042246
+    title: Directivity control of underwater sound reception inspired by the finless
+      porpoise.
+    year: 2026
+    journal: The Journal of the Acoustical Society of America
+    authors:
+    - Ou Wenzhan
+    - Song Zhongchang
+    - Ye Xin
+    - Zhang Jinhu
+    - Zhou Nana
+    - Peng Xuming
+    - Zhang Yu
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1099/ijsem.0.007023
+    title: Paracoccus jiaweipingae sp. nov. and Paracoccus zhouxuedongae sp. nov.,
+      isolated from blowhole swab samples of Yangtze finless porpoise (Neophocaena
+      asiaeorientalis asiaeorientalis).
+    year: 2026
+    journal: International journal of systematic and evolutionary microbiology
+    authors:
+    - Xiao Qun
+    - Zheng Han
+    - Luo Xuelian
+    - Yang Hongyu
+    - Liu Jinlv
+    - Ma Jiajia
+    - Hou Qiang
+    - Yang Jing
+    - Zheng Jinsong
+    - Kang Hui
+    - Hao Yujiang
+    - Li Songhai
+    - Xu Jianguo
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1016/j.envpol.2026.127662
+    title: Whales contribute to novel insight on poly- and perfluoroalkyl substances
+      bioaccumulation in the East China sea.
+    year: 2026
+    journal: 'Environmental pollution (Barking, Essex : 1987)'
+    authors:
+    - Zhang Tao
+    - Zhao Tianhui
+    - Wei Ziyang
+    - Yang Guang
+    - Gu Cheng
+    - Chen Bingyao
+    - Zhang Bo
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.3390/fishes8080410
+    title: 'Optimizing diceCT protocols for post-mortem cetacean imaging: diffusible
+      iodine enhancement of a rare narrow-ridged finless porpoise (Neophocaena asiaeorientalis)
+      fetal specimen using clinical-grade computed tomography.'
+    year: 2025
+    journal: BMC veterinary research
+    authors:
+    - Yuen Adams Hei Long
+    - Park Ji-Hyung
+    - Chan Kelly Cheuk Wai
+    - Chan Yvonne Miu Ching
+    - Poon Cherry Tsz Ching
+    - Noh Daji
+    - Choi Sooyoung
+    - Kim Byung Yeop
+    - Kim Sang Wha
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1016/j.cub.2025.09.076
+    title: Response to Wang et al.
+    year: 2025
+    journal: 'Current biology : CB'
+    authors:
+    - Zhang Yaoyao
+    - Liu Jiajia
+    - Wang Kexiong
+    - Wang Ding
+    - Mei Zhigang
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1016/j.cub.2025.09.075
+    title: Potential biases and limitations in inferring the historic range of Yangtze
+      finless porpoises from classic poems.
+    year: 2025
+    journal: 'Current biology : CB'
+    authors:
+    - Wang Bo
+    - Xia Yanzhi
+    - Zhang Haohong
+    - Zhang Haobo
+    - Ning Kang
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1016/j.marenvres.2025.107677
+    title: 'A 24-year record of Cetacean strandings in Taiwanese waters: Signals of
+      escalating threats.'
+    year: 2026
+    journal: Marine environmental research
+    authors:
+    - Ho Yun
+    - Chou Lien-Siang
+    - Yao Chiou-Ju
+    - Chi Wei-Lien
+    - Wang Hao-Ven
+    - Chen Ing
+    - Yu Hsin-Yi
+    - Wu Pei-Ying
+    - Yang Wei-Cheng
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1128/spectrum.00810-23
+    title: A novel papillomavirus identified through viromic analysis of stranded
+      Yangtze finless porpoises (Neophocaena asiaeorientalis asiaeorientalis).
+    year: 2025
+    journal: Archives of virology
+    authors:
+    - Deng Huiwei
+    - Zhou Hao
+    - Jiao Mengqi
+    - Ling Qian
+    - Fan Qianjin
+    - Huangfu Haoyue
+    - Pu Ji
+    - Kang Hui
+    - Hao Yujiang
+    - Li Songhai
+    - Luo Xuelian
+    - Zheng Jinsong
+    - Xu Jianguo
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.3389/fmars.2022.711174
+    title: 'Insights into Campula oblonga (Digenea: Brachycladiidae): Morphological,
+      phylogenetic, and pathological studies in narrow-ridged finless porpoise (Neophocaena
+      asiaeorientalis) from Korean waters.'
+    year: 2025
+    journal: International journal for parasitology. Parasites and wildlife
+    authors:
+    - Kim Sunmin
+    - Kang Yeseul
+    - Lee Heon Woo
+    - Opara Emmanuel
+    - Bia Mohammed Mebarek
+    - Lee Kyunglee
+    - Lee Hyunjoo
+    - Kim Min Ju
+    - Lee Youngran
+    - Kim Soochong
+    - Kim Sanggu
+    - Do Sun Hee
+    - Kim Sang Wha
+    - Lee Young Min
+    - Lee Sung Bin
+    - Park Se Chang
+    - Kim Byung Yeop
+    - Choe Seongjun
+    - Youn Heejeong
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.7120/09627286.24.2.139
+    title: Standardised scoring system to assess the welfare of Yangtze finless porpoises
+      (Neophocaena asiaeorientalis asiaeorientalis).
+    year: 2025
+    journal: Animal welfare (South Mimms, England)
+    authors:
+    - Platto Sara
+    - Serres Agathe
+    - Normando Simona
+    - Hao Yujiang
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.3354/dao03865
+    title: Simultaneous urogenital infection with novel upsilonpapillomaviruses and
+      varicellovirus monodontidalpha1 in beluga whales Delphinapterus leucas from
+      Bristol Bay, Alaska, USA.
+    year: 2025
+    journal: Diseases of aquatic organisms
+    authors:
+    - Romero Carlos H
+    - Nielsen Ole
+    - Burek-Huntington Kathleen A
+    - Goertz Caroline E C
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1111/mec.13100
+    title: Development and Validation of Tetranucleotide Repeat Microsatellite Markers
+      at the Whole-Genome Level in the Yangtze Finless Porpoise.
+    year: 2025
+    journal: 'Animals : an open access journal from MDPI'
+    authors:
+    - Tang Mengting
+    - Yin Denghua
+    - Que Jianglong
+    - Lin Danqing
+    - Ying Congping
+    - Liu Jie
+    - Liu Fangning
+    - Wang Pan
+    - Li Wenwen
+    - Yu Jinxiang
+    - Liu Kai
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1038/s41598-025-16370-1
+    title: A hybrid method combining rule-based filter and machine learning to detect
+      porpoise and vessel sounds from a pulse event recorder.
+    year: 2025
+    journal: Scientific reports
+    authors:
+    - Ogawa Mayu I
+    - Kimura Satoko S
+    - Ishiai Nozomu
+    - Akamatsu Tomonari
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1016/j.biocon.2021.109132
+    title: Genetic Diversity and Population Differentiation of Yangtze Finless Porpoise
+      in Poyang Lake.
+    year: 2025
+    journal: 'Animals : an open access journal from MDPI'
+    authors:
+    - Zhang Han
+    - Yin Denghua
+    - Que Jianglong
+    - Zhu Xiaoyan
+    - Lin Danqing
+    - Ying Congping
+    - Yu Jinxiang
+    - Liu Kai
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.3109/19401736.2015.1007305
+    title: "Mitochondrial genome of the\n            <i>Neophocaena asiaeorientalis\
+      \ asiaeorientalis</i>\n            (Phocaenidae: Neophocaena)"
+    year: 2016
+    journal: Mitochondrial DNA Part A
+    authors:
+    - Liu Xinyang
+    - Chen Ran
+    - Li Gang
+    - Li Jinhua
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.13000/jfmse.2016.28.3.861
+    title: Rescue, rehabilitation and release of finless porpoise (Neophocaena asiaeorientalis)
+      in Korea
+    year: 2016
+    journal: Journal of Fisheries and Marine Sciences Education
+    authors:
+    - KIM Moon-Jin
+    - SOHN Hawsun
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1578/am.38.2.2012.127
+    title: The Development of Spatial Positions Between Mother and Calf of Yangtze
+      Finless Porpoises (Neophocaena asiaeorientalis asiaeorientalis) Maintained in
+      Captive and Seminatural Environments
+    year: 2012
+    journal: Aquatic Mammals
+    authors:
+    - Xian Yijie
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.2305/iucn.uk.2013-1.rlts.t43205774a45893487.en
+    title: 'Neophocaena asiaeorientalis ssp. asiaeorientalis: Wang, D., Turvey, S.T.,
+      Zhao, X. &amp; Mei, Z.'
+    year: 2012
+    journal: IUCN Red List of Threatened Species
+    authors: []
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1242/jeb.093773
+    title: Hearing pathways in the Yangtze finless porpoise,<i>Neophocaena asiaeorientalis
+      asiaeorientalis</i>
+    year: 2013
+    journal: Journal of Experimental Biology
+    authors:
+    - Mooney T. Aran
+    - Li Songhai
+    - Ketten Darlene
+    - Wang Kexiong
+    - Wang Ding
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.21203/rs.3.rs-1177769/v1
+    title: Isolation of Clostridium Perfringens type C from a Neonatal Yangtze Finless
+      Porpoise (Neophocaena Asiaeorientalis Asiaeorientalis)
+    year: 0
+    journal: ''
+    authors:
+    - Li Jia
+    - McLaughlin Richard William
+    - Liu Yingli
+    - Zhou Junying
+    - Hu Xueying
+    - Wan Xiaoling
+    - Xie Haixia
+    - Hao Yujiang
+    - Zheng Jinsong
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1016/b978-0-443-13746-4.00011-1
+    title: Finless porpoises Neophocaena phocaenoides (Cuvier, 1829) and N. asiaeorientalis
+      ( )
+    year: 2025
+    journal: Coastal Dolphins and Porpoises
+    authors:
+    - Amano Masao
+    - Kasuya Toshio
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.2305/iucn.uk.2012.rlts.t41754a17599353.en
+    title: 'Neophocaena asiaeorientalis: Wang, J.Y. &amp; Reeves, R.'
+    year: 2011
+    journal: IUCN Red List of Threatened Species
+    authors: []
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1021/acs.est.4c10640.s001
+    title: Comparison of Microplastics between Lung Tissues and Intestinal Contents
+      in Finless Porpoises (Neophocaena asiaeorientalis)
+    year: 0
+    journal: ''
+    authors: []
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.15666/aeer/1805_69816994
+    title: ESTIMATION OF THE CARRYING CAPACITY OF YANGTZE FINLESS PORPOISE (Neophocaena
+      asiaeorientalis asiaeorientalis) IN TIAN-E-ZHOU OXBOW BASED ON LINEAR FOOD NETWORK
+      MODEL
+    year: 2020
+    journal: Applied Ecology and Environmental Research
+    authors:
+    - LI Y.T.
+    - WANG D.
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.13000/jfmse.2014.26.3.578
+    title: Inhabitant and Appearance of Finless Porpoise (Neophocaena asiaeorientalis)
+      in the Coastal Wido, Korea
+    year: 2014
+    journal: Journal of Fisheries and Marine Sciences Education
+    authors:
+    - Lee Yoo-Won
+    - Choi Youn
+    - Lee Heung Heon
+    - Hwang Bo-Kyu
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1021/acs.est.9b07471.s001
+    title: In Vitro Cytotoxicity and Risk Assessments of Environmental Pollutants
+      Using Fibroblasts of a Stranded Finless Porpoise (Neophocaena asiaeorientalis)
+    year: 0
+    journal: ''
+    authors: []
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1017/awf.2025.10040
+    title: Standardised scoring system to assess the welfare of Yangtze finless porpoises
+      (<i>Neophocaena asiaeorientalis asiaeorientalis</i>)
+    year: 2025
+    journal: Animal Welfare
+    authors:
+    - Platto Sara
+    - Serres Agathe
+    - Normando Simona
+    - Hao Yujiang
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.5657/kfas.2011.44.1.078
+    title: Feeding Habits and Consumption by Finless Porpoises (Neophocaena asiaeorientalis)
+      in the Yellow Sea
+    year: 2011
+    journal: Korean Journal of Fisheries and Aquatic Sciences
+    authors:
+    - Park Kyum-Joon
+    - An Yong-Rock
+    - Lee Young-Ran
+    - Park Ji-Eun
+    - Moon Dae-Yeon
+    - Choi Seok-Gwan
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1016/j.anaerobe.2012.12.008
+    title: Isolation of Robinsoniella peoriensis from the fecal material of the endangered
+      Yangtze finless porpoise, Neophocaena asiaeorientalis asiaeorientalis
+    year: 2013
+    journal: Anaerobe
+    authors:
+    - McLaughlin Richard William
+    - Zheng JinSong
+    - Ruan Rui
+    - Wang ChaoQun
+    - Zhao QingZhong
+    - Wang Ding
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.3724/sp.j.1035.2008.00244
+    title: DETERMINATION OF SERUM AMINO ACID CONCENTRATION IN FREE-RANGING AND CAPTIVE
+      YANGTZE FINLESS PORPOISE(&lt;I&gt;NEOPHOCAENA PHOCAENOIDES ASIAEORIENTALIS&lt;/I&gt;)
+    year: 2008
+    journal: Acta Hydrobiologica Sinica
+    authors:
+    - LIN Gang
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1016/j.beproc.2017.04.015
+    title: Behavioral laterality in Yangtze finless porpoises ( Neophocaena asiaeorientalis
+      asiaeorientalis )
+    year: 2017
+    journal: Behavioural Processes
+    authors:
+    - Platto Sara
+    - Zhang C.
+    - Pine Matthew K.
+    - Feng W.K.
+    - Yang L.G.
+    - Irwin A.
+    - Wang D.
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.3389/fmicb.2022.1006251
+    title: The bacteria of Yangtze finless porpoise (Neophocaena asiaeorientalis asiaeorientalis)
+      are site-specific and distinct from freshwater environment
+    year: 2022
+    journal: Frontiers in Microbiology
+    authors:
+    - Zhang Xizhao
+    - Ying Congping
+    - Jiang Min
+    - Lin Danqing
+    - You Lei
+    - Yin Denghua
+    - Zhang Jialu
+    - Liu Kai
+    - Xu Pao
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.3106/ms2024-0049
+    title: Food Habits of Narrow-Ridged Finless Porpoises (Neophocaena asiaeorientalis)
+      in Sendai Bay–Tokyo Bay, Japan
+    year: 2025
+    journal: Mammal Study
+    authors:
+    - Kizuka Daisuke
+    - Kurihara Nozomi
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.5657/kfas.2014.0978
+    title: Reappearance and Distribution Tendency of Finless Porpoises Neophocaena
+      asiaeorientalis after their Mass Mortality in the Saemangeum Dyke
+    year: 2014
+    journal: Korean Journal of Fisheries and Aquatic Sciences
+    authors:
+    - Park Kyum Joon
+    - Lee Seung Yong
+    - An Yong-Rock
+    - Kim Hyun Woo
+    - An Du Hae
+    - Kim Doo Nam
+    - Kim Yeong Hye
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.69979/3041-0673.25.03.093
+    title: 插画艺术与长江江豚保护的跨学科融合：从创意设计到文化传播
+    year: 2025
+    journal: 科技创新发展
+    authors: []
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.3724/1000-3207.2025.2025.0049
+    title: 基于长江江豚保护的洞庭湖血防灭螺药物投放管理建议
+    year: 2025
+    journal: Acta Hydrobiologica Sinica
+    authors:
+    - 夏 英
+    - 胡 强
+    - 孙 琦
+    species:
+    - Neophocaena_asiaeorientalis
+    source: auto_ingest
   edges:
   - from: doi:10.7541/2024.2024.0056
     to: doi:10.17520/biods.2018121
