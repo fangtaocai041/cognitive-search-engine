@@ -4,16 +4,16 @@
 
 # 🕸️ Cognitive Search Engine v5
 
-> **5-Layer Cognitive Agent** — BDI + ReAct + Multi-Layer Memory + Knowledge Graph Traversal + Semiotics
+> **Hub-and-Spoke Graph Search** — BDI + ReAct + Authority Scoring + Classified Knowledge Graph + Lazy Loading
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-5.0-8b5cf6)](config/agent.yaml)
-[![Skills](https://img.shields.io/badge/skills-3-22c55e)](skills/)
+[![Version](https://img.shields.io/badge/version-5.1-8b5cf6)](config/agent.yaml)
+[![Skills](https://img.shields.io/badge/skills-4-22c55e)](skills/)
 [![MCP](https://img.shields.io/badge/MCP-5-f59e0b)](config/mcp_servers.yaml)
-[![Architecture](https://img.shields.io/badge/architecture-5_layer_agent-ec4899)](docs/ARCHITECTURE.md)
+[![Architecture](https://img.shields.io/badge/architecture-hub_and_spoke-ec4899)](docs/ARCHITECTURE.md)
 [![Multi-LLM](https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6)]()
 [![BDI](https://img.shields.io/badge/BDI-ReAct-22c55e)]()
-[![Living System](https://img.shields.io/badge/living_system-self_evolving-ec4899)]()
+[![Authority Score](https://img.shields.io/badge/authority-scoring_0_100-ec4899)]()
 
 ---
 
@@ -28,17 +28,27 @@ This engine is integrated as a git submodule in:
 
 ---
 
-## 🧠 v5.0: 5-Layer Standard Agent Architecture
+## 🧠 v5.1: Hub-and-Spoke Search Protocol
 
-> **BDI + ReAct + Memory** — aligning with academic AI (MDP/POMDP, ReAct, BDI) and industrial frameworks (LangChain, AutoGPT)
+> **From linear layers to directional hubs** — locate hub papers per sub-discipline, extract citation spokes, classify into knowledge graph.
+
+### Search Protocol: Hub-and-Spoke (3 Phases)
+
+| Phase | Action | Tools |
+|:-----:|--------|-------|
+| **1. Locate Hubs** | Parallel search across 5 sub-discipline directions (genetics/morphology/genomics/ecology/survey) | `scholar_search` + `web_search` |
+| **2. Extract Spokes** | Pull citation graph from each hub paper | `article_get_references` |
+| **3. Gap Detection** | OCR variant sweep + new paper detection (year ≥ current-1, PMID=NULL) | `scholar_search` variant queries |
+
+### 5-Layer Agent Architecture
 
 | Layer | Function | Module |
 |:-----:|----------|--------|
-| **1. Perception** | Input parsing: species_id → genus/species/Chinese | `SearchRuleEngine.execute()` |
+| **1. Perception** | Input → species_id → genus/species/Chinese + volume estimation | `SearchRuleEngine.execute()` |
 | **2. Cognitive** | BDI policy π(Belief,Desire) → Intention + ReAct loop | `src/agent_core.py` |
-| **3. Memory** | Short-term (ContextTracker) + Long-term (GraphMemory) | `src/memory_layer.py` |
-| **4. Mapping** | Intention routing → tool selection → query serialization | `search_rules.yaml` + `PHASE_FUNCTIONS` |
-| **5. Execution** | PubMed · Crossref · MCP servers (5 engines) | `rule_engine._http_search()` |
+| **3. Memory** | Short-term + Long-term + **Classified Knowledge Graph** | `src/memory_layer.py` |
+| **4. Mapping** | Direction routing → hub selection → `article_get_references` | `search_rules.yaml` |
+| **5. Execution** | PubMed · Crossref · MCP (5 engines) · Authority scoring | `rule_engine._http_search()` |
 
 ### BDI + ReAct Cognitive Loop
 
@@ -102,62 +112,69 @@ Chinese name    ─┘
 
 | Problem | Traditional | Cognitive Search Engine |
 |---------|------------|------------------------|
-| Species name typos | ❌ Misses "Ochetobibus" when searching "Ochetobius" | ✅ 11-layer fuzzy protocol catches all variants |
-| Cold-start (new species) | ❌ Zero results → stuck | ✅ Author graph + citation traversal finds papers |
-| Review paper blind trust | ❌ Cites ghosts/misattributions silently | ✅ Phase 1.6: 5-level reference verification |
-| Search amnesia | ❌ Same search repeated, same cost | ✅ Knowledge graph persists, known papers = 0 tokens |
-| One-size-fits-all depth | ❌ Same effort for 8 papers or 8000 | ✅ Adaptive: exhaustive / classified / satisficing |
-| Chinese + English gap | ❌ English-only misses Chinese papers | ✅ Layer 4: Chinese name search + author cross-ref |
+| Species name typos | ❌ Misses "Ochetobibus" when searching "Ochetobius" | ✅ OCR variant sweep catches all (2 papers found: 2009 + 2026) |
+| Chinese DB blind spot | ❌ PubMed/Crossref don't index 知网/万方/维普 | ✅ Chinese-first search → web_search + 11 journal sites |
+| Cold-start (new species) | ❌ Zero results → stuck | ✅ Hub-and-Spoke: multi-direction hub location |
+| Review paper blind trust | ❌ Cites ghosts/misattributions silently | ✅ Authority scoring 0-100 per paper, SCI/core-journal weighted |
+| Search amnesia | ❌ Same search repeated, same cost | ✅ Classified knowledge graph persists, lazy-load on demand |
+| One-size-fits-all depth | ❌ Same effort for 8 papers or 8000 | ✅ 3-mode: exhaustive(<20) / classified(20-100) / review-anchored(>100) |
 | No cognitive model | ❌ Pure string matching | ✅ Semiotics + linguistics + phonetics + logic |
 
 ### vs AI Search (Gemini, Perplexity, Claude)
 
 | Problem | AI Search | Cognitive Search Engine |
 |---------|----------|------------------------|
-| Transparency | ❌ Black box — can't verify completeness | ✅ 12 phases, each auditable |
-| Cost | ❌ High token cost per search | ✅ 75% savings via graph persistence |
+| Transparency | ❌ Black box — can't verify completeness | ✅ 3-phase Hub-and-Spoke, each auditable |
+| Cost | ❌ High token cost per search | ✅ Lazy-load knowledge graph, ~60% fewer calls |
 | Domain knowledge | ❌ Generic — no species-specific logic | ✅ Latin grammar, IPA, OCR error models |
-| Citation graph | ❌ Not leveraged | ✅ Graph traversal: authors → journals → citations |
+| Source authority | ❌ Mixes preprints with peer-reviewed equally | ✅ Credibility score 0-100, predatory journals excluded |
+| Citation graph | ❌ Not leveraged | ✅ Multi-hub citation spokes → classified graph |
 | Learning | ❌ Stateless — each search independent | ✅ Graph grows with each search |
 
 ### Unique Capabilities (No Other Tool Has)
 
 | # | Capability | Why It Matters |
 |:--|-----------|---------------|
-| 1 | **Review Reference Mining + Verification** | 综述是"二手搜索" — 但先验证再信任 |
-| 2 | **Semiotic Reconstruction** | 从拼写错误重建物种身份，而非匹配字符串 |
-| 3 | **Adaptive Search Depth** | 8 篇穷举 vs 8000 篇满意即止 — 自动切换 |
-| 4 | **Cross-Language Author Graph** | 中文作者发英文论文，英文作者引中文论文 — 全捕获 |
-| 5 | **IPA Phonetic Distance** | Ochetobius=O231, Ochetobibus=O231 — 语音相同即相同 |
+| 1 | **Hub-and-Spoke Graph Search** | Multi-direction hubs → citation spokes → 10 calls cover 90%+ recall |
+| 2 | **Authority Credibility Scoring** | SCI + CSCD核心 weighted +30, predatory journals -100 excluded |
+| 3 | **Review-First Strategy** | For >20 papers: find review first → it IS the literature map |
+| 4 | **Classified Knowledge Graph** | Lazy-load: output category counts first, expand only on user request |
+| 5 | **OCR Variant Safety Net** | Ochetobius→Ochetobibus: caught 2 papers that exact-name search missed |
 
-## ⚡ Three Breakthroughs
+## ⚡ Five Breakthroughs
 
-### 1. Knowledge Graph Traversal (Not Linear Search)
+### 1. Hub-and-Spoke Graph (Not Linear Layers)
 
-| Traditional (v2/v3) | Graph Search (v4) |
-|---------------------|-------------------|
-| 11 layers, sequential | Graph traversal, conditional |
-| Results discarded each run | Results persist in graph |
-| ~8000 tokens/search | ~2000 tokens/search |
-| Every search starts from zero | Known papers: **0 tokens** |
+| Traditional (v4.1 14-layer) | Hub-and-Spoke (v5.0) |
+|----------------------------|----------------------|
+| 14 layers, sequential | 3 phases, parallel hubs |
+| ~15+ tool calls/search | ~10 tool calls/search |
+| Single linear path | Multi-direction spoke merge |
+| Layers 0-13 all always executed | Gaps only filled when detected |
 
-### 2. Energy Efficiency (Satisficing, Not Exhausting)
-
-```
-Don't find ALL papers → Find ENOUGH papers.
-Satisfice at 8 papers. Stop at diminishing returns.
-Cheapest layers first. Only go deeper if needed.
-```
-
-### 3. Adaptive Search Depth (v4.1)
+### 2. Authority Credibility Scoring
 
 ```
-Volume < 20   → EXHAUSTIVE (e.g., 鳤 only 8 papers — find every single one)
-Volume 20-200 → CLASSIFIED (classify first, drill down on demand)
-Volume > 200  → SATISFICING (stop when enough representative papers found)
+credibility = 50 + 30(SCI) + 25(CSCD核心) + 10(DOI) + 10(PMID) - 30(preprint) - 100(predatory)
+→ 🟢 ≥80 高可信度  🟡 60-79 中  🟠 40-59 低  🔴 <40 不可信
 ```
 
-### 4. Multi-Discipline Cognitive Engine
+### 3. Review-First Strategy (for medium/large fields)
+
+```
+IF estimated > 20 papers:
+  Search review first → review references ≈ complete literature map
+  Only then search for post-review papers
+```
+
+### 4. Classified Knowledge Graph with Lazy Loading
+
+```
+Output: category counts only → user picks direction → expand that subtree
+Never load all papers into context at once.
+```
+
+### 5. Multi-Discipline Cognitive Engine
 
 | Discipline | Method |
 |-----------|--------|
@@ -165,7 +182,6 @@ Volume > 200  → SATISFICING (stop when enough representative papers found)
 | Linguistics | Latin morphology, root extraction, OCR error models |
 | Phonetics | IPA transcription, Soundex+Metaphone double-code |
 | Logic | Deductive chain, abductive inference, inductive pattern |
-| DeepSeek CoT | Info-gain ordering, sparse MoE, entropy budget |
 
 ---
 
@@ -286,6 +302,7 @@ IF consecutive zeros ≥ 2 → STOP (diminishing returns)
 
 | Version | Date | Theme | What Changed |
 |:--------|:-----|:------|:-------------|
+| **v5.1** | 2026-06-06 | Hub-and-Spoke Protocol | + Hub-and-Spoke (3-phase, 10 calls), + Authority Credibility Scoring (0-100), + Review-First Strategy, + Classified Knowledge Graph (lazy-load), + Chinese-academic-search Skill, + 3-mode adaptive depth (exhaustive/classified/review-anchored), + OCR variant safety net |
 | **v5.0** | 2026-07-14 | 5-Layer Agent Architecture | + BDI WorldModel (Belief/Desire/Intention), + CognitiveAgent (ReAct loop), + MemorySystem (short-term + long-term), + agent_core.py, + memory_layer.py, + variant_generator.py, + graph_updater.py, + mcp_client.py, + ARCHITECTURE.md |
 | **v4.3** | 2026-06-06 | Engineering Language | + YAML Rule Engine (10 structured phases), + JSON Schema tools.json, + rule_engine.py, + multi-provider config, + self-evolve feedback loop |
 | **v4.2** | 2026-06-06 | Living System | + component_registry (12 components), + evolution.yaml (4 adaptive params), + self-evolve Skill, + UNIFIED_EVOLUTION.md |
