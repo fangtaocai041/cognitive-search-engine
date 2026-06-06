@@ -46,6 +46,19 @@ from src.world_model import WorldModel, Belief, Desire, Intention
 from src.memory_layer import MemorySystem, PhaseTrace
 
 
+class DotDict(dict):
+    """Nested dict with attribute-style access for eval() expressions."""
+    def __getattr__(self, key):
+        try:
+            val = self[key]
+        except KeyError:
+            raise AttributeError(f"'{type(self).__name__}' has no attribute '{key}'")
+        if isinstance(val, dict) and not isinstance(val, DotDict):
+            val = DotDict(val)
+            self[key] = val
+        return val
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # Phase definition (from search_rules.yaml)
 # ═══════════════════════════════════════════════════════════════════════
@@ -394,14 +407,14 @@ class CognitiveAgent:
                 "all_papers": ctx.get("all_papers", []),
                 "graph_papers": ctx.get("graph_papers", []),
                 "total_tokens": ctx.get("total_tokens", 0),
-                "config": {
+                "config": DotDict({
                     "search": {
                         "energy": {
                             "min_papers_satisfice": 8,
                             "max_total_tokens": 50000,
                         }
                     }
-                },
+                }),
             })
         except Exception:
             return True  # on eval error, activate (fail open)

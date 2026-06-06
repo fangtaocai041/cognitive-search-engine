@@ -32,6 +32,28 @@ try:
 except ImportError:
     WorldModel = None
 
+# ──── Helpers ────
+
+class DotDict(dict):
+    """Nested dict with attribute-style access for eval() expressions.
+    
+    >>> d = DotDict({"a": {"b": {"c": 8}}})
+    >>> d.a.b.c
+    8
+    """
+    def __getattr__(self, key):
+        try:
+            val = self[key]
+        except KeyError:
+            raise AttributeError(f"'{type(self).__name__}' has no attribute '{key}'")
+        if isinstance(val, dict) and not isinstance(val, DotDict):
+            val = DotDict(val)
+            self[key] = val
+        return val
+    
+    def __setattr__(self, key, value):
+        self[key] = value
+
 # ──── Data Classes ────
 
 @dataclass
@@ -190,6 +212,9 @@ class SearchRuleEngine:
         # Augment: fill in authors/institutions/abstract from species_graph
         merged = self._augment_papers_from_graph(merged)
 
+        # Auto-writeback: persist new papers to species_graph.yaml
+        new_graph_count = self._auto_writeback(species_id, merged)
+
         result = {
             "papers": [p.__dict__ for p in merged],
             "paper_count": len(merged),
@@ -201,6 +226,7 @@ class SearchRuleEngine:
             "efficiency": len(merged) / max(self._tokens_spent / 1000, 1),
             "stop_reason": self._stop_reason(),
             "ig_per_phase": self._ig_history,
+            "new_to_graph": new_graph_count,  # papers auto-added to species_graph.yaml
         }
 
         # Save record
@@ -809,14 +835,14 @@ class SearchRuleEngine:
         return {
             "len": len, "any": any, "max": max, "min": min,
             "filter": filter, "sum": sum,
-            "config": {
+            "config": DotDict({
                 "search": {
                     "energy": {
                         "min_papers_satisfice": 8,
                         "max_total_tokens": 50000,
                     }
                 }
-            }
+            })
         }
 
     # ── ReAct execution ──
@@ -856,11 +882,47 @@ class SearchRuleEngine:
             result["papers"] = [p.__dict__ for p in augmented]
             result["paper_count"] = len(augmented)
 
+        # Auto-writeback: persist new papers to graph
+        try:
+            papers_for_writeback = [self._dict_to_paper(p) for p in paper_dicts]
+            result["new_to_graph"] = self._auto_writeback(species_id, papers_for_writeback)
+        except Exception:
+            result["new_to_graph"] = 0
+
         # Save record
         if self.mode == "record":
             self._save_record(species_id, result)
 
         return result
+
+    def _auto_writeback(self, species_id: str, papers: list[Paper]) -> int:
+        """Merge new papers back into species_graph.yaml for persistent knowledge.
+
+        Returns number of papers added to graph. Non-critical — failures
+        are silently swallowed (graph write is a best-effort side effect).
+        """
+        try:
+            from src.graph_updater import update_species_graph, load_species_graph
+            known_papers = load_species_graph(species_id)
+            known_dois = {(p.get("doi") or "").lower().strip() for p in known_papers}
+            truly_new = []
+            for p in papers:
+                key = (p.doi or "").lower().strip()
+                if key and key not in known_dois and p.source != "graph":
+                    truly_new.append({
+                        "doi": p.doi,
+                        "title": p.title or "",
+                        "year": p.year,
+                        "journal": p.journal or "",
+                        "authors": p.authors,
+                        "institutions": p.institutions,
+                        "species": p.species,
+                    })
+            if truly_new:
+                return update_species_graph(species_id, truly_new)
+        except Exception:
+            pass
+        return 0
 
     def _get_agent(self):
         """Lazy-init the CognitiveAgent with phase specs from search_rules."""
