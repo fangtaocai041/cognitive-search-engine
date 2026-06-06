@@ -1,4 +1,4 @@
-# 🕸️ Cognitive Search Engine v4
+# 🕸️ Cognitive Search Engine v4.4
 
 > **Frontier species literature search** — Knowledge Graph Traversal + Energy Efficiency + Semiotics + Linguistics + DeepSeek Chain-of-Thought
 

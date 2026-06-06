@@ -1,8 +1,8 @@
 ---
 name: cognitive-species-search
-version: "3.0.0"
+version: "3.2.0"
 last_updated: "2026-06-06"
-description: Cognitive Species Search Engine — semiotics + linguistics + phonetics + logic + DeepSeek chain-of-thought. The most advanced species literature search method.
+description: Cognitive Species Search Engine v3.2 — semiotics + linguistics + phonetics + logic + OCR variant pre-generation + new-paper detection + DeepSeek chain-of-thought.
 runAs: subagent
 allowed-tools:
   - scholar_search_literature_graph
@@ -181,7 +181,14 @@ STOP CONDITION: if cumulative unique papers ≥ 20, stop remaining layers
 
 ---
 
-## 11-Layer Search Protocol (Cognitive Edition)
+## 12-Layer Search Protocol (v3.2 Cognitive Edition)
+
+### Layer 0: OCR Variant Pre-Generation [IG=N/A, Budget=0, ALWAYS FIRST]
+```
+READ config/species_variants.yaml for known_misspellings
+APPLY OCR error model: letter_insertion, letter_deletion, vowel_confusion, tail_drop, hyphen_split, doubling
+GENERATE up to 15 variants + ecology_keyword combinations
+```
 
 ### Layer 1: Exact Search [IG=0.95, Budget=40%, ALWAYS]
 ```
@@ -224,16 +231,15 @@ FROM Step 0.4 (logical inference):
 
 ### Layer 11: LLM Cognitive Query Expansion [IG=0.02, Budget=8%, conditional]
 ```
-FROM all Steps 0.1-0.4:
-  USE thinking_sequentialthinking:
-    Generate queries that leverage:
-    - Semiotic knowledge (what the species IS, not what it's CALLED)
-    - Ecological context (habitat, diet, behavior)
-    - Taxonomic context (family, relatives)
-    - Chinese domain knowledge (local names, regional research groups)
+(Same as v3.0)
+```
 
-  OUTPUT: 5 queries that would find papers about this species
-          WITHOUT using the genus or species name at all.
+### Layer 12: New-Paper Detection [IG=N/A, Budget=0, ALWAYS] [v3.2 NEW]
+```
+FOR EACH paper IN all_papers:
+  IF paper.year >= current_year - 1 AND paper.pmid IS NULL:
+    paper.flag = "🆕 新论文，PubMed 尚未索引"
+    paper.action = "直接通过 DOI 验证: https://doi.org/" + paper.doi
 ```
 
 ---
