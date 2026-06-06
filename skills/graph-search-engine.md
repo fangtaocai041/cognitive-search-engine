@@ -14,6 +14,116 @@ allowed-tools:
 # 🕸️ Graph-Based Cognitive Search Engine v4
 
 > **核心突破**: 不枚举，不穷举。用知识图谱遍历 + 能效最优理论替代线性 11 层搜索。
+> **v4.1 新增**: 自适应搜索深度 — 根据文献量自动切换穷举/分类/满意三种模式。
+
+---
+
+## -1. Adaptive Search Depth (自适应搜索深度)
+
+### 核心问题
+
+> "满意即止"在文献量少时可能遗漏关键论文。"穷举搜索"在文献量大时浪费资源。
+> **解决方案**: 先估算文献量，再自动选择策略。
+
+### 三模式自适应切换
+
+```
+PRE-SEARCH: Estimate literature volume
+  → Quick Google Scholar count (title-only)
+  → Graph node count for species
+  → Author publication frequency
+
+IF estimated_volume < 20:
+  → MODE: EXHAUSTIVE (穷举模式)
+     Goal: 100% recall
+     Satisficing: DISABLED
+     Layers: ALL 11 layers active
+     Graph depth: max (3)
+     Stop: only when no new papers for 2 consecutive layers
+
+ELIF estimated_volume 20-200:
+  → MODE: CLASSIFIED (分类归纳模式)
+     Phase 1: Quick classification by sub-topic
+     Phase 2: Human selects categories → exhaustive within each
+     Output: Classification tree with paper counts per category
+
+ELIF estimated_volume > 200:
+  → MODE: SATISFICING (满意模式)
+     Goal: representative sample
+     Satisficing: ENABLED (threshold = 8-15)
+     Output: Classification summary + "drill down" options
+```
+
+### 体积估算方法
+
+```
+METHOD 1: Quick count
+  SEARCH scholar (title-only): "{species_name}"
+  → returns approximate count
+
+METHOD 2: Graph node count
+  COUNT papers in species_graph.yaml for this species
+  → lower bound (known papers)
+
+METHOD 3: Author productivity
+  FOR top 3 authors: papers_per_year × years_active
+  → upper bound estimate
+
+FINAL estimate = max(method1, method2, method3_avg)
+```
+
+### 穷举模式 (EXHAUSTIVE) — 文献量 < 20
+
+```
+适用: 濒危物种 (鳤: 8 papers)、新技术领域、冷门研究方向
+
+行为:
+  - 所有 11 层全部激活 (无稀疏剪枝)
+  - 满意阈值 = ∞ (永不满足)
+  - 停止条件: 连续 2 层无新论文
+  - 图谱遍历深度 = 3 (最大)
+  - 额外: 搜索 grey literature (中文报告、学位论文)
+
+输出:
+  - 完整文献列表 (所有论文)
+  - 每篇论文的详细信息
+  - 知识空白标注: "该物种在 X 方向尚无研究"
+```
+
+### 分类归纳模式 (CLASSIFIED) — 文献量 20-200
+
+```
+适用: 中等活跃领域
+
+Phase 1: 快速分类 (不展开内容)
+  SEARCH broadly → cluster by sub-topic:
+    - 遗传学: N papers
+    - 形态学: M papers
+    - 生态学: K papers
+    - 保护生物学: J papers
+  OUTPUT: classification tree with paper counts
+
+Phase 2: 按需展开
+  HUMAN selects: "展开形态学和遗传学"
+  → EXHAUSTIVE mode within selected categories
+  → Other categories: summary only
+
+Phase 3: 迭代深化
+  After reviewing selected categories:
+  HUMAN may request: "展开生态学"
+  → additional exhaustive search
+```
+
+### 满意模式 (SATISFICING) — 文献量 > 200
+
+```
+适用: 热门领域 (如 "climate change fish")
+
+行为:
+  - 当前 v4 默认行为
+  - 满意阈值启用
+  - 输出分类概览 + "深入某类别"选项
+```
 
 ---
 

@@ -7,12 +7,32 @@ agent:
   description: "Frontier species literature search — semiotics + graph traversal + energy-efficient"
 
 search:
+  # 自适应搜索深度 (Adaptive Search Depth)
+  adaptive:
+    enabled: true
+    volume_estimation: true          # 搜索前先估算文献量
+    modes:
+      exhaustive:                    # 文献量 < 20: 穷举
+        max_volume: 20
+        satisficing: false
+        all_layers: true
+        graph_depth: 3
+        stop_condition: "2 consecutive layers with 0 new papers"
+      classified:                    # 文献量 20-200: 分类归纳
+        min_volume: 20
+        max_volume: 200
+        phase1_classify: true        # 先分类不展开
+        phase2_drill_down: true      # 人选类别后穷举
+      satisficing:                   # 文献量 > 200: 满意即止
+        min_volume: 200
+        threshold: 12                # 找到 12 篇代表性论文即满足
+
   # 能效优化 (Energy Efficiency)
   energy:
-    max_total_tokens: 50000         # 单次搜索最大 token 预算
-    min_papers_satisfice: 8         # 找到 8 篇即满足 (satisfice)
-    max_papers_target: 20           # 理想目标
-    stop_on_diminishing: true       # 边际收益递减时停止
+    max_total_tokens: 50000
+    min_papers_satisfice: 8
+    max_papers_target: 20
+    stop_on_diminishing: true
 
   # 渐进深化 (Progressive Deepening)
   progressive:
