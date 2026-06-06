@@ -2,7 +2,7 @@
 # 替代自然语言 Skill 指令。orchestrator 直接 load → parse → execute。
 # 每条规则: function + inputs + tools + stop_condition + budget
 
-version: "1.0.0"
+version: "2.0.0"
 
 phases:
   graph_lookup:
@@ -14,13 +14,29 @@ phases:
     priority: 0
     stop_condition: "len(output) >= config.search.energy.min_papers_satisfice"
 
+  multi_engine_parallel:  # [v2.0 新增] 7引擎并行
+    function: search_all_engines
+    inputs: { query: "$genus $species" }
+    tools:
+      - ncbi_ncbi_esearch
+      - scholar_search_literature_graph
+      - article_search_literature
+      - scholarly_search
+      - tavily_search
+      - exa_web_search
+      - web_search
+    output: "list[Paper]"
+    budget: 3500
+    priority: 1
+    stop_condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
+
   exact_search:
     function: search_scholar_article
     inputs: { query: "$genus $species" }
-    tools: [scholar_search_literature_graph, article_search_literature]
+    tools: [scholar_search_literature_graph, article_search_literature, ncbi_ncbi_esearch]
     output: "list[Paper]"
     budget: 500
-    priority: 1
+    priority: 2
     stop_condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
 
   author_crossref:
@@ -68,7 +84,7 @@ phases:
   variant_search:
     function: search_variants
     inputs: { genus: "$genus", species: "$species", variants: "$graph.variants[species_id]" }
-    tools: [scholar_search_literature_graph, article_search_literature]
+    tools: [scholar_search_literature_graph, article_search_literature, ncbi_ncbi_esearch, tavily_search, exa_web_search]
     output: "list[Paper]"
     budget: 2000
     priority: 6
@@ -77,7 +93,7 @@ phases:
   phonetic_search:
     function: search_phonetic
     inputs: { soundex: "$soundex(genus)", metaphone: "$metaphone(genus)" }
-    tools: [scholar_search_literature_graph]
+    tools: [scholar_search_literature_graph, ncbi_ncbi_esearch, web_search]
     output: "list[Paper]"
     budget: 800
     priority: 7
@@ -86,7 +102,7 @@ phases:
   journal_scan:
     function: scan_target_journals
     inputs: { journals: "$graph.journals[species_id]", keyword: "$chinese_name" }
-    tools: [scholar_search_literature_graph]
+    tools: [scholar_search_literature_graph, ncbi_ncbi_esearch, article_search_literature]
     output: "list[Paper]"
     budget: 1200
     priority: 8
@@ -95,7 +111,7 @@ phases:
   llm_expansion:
     function: llm_query_expansion
     inputs: { genus: "$genus", species: "$species", context: "$semiotic_context" }
-    tools: [thinking_sequentialthinking, scholar_search_literature_graph, tavily_tavily_search]
+    tools: [thinking_sequentialthinking, scholar_search_literature_graph, tavily_search, exa_web_search, web_search]
     output: "list[Paper]"
     budget: 3000
     priority: 9
