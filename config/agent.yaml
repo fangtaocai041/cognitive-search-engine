@@ -3,8 +3,8 @@
 
 agent:
   name: "Cognitive Search Engine"
-  version: "4.3.0"
-  description: "Frontier species literature search — semiotics + graph traversal + energy-efficient"
+  version: "5.0.0"
+  description: "BDI + ReAct + 5-Layer Agent Architecture — semiotics + graph traversal + energy-efficient"
 
 # DeepSeek 标准配置 (YAML 1.2)
 llm:
@@ -93,6 +93,50 @@ search:
     reorder_on_fly: true            # 根据实际 IG 动态重排
     prune_low_ig: true              # 低 IG 层自动剪枝
     ig_threshold: 0.005             # IG < 0.005 → 停止该层
+
+# ══════════════════════════════════════════════════════════════
+# 5 层 Agent 架构配置 (Standard Agent Architectural Model v5.0)
+# ══════════════════════════════════════════════════════════════
+architecture:
+  mode: "react"                     # "react" | "linear"
+  description: "BDI + ReAct + Memory — 5 层标准智能体架构"
+
+  layers:
+    perception:
+      module: "SearchRuleEngine.execute()"
+      inputs: [species_id, genus, species, chinese_name, doi]
+      multimodal: false
+
+    cognitive:
+      module: "src/agent_core.py"
+      paradigm: "BDI + ReAct"
+      think: "BDI policy: π(Belief, Desire) → Intention"
+      act: "Execute phases via rule_engine._execute_phase"
+      observe: "Count new papers, compute IG, update Belief"
+      reflect: "Compare Belief vs Desire → continue/restructure/stop"
+
+    memory:
+      module: "src/memory_layer.py"
+      short_term: "ContextTracker — 当前搜索上下文 (LLM context window)"
+      long_term: "GraphMemory — species_graph.yaml + 反向索引"
+
+    mapping:
+      module: "search_rules.yaml + PHASE_FUNCTIONS"
+      routing: "Intention.active_phases → PhaseSpec.tools"
+      serialization: "query → URL-encoded REST / JSON-RPC MCP"
+
+    execution:
+      module: "rule_engine._http_search / _mcp_search"
+      tools: [PubMed, Crossref, scholar-mcp, article-mcp, scholarly-mcp]
+
+  bdi:
+    desire:
+      min_papers: 8
+      max_tokens: 50000
+      min_precision: 0.85
+    belief:
+      discovery_rate: 0.3
+      token_per_paper: 250.0
 
 # 符号学配置
 semiotics:

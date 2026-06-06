@@ -1,119 +1,411 @@
-# Species Knowledge Graph — 物种知识图谱
-# 节点: Species, Author, Paper, Journal, Institution
-# 边: cites, cited_by, co_author, same_journal, same_species, affiliated_with
-
 graph:
-  version: "1.0.0"
-
-  # ===== 物种节点 =====
+  version: 1.0.0
   species:
-    - id: "Ochetobius_elongatus"
-      name: "Ochetobius elongatus"
-      chinese: "鳤"
-      aliases: ["鳤鱼", "刁子", "麦秆刁"]
-      family: "Xenocyprididae"
-      conservation: "CR"
-      variants: ["Ochetobibus elongatus", "Ochetobus elongatus"]
-      
-    - id: "Neophocaena_asiaeorientalis"
-      name: "Neophocaena asiaeorientalis"
-      chinese: "长江江豚"
-      aliases: ["江豚", "finless porpoise"]
-      family: "Phocoenidae"
-      conservation: "CR"
-      variants: ["Neophocaena asiaorientalis"]
-
-    - id: "Culter_alburnus"
-      name: "Culter alburnus"
-      chinese: "翘嘴鲌"
-      family: "Xenocyprididae"
-      variants: []
-
-  # ===== 作者节点 (已知鳤研究者) =====
+  - id: Ochetobius_elongatus
+    name: Ochetobius elongatus
+    chinese: 鳤
+    aliases:
+    - 鳤鱼
+    - 刁子
+    - 麦秆刁
+    - 吹鱼
+    - 鳤条鱼
+    family: Xenocyprididae
+    conservation: CR
+    variants:
+    - Ochetobibus elongatus
+    - Ochetobus elongatus
+    - Ochetobius elongatus
+    - Opsarius elongatus
+  - id: Neophocaena_asiaeorientalis
+    name: Neophocaena asiaeorientalis
+    chinese: 长江江豚
+    aliases:
+    - 江豚
+    - finless porpoise
+    family: Phocoenidae
+    conservation: CR
+    variants:
+    - Neophocaena asiaorientalis
+  - id: Culter_alburnus
+    name: Culter alburnus
+    chinese: 翘嘴鲌
+    family: Xenocyprididae
+    variants: []
   authors:
-    - name: "Cai Fangtao"
-      chinese: "蔡方陶"
-      institutions: ["Jianghan University"]
-      species: ["Ochetobius_elongatus"]
-      
-    - name: "Yang Jiping"
-      chinese: "杨计平"
-      institutions: ["Pearl River Fisheries Research Institute"]
-      species: ["Ochetobius_elongatus"]
-      
-    - name: "Li Lekang"
-      chinese: "李乐康"
-      institutions: ["Sun Yat-sen University"]
-      species: ["Ochetobius_elongatus"]
-      
-    - name: "Gao Feng"
-      chinese: "高丰"
-      institutions: ["Hunan Fisheries Research Institute"]
-      species: ["Ochetobius_elongatus"]
-      
-    - name: "Xiong Fei"
-      chinese: "熊飞"
-      institutions: ["Jianghan University"]
-      species: ["Ochetobius_elongatus"]
-      
-    - name: "Liu Hongyan"
-      chinese: "刘红艳"
-      institutions: ["Jianghan University"]
-      species: ["Ochetobius_elongatus"]
-
-  # ===== 期刊节点 =====
+  - name: Cai Fangtao
+    chinese: 蔡方涛
+    institutions:
+    - Jianghan University
+    species:
+    - Ochetobius_elongatus
+  - name: Yang Jiping
+    chinese: 杨计平
+    institutions:
+    - Pearl River Fisheries Research Institute
+    - CAFS
+    species:
+    - Ochetobius_elongatus
+  - name: Li Xinhui
+    chinese: 李新辉
+    institutions:
+    - Pearl River Fisheries Research Institute
+    - CAFS
+    species:
+    - Ochetobius_elongatus
+  - name: Chen Weitao
+    chinese: 陈蔚涛
+    institutions:
+    - Pearl River Fisheries Research Institute
+    - CAFS
+    species:
+    - Ochetobius_elongatus
+  - name: Duan Xinbin
+    chinese: 段辛斌
+    institutions:
+    - Yangtze River Fisheries Research Institute
+    - CAFS
+    species:
+    - Ochetobius_elongatus
+  - name: Zhai Dongdong
+    chinese: 翟东东
+    institutions:
+    - Jianghan University
+    species:
+    - Ochetobius_elongatus
+  - name: Li Lekang
+    chinese: 李林珂
+    institutions:
+    - Sun Yat-sen University
+    species:
+    - Ochetobius_elongatus
+  - name: Gao Feng
+    chinese: 高丰
+    institutions:
+    - Hunan Fisheries Research Institute
+    species:
+    - Ochetobius_elongatus
+  - name: Xiong Fei
+    chinese: 熊飞
+    institutions:
+    - Jianghan University
+    species:
+    - Ochetobius_elongatus
+  - name: Liu Hongyan
+    chinese: 刘红艳
+    institutions:
+    - Jianghan University
+    species:
+    - Ochetobius_elongatus
+  - name: Li Ce
+    chinese: 李策
+    institutions:
+    - Pearl River Fisheries Research Institute
+    - CAFS
+    species:
+    - Ochetobius_elongatus
+  - name: Li Yuefei
+    chinese: 李跃飞
+    institutions:
+    - Pearl River Fisheries Research Institute
+    - CAFS
+    species:
+    - Ochetobius_elongatus
+  - name: Hu Xingkun
+    chinese: 胡兴坤
+    institutions:
+    - Institute of Hydroecology
+    - MWR & CAS
+    species:
+    - Ochetobius_elongatus
+  - name: Wang Sheng
+    chinese: 王盛
+    institutions:
+    - Institute of Hydroecology
+    - MWR & CAS
+    species:
+    - Ochetobius_elongatus
+  - name: Liang Xuanguang
+    chinese: 梁轩广
+    institutions:
+    - Sun Yat-sen University
+    species:
+    - Ochetobius_elongatus
   journals:
-    - name: "Animals"
-      species: ["Ochetobius_elongatus"]
-    - name: "Scientific Data"
-      species: ["Ochetobius_elongatus"]
-    - name: "Mitochondrial DNA"
-      species: ["Ochetobius_elongatus"]
-    - name: "Conservation Genetics Resources"
-      species: ["Ochetobius_elongatus"]
-    - name: "生物多样性"
-      species: ["Ochetobius_elongatus"]
-    - name: "水生生物学报"
-      species: ["Ochetobius_elongatus"]
-
-  # ===== 已发表论文 (节点+边) =====
+  - name: Animals
+    species:
+    - Ochetobius_elongatus
+  - name: Scientific Data
+    species:
+    - Ochetobius_elongatus
+  - name: Mitochondrial DNA
+    species:
+    - Ochetobius_elongatus
+  - name: Conservation Genetics Resources
+    species:
+    - Ochetobius_elongatus
+  - name: 生物多样性 (Biodiversity Science)
+    species:
+    - Ochetobius_elongatus
+  - name: 水生生物学报 (Acta Hydrobiologica Sinica)
+    species:
+    - Ochetobius_elongatus
+  - name: 南方水产科学 (South China Fisheries Science)
+    species:
+    - Ochetobius_elongatus
   papers:
-    - doi: "10.3390/ani15192870"
-      title: "Revealing Phenotypic Differentiation... via Geometric Morphometrics"
-      year: 2025
-      journal: "Animals"
-      authors: ["Cai Fangtao", "Qi Zhiyuan", "Hu Ziheng", "Zhai Dongdong", "Chen Yuanyuan", "Xiong Fei", "Liu Hongyan"]
-      species: ["Ochetobius_elongatus"]
-      citations: 1
-      
-    - doi: "10.17520/biods.2025136"
-      title: "长江中下游鳤不同群体的多变量形态学特征"
-      year: 2025
-      journal: "生物多样性"
-      authors: ["Cai Fangtao", "Wang Sheng", "Hu Xingkun", "Yuan Xiping", "Zhai Dongdong", "Chen Yuanyuan", "Que Yanfu", "Xiong Fei", "Liu Hongyan", "Duan Xinbin"]
-      species: ["Ochetobius_elongatus"]
-      
-    - doi: "10.1038/s41597-024-04223-x"
-      title: "A chromosome-level genome assembly of critically endangered Ochetobius elongatus"
-      year: 2024
-      journal: "Scientific Data"
-      authors: ["Li Lekang", "Liang Xuanguang", "Zhang Jiatong", "Xu Qun", "Wang Li", "Gao Xiaoping", "Song Xiangchun", "Zhang Bao", "Huang Dan", "Wang Hong", "Wang Xianyong", "Luo Zhen", "Kong Chiping", "Lu Jianguo"]
-      species: ["Ochetobius_elongatus"]
-      citations: 2
-      
-    - doi: "10.3390/ani16091369"
-      title: "Analysis of Ochetobibus elongatus Dietary Habits..."
-      year: 2026
-      journal: "Animals"
-      authors: ["Gao Feng", "Zuo Zhiliang", "Wu Qifan", "Xiao Hewei", "Peng Zhitao", "Zou Li", "Jiang Guomin", "Tian Xing", "Feng Zhifeng", "Xie Xuan", "Tian Lu"]
-      species: ["Ochetobius_elongatus"]
-      note: "Genus misspelled as Ochetobibus in title"
-
-  # ===== 边: 引用关系 =====
+  - doi: 10.17520/biods.2018121
+    title: Genetic diversity and population demographic history of Ochetobius elongatus
+      in the middle and lower reaches of the Xijiang River
+    title_zh: 西江中下游鳤的遗传多样性与种群动态历史
+    year: 2018
+    journal: 生物多样性 (Biodiversity Science)
+    authors:
+    - Yang Jiping
+    - Li Ce
+    - Chen Weitao
+    - Li Yuefei
+    - Li Xinhui
+    species:
+    - Ochetobius_elongatus
+    institutions:
+    - Pearl River Fisheries Research Institute
+    citations: 12
+  - doi: 10.1007/s12686-018-1075-3
+    title: Development and characterization of 26 SNP markers in Ochetobius elongatus
+      based on restriction site-associated DNA sequencing (RAD-seq)
+    year: 2020
+    journal: Conservation Genetics Resources
+    authors:
+    - Yang Jiping
+    - Li Yuefei
+    - Zhu Shuli
+    - Chen Weitao
+    - Li Jie
+    - Xue Huimin
+    - Li Xinhui
+    species:
+    - Ochetobius_elongatus
+    institutions:
+    - Pearl River Fisheries Research Institute
+  - doi: 10.12131/20220007
+    title: Genetic structure analysis of Ochetobius elongatus between Yangtze River
+      and Pearl River using multiple loci
+    title_zh: 多基因解析长江与珠江鳤的遗传结构
+    year: 2022
+    journal: 南方水产科学 (South China Fisheries Science)
+    authors:
+    - Chen Weitao
+    - Duan Xinbin
+    - Gao Lei
+    - Li Xinhui
+    - Yang Jiping
+    - Wang Dongqiang
+    species:
+    - Ochetobius_elongatus
+    institutions:
+    - Pearl River Fisheries Research Institute
+    - Yangtze River Fisheries Research Institute
+  - doi: 10.7541/2024.2024.0056
+    title: Genetic diversity and population historical dynamics of Ochetobius elongatus
+      in the middle reaches of the Yangtze River
+    title_zh: 长江中游鳤的遗传多样性及种群历史动态分析
+    year: 2024
+    journal: 水生生物学报 (Acta Hydrobiologica Sinica)
+    authors:
+    - Zhai Dongdong
+    - Wang Dong
+    - He Tianqi
+    - Cai Fangtao
+    - Duan Xinbin
+    - Hu Xingkun
+    - Zhu Bin
+    - Xie Zhigang
+    - Xia Min
+    - Liu Hongyan
+    species:
+    - Ochetobius_elongatus
+    institutions:
+    - Jianghan University
+    - Institute of Hydroecology
+    - Yangtze River Fisheries Research Institute
+    citations: 3
+  - doi: 10.1038/s41597-024-04223-x
+    title: A chromosome-level genome assembly of critically endangered Ochetobius
+      elongatus
+    year: 2024
+    journal: Scientific Data
+    authors:
+    - Li Lekang
+    - Liang Xuanguang
+    - Zhang Jiatong
+    - Xu Qun
+    - Wang Li
+    - Gao Xiaoping
+    - Song Xiangchun
+    - Zhang Bao
+    - Huang Dan
+    - Wang Hong
+    - Wang Xianyong
+    - Luo Zhen
+    - Kong Chiping
+    - Lu Jianguo
+    species:
+    - Ochetobius_elongatus
+    institutions:
+    - Sun Yat-sen University
+    - Hunan Fisheries Research Institute
+    - Guangdong Laboratory for Lingnan Modern Agriculture
+    citations: 5
+  - doi: 10.3390/ani15192870
+    title: Revealing Phenotypic Differentiation in Ochetobius elongatus from the Middle
+      Yangtze River Through Geometric Morphometrics
+    year: 2025
+    journal: Animals
+    authors:
+    - Cai Fangtao
+    - Qi Zhiyuan
+    - Hu Ziheng
+    - Zhai Dongdong
+    - Chen Yuanyuan
+    - Xiong Fei
+    - Liu Hongyan
+    species:
+    - Ochetobius_elongatus
+    institutions:
+    - Jianghan University
+    - Institute of Hydroecology
+    - Yangtze River Fisheries Research Institute
+    citations: 1
+  - doi: 10.17520/biods.2025136
+    title: Multivariate morphological characteristics of different populations of
+      Ochetobius elongatus in the middle and lower reaches of the Yangtze River
+    title_zh: 长江中下游鳤不同群体的多变量形态学特征
+    year: 2025
+    journal: 生物多样性 (Biodiversity Science)
+    authors:
+    - Cai Fangtao
+    - Wang Sheng
+    - Hu Xingkun
+    - Yuan Xiping
+    - Zhai Dongdong
+    - Chen Yuanyuan
+    - Que Yanfu
+    - Xiong Fei
+    - Liu Hongyan
+    - Duan Xinbin
+    species:
+    - Ochetobius_elongatus
+    institutions:
+    - Jianghan University
+    - Institute of Hydroecology
+    - Yangtze River Fisheries Research Institute
+  - doi: 10.3390/ani16091369
+    title: Analysis of Ochetobibus elongatus (Kner) Dietary Habits Based on Digestive
+      System Morphology, Histology, and Intestinal Content Sequencing Technology
+    year: 2026
+    journal: Animals
+    authors:
+    - Gao Feng
+    - Zuo Zhiliang
+    - Wu Qifan
+    - Xiao Hewei
+    - Peng Zhitao
+    - Zou Li
+    - Jiang Guomin
+    - Tian Xing
+    - Feng Zhifeng
+    - Xie Xuan
+    - Tian Lu
+    species:
+    - Ochetobius_elongatus
+    institutions:
+    - Hunan Fisheries Research Institute
+    note: Genus misspelled as Ochetobibus in title — OCR variant
+  - doi: N/A_ThreeGorges_2002
+    title: Studies on status of fishery resources in Three Gorges Reservoir reaches
+      of the Yangtze River
+    title_zh: 长江三峡库区鱼类资源现状的研究
+    year: 2002
+    journal: 待确认
+    authors:
+    - Duan Xinbin
+    - Chen Daqing
+    - Liu Shaoping
+    - Chi Chenggui
+    species:
+    - Ochetobius_elongatus
+    type: mention
+    note: Reported O. elongatus as disappeared in Three Gorges reservoir
+  - pmid: '33333226'
+    title: Temporal species-level composition of larvae resources in the lower reaches
+    year: 2020
+    journal: 待确认
+    species:
+    - Ochetobius_elongatus
+    type: mention
+    note: Listed O. elongatus as critically endangered in larvae survey
+  - pmid: '39943203'
+    title: 'Post-Fishing Ban Period: The Fish Diversity and Community Structure in
+      the Poyang Lake Basin, Jiangxi Province, China'
+    year: 2025
+    journal: 待确认
+    species:
+    - Ochetobius_elongatus
+    type: mention
+    note: Post-fishing ban survey, O. elongatus detected in Poyang Lake Basin
   edges:
-    - from: "doi:10.3390/ani15192870"
-      to: "doi:10.1038/s41597-024-04223-x"
-      type: "cites"
-    - from: "doi:10.17520/biods.2025136"
-      to: "doi:10.1038/s41597-024-04223-x"
-      type: "cites"
+  - from: doi:10.7541/2024.2024.0056
+    to: doi:10.17520/biods.2018121
+    type: cites
+  - from: doi:10.7541/2024.2024.0056
+    to: doi:10.1007/s12686-018-1075-3
+    type: cites
+  - from: doi:10.7541/2024.2024.0056
+    to: doi:10.12131/20220007
+    type: cites
+  - from: doi:10.12131/20220007
+    to: doi:10.17520/biods.2018121
+    type: cites
+  - from: doi:10.12131/20220007
+    to: doi:10.1007/s12686-018-1075-3
+    type: cites
+  - from: doi:10.3390/ani15192870
+    to: doi:10.1038/s41597-024-04223-x
+    type: cites
+  - from: doi:10.3390/ani15192870
+    to: doi:10.7541/2024.2024.0056
+    type: cites
+  - from: doi:10.17520/biods.2025136
+    to: doi:10.1038/s41597-024-04223-x
+    type: cites
+  - from: doi:10.3390/ani16091369
+    to: doi:10.17520/biods.2018121
+    type: cites
+  - from: doi:10.3390/ani16091369
+    to: doi:10.7541/2024.2024.0056
+    type: cites
+  - from: doi:10.17520/biods.2018121
+    to: doi:10.1007/s12686-018-1075-3
+    type: co_author
+    via:
+    - Yang Jiping
+    - Li Xinhui
+    - Chen Weitao
+    - Li Yuefei
+  - from: doi:10.17520/biods.2018121
+    to: doi:10.12131/20220007
+    type: co_author
+    via:
+    - Yang Jiping
+    - Li Xinhui
+    - Chen Weitao
+  - from: doi:10.3390/ani15192870
+    to: doi:10.17520/biods.2025136
+    type: co_author
+    via:
+    - Cai Fangtao
+    - Zhai Dongdong
+    - Xiong Fei
+    - Liu Hongyan
+    - Chen Yuanyuan
