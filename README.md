@@ -7,11 +7,12 @@
 > **Frontier species literature search** — Knowledge Graph Traversal + Energy Efficiency + Semiotics + Linguistics + DeepSeek Chain-of-Thought
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-4.2-6366f1)](config/agent.yaml)
+[![Version](https://img.shields.io/badge/version-4.3-6366f1)](config/agent.yaml)
 [![Skills](https://img.shields.io/badge/skills-3-22c55e)](skills/)
 [![MCP](https://img.shields.io/badge/MCP-5-f59e0b)](config/mcp_servers.yaml)
+[![Multi-LLM](https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6)]()
 [![Living System](https://img.shields.io/badge/living_system-self_evolving-ec4899)]()
-[![DeepSeek](https://img.shields.io/badge/DeepSeek-optimized-8b5cf6)]()
+[![Eng Lang](https://img.shields.io/badge/engineering_language-100%25-22c55e)]()
 
 ---
 
@@ -25,6 +26,18 @@ This engine is integrated as a git submodule in:
 | [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | Porpoise research agent — auto-routes species queries to this engine |
 
 ---
+
+## 🔧 Engineering Language Commitment
+
+> **Every feature is expressed in executable engineering language — not natural language.**
+> `function(input: Type) → OutputType` | `WHEN condition THEN action` | `config.path.to.value`
+
+| Format | Purpose | Example |
+|--------|---------|---------|
+| `search_rules.yaml` | Structured rule engine (10 phases) | `function: mine_review_references` + `tools: [article_get_references]` |
+| `tools.json` | JSON Schema tool definitions | Compatible with DeepSeek + Gemini + OpenAI Function Calling |
+| `src/rule_engine.py` | Python executor | `SearchRuleEngine("config/search_rules.yaml").execute(species_id)` |
+| `config/evolution.yaml` | Self-adaptive parameters | `trigger: recall < 0.5 FOR 3 CONSECUTIVE → satisfice_threshold += 2` |
 
 ## 🧠 Core Innovation
 
@@ -131,7 +144,12 @@ skills:
   skill_dir: "../cognitive-search-engine/skills"
 ```
 
-Or use standalone:
+Or run directly with Python:
+```bash
+python src/rule_engine.py
+```
+
+Or use as a Skill:
 ```
 /skill graph-search-engine species="Ochetobius elongatus"
 ```
@@ -151,7 +169,12 @@ cognitive-search-engine/
 │   ├── mcp_servers.yaml          ← 5 search engines
 │   ├── species_graph.yaml        ← Pre-built knowledge graph
 │   ├── component_registry.yaml   ← Living system: 12 components lifecycle
-│   └── evolution.yaml            ← Self-evolution: 4 auto-adaptive params
+│   ├── evolution.yaml            ← Self-evolution: 4 auto-adaptive params
+│   ├── search_rules.yaml         ← 🆕 YAML Rule Engine: 10 structured phases
+│   └── tools.json                ← 🆕 JSON Schema: DeepSeek+Gemini+OpenAI tools
+│
+├── src/
+│   └── rule_engine.py            ← 🆕 Python executor: load YAML → execute
 │
 ├── skills/
 │   ├── graph-search-engine.md    ← v4 core: graph traversal + Pareto-optimal

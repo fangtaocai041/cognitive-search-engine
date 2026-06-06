@@ -10,14 +10,27 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-4.1.0-6366f1?style=flat-square" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-4.3-6366f1?style=flat-square" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/skills-3-22c55e?style=flat-square" alt="Skills"></a>
   <a href="#"><img src="https://img.shields.io/badge/MCP-5-f59e0b?style=flat-square" alt="MCP"></a>
+  <a href="#"><img src="https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6?style=flat-square" alt="Multi-LLM"></a>
   <a href="#"><img src="https://img.shields.io/badge/活系统-自进化-ec4899?style=flat-square" alt="活系统"></a>
-  <a href="#"><img src="https://img.shields.io/badge/DeepSeek-优化-8b5cf6?style=flat-square" alt="DeepSeek"></a>
+  <a href="#"><img src="https://img.shields.io/badge/工程语言-100%25-22c55e?style=flat-square" alt="工程语言"></a>
 </p>
 
 ---
+
+## 🔧 工程语言承诺
+
+> **所有功能用可执行的工程语言表达 — 非自然语言。**
+> `function(input: Type) → OutputType` | `WHEN condition THEN action` | `config.path.to.value`
+
+| 格式 | 用途 |
+|------|------|
+| `search_rules.yaml` | 10 阶段结构化规则引擎 |
+| `tools.json` | JSON Schema — DeepSeek+Gemini+OpenAI 通用 |
+| `src/rule_engine.py` | Python 直接执行 |
+| `config/evolution.yaml` | 4 参数自进化 |
 
 ## 🧠 核心创新
 
