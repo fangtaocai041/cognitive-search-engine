@@ -57,7 +57,7 @@ cognitive 进化 → submodule update → fish/porpoise 自动获取:
 fish/porpoise 使用 cognitive 搜索 → 反馈效果数据:
   - recall rate (实际找到的 vs 预估)
   - false positive rate (引用验证失败率)
-  - 新发现的拼写错误 → 添加到 species_variants.yaml
+  - 新发现的拼写错误 → 添加到 species_graph.yaml (species[].variants)
   → cognitive 根据反馈进化参数
 ```
 

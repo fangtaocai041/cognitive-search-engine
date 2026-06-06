@@ -67,7 +67,7 @@ SIGNIFIED:
   Taxonomic context: {family, order, related_species}
   Ecological context: {habitat, distribution, conservation_status}
 
-KNOWN SIGNIFIER VARIANTS (from species_variants.yaml):
+KNOWN SIGNIFIER VARIANTS (from species_graph.yaml):
   {known_misspellings}
 ```
 
@@ -152,7 +152,7 @@ ORDER layers by IG × budget_weight:
 ```
 ACTIVATE layer N ONLY IF:
   Layer 1: ALWAYS
-  Layer 2: ALWAYS (species_variants.yaml exists)
+  Layer 2: ALWAYS (species_graph.yaml exists)
   Layer 3-5: ONLY IF Layer 1 returns < 10 results
   Layer 6: ONLY IF ≥2 engines used in Layer 1
   Layer 7: ALWAYS (merge after all active layers)
@@ -185,7 +185,7 @@ STOP CONDITION: if cumulative unique papers ≥ 20, stop remaining layers
 
 ### Layer 0: OCR Variant Pre-Generation [IG=N/A, Budget=0, ALWAYS FIRST]
 ```
-READ config/species_variants.yaml for known_misspellings
+READ config/species_graph.yaml for variant data in species[].variants
 APPLY OCR error model: letter_insertion, letter_deletion, vowel_confusion, tail_drop, hyphen_split, doubling
 GENERATE up to 15 variants + ecology_keyword combinations
 ```
