@@ -16,6 +16,25 @@ llm:
     temperature: 0.7
     max_tokens: 8192
 
+# Gemini 兼容配置
+gemini:
+  provider: google
+  model: gemini-2.5-pro
+  api_base: https://generativelanguage.googleapis.com/v1beta
+  api_key: ${GEMINI_API_KEY}
+  safety_settings:
+    category: [HARM_CATEGORY_HARASSMENT, HARM_CATEGORY_HATE_SPEECH]
+    threshold: BLOCK_ONLY_HIGH
+  tools_schema: "config/tools.json"
+
+# OpenAI 兼容配置
+openai:
+  provider: openai
+  model: gpt-4o
+  api_base: https://api.openai.com/v1
+  api_key: ${OPENAI_API_KEY}
+  tools_schema: "config/tools.json"
+
 search:
   # 自适应搜索深度 (Adaptive Search Depth)
   adaptive:

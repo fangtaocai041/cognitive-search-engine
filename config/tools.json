@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cognitive Search Engine — Tool Definitions",
+  "description": "Standard JSON Schema function declarations. Compatible with DeepSeek, Gemini, OpenAI Function Calling APIs.",
+  "tools": [
+    {
+      "name": "graph_search_engine",
+      "description": "Execute graph-based cognitive species search with adaptive depth and review mining.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "species_id": {
+            "type": "string",
+            "description": "Species identifier, e.g. 'Ochetobius_elongatus'"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["adaptive", "exhaustive", "classified", "satisficing"],
+            "default": "adaptive",
+            "description": "Search mode. adaptive=auto-select based on volume estimate"
+          },
+          "max_papers": {
+            "type": "integer",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "include_reviews": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable review paper reference mining"
+          },
+          "verify_references": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable 5-level reference verification"
+          }
+        },
+        "required": ["species_id"]
+      }
+    },
+    {
+      "name": "search_species_literature",
+      "description": "Multi-layer fuzzy species literature search with typo tolerance.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "genus": { "type": "string" },
+          "species": { "type": "string" },
+          "chinese_name": { "type": "string" },
+          "year_range": {
+            "type": "object",
+            "properties": {
+              "start": { "type": "integer" },
+              "end": { "type": "integer" }
+            }
+          },
+          "fuzzy_search": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable variant/typo search"
+          }
+        },
+        "required": ["genus", "species"]
+      }
+    },
+    {
+      "name": "verify_reference",
+      "description": "Verify a single reference with 5-level trust scoring.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "doi": { "type": "string" },
+          "title": { "type": "string" },
+          "authors": { "type": "array", "items": { "type": "string" } },
+          "year": { "type": "integer" },
+          "journal": { "type": "string" }
+        },
+        "required": ["doi"]
+      }
+    },
+    {
+      "name": "get_living_system_report",
+      "description": "Generate living system health dashboard.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "component_registry_path": {
+            "type": "string",
+            "default": "config/component_registry.yaml"
+          }
+        }
+      }
+    },
+    {
+      "name": "self_evolve",
+      "description": "Execute post-search self-evolution: evaluate → adapt → log.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "search_result": {
+            "type": "object",
+            "properties": {
+              "papers_found": { "type": "integer" },
+              "estimated_volume": { "type": "integer" },
+              "tokens_spent": { "type": "integer" },
+              "new_papers": { "type": "integer" },
+              "review_mined_papers": { "type": "integer" }
+            },
+            "required": ["papers_found", "tokens_spent"]
+          }
+        },
+        "required": ["search_result"]
+      }
+    }
+  ]
+}
