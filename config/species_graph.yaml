@@ -32,6 +32,25 @@ graph:
     chinese: 翘嘴鲌
     family: Xenocyprididae
     variants: []
+  - id: Elopichthys_bambusa
+    name: Elopichthys bambusa
+    chinese: 鳡
+    aliases: ["鳡鱼", "黄钻", "竿鱼", "水老虎", "铜头鱼"]
+    family: Xenocyprididae
+    conservation: LC
+    variants:
+    - Elopichthys bambus
+    - Elopichthis bambusa
+  - id: Luciobrama_macrocephalus
+    name: Luciobrama macrocephalus
+    chinese: 鯮
+    aliases: ["鯮鱼", "尖头鳡", "马头鯮"]
+    family: Xenocyprididae
+    conservation: CR
+    variants:
+    - Luciobrama macrocephala
+    - Luciobrama microcephalus
+    - Luciobrama macrocephalu
   authors:
   - name: Cai Fangtao
     chinese: 蔡方涛
