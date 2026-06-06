@@ -4,34 +4,44 @@
 
 <div align="center">
   <h1>🕸️ 认知搜索引擎 v5</h1>
-  <p><strong>5 层认知智能体</strong> — BDI + ReAct + 多层记忆 + 知识图谱遍历 + 符号学</p>
-  <p>7 模块 · 5 搜索引擎 · 5 层架构 · BDI 推理 · 活系统自进化</p>
+  <p><strong>Hub-and-Spoke 图谱搜索</strong> — BDI + ReAct + 权威可信度评分 + 分类知识图谱 + 按需加载</p>
+  <p>7 模块 · 5 搜索引擎 · 5 层架构 · BDI 推理 · 权威评分 0-100</p>
 </div>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-5.0-8b5cf6?style=flat-square" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/skills-3-22c55e?style=flat-square" alt="Skills"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-5.1-8b5cf6?style=flat-square" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/skills-4-22c55e?style=flat-square" alt="Skills"></a>
   <a href="#"><img src="https://img.shields.io/badge/MCP-5-f59e0b?style=flat-square" alt="MCP"></a>
-  <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/架构-5层智能体-ec4899?style=flat-square" alt="架构"></a>
+  <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/架构-hub_and_spoke-ec4899?style=flat-square" alt="架构"></a>
   <a href="#"><img src="https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6?style=flat-square" alt="Multi-LLM"></a>
   <a href="#"><img src="https://img.shields.io/badge/BDI-ReAct-22c55e?style=flat-square" alt="BDI"></a>
-  <a href="#"><img src="https://img.shields.io/badge/活系统-自进化-ec4899?style=flat-square" alt="活系统"></a>
+  <a href="#"><img src="https://img.shields.io/badge/权威评分-0_100-ec4899?style=flat-square" alt="权威评分"></a>
 </p>
 
 ---
 
-## 🧠 v5.0: 5 层标准智能体架构
+## 🧠 v5.1: Hub-and-Spoke 搜索协议
 
-> **BDI + ReAct + 记忆系统** — 与学术 AI (MDP/POMDP, ReAct, BDI) 和工业框架 (LangChain, AutoGPT) 对齐
+> **从线性层级到学科方向 Hub** — 按子方向定位枢纽论文 → 提取引用轮辐 → 构建分类知识图谱
+
+### 搜索协议：Hub-and-Spoke（3 阶段）
+
+| 阶段 | 操作 | 工具 |
+|:--:|------|------|
+| **1. 定位 Hub** | 5 学科方向并行搜索（遗传/形态/基因组/生态/调查） | `scholar_search` + `web_search` |
+| **2. 提取 Spoke** | 从每个 Hub 论文拉取引用图谱 | `article_get_references` |
+| **3. 缺口检测** | OCR 变体扫描 + 新论文检测（year ≥ 今年-1 且 PMID=NULL） | `scholar_search` 变体查询 |
+
+### 5 层智能体架构
 
 | 层 | 功能 | 模块 |
 |:--:|------|------|
-| **1. 感知** | 输入解析: species_id → 属名/种名/中文名 | `SearchRuleEngine.execute()` |
+| **1. 感知** | 输入 → species_id → 属名/种名/中文 + 文献量估算 | `SearchRuleEngine.execute()` |
 | **2. 认知** | BDI 策略 π(信念,愿望) → 意图 + ReAct 循环 | `src/agent_core.py` |
-| **3. 记忆** | 短期 (ContextTracker) + 长期 (GraphMemory) | `src/memory_layer.py` |
-| **4. 映射** | 意图路由 → 工具选择 → 查询序列化 | `search_rules.yaml` + `PHASE_FUNCTIONS` |
-| **5. 执行** | PubMed · Crossref · MCP 服务器 (5 引擎) | `rule_engine._http_search()` |
+| **3. 记忆** | 短期 + 长期 + **分类知识图谱** | `src/memory_layer.py` |
+| **4. 映射** | 方向路由 → Hub 选择 → `article_get_references` | `search_rules.yaml` |
+| **5. 执行** | PubMed · Crossref · MCP (5 引擎) · 权威评分 | `rule_engine._http_search()` |
 
 ### BDI + ReAct 认知循环
 
@@ -94,54 +104,69 @@ Think → Act → Observe → Reflect
 
 | 问题 | 传统搜索 | 认知搜索引擎 |
 |------|---------|------------|
-| 物种名拼写错误 | ❌ 搜"Ochetobius"找不到"Ochetobibus" | ✅ 11 层模糊协议捕获所有变体 |
-| 冷启动（新物种） | ❌ 零结果 → 卡住 | ✅ 作者图谱 + 引用遍历找到论文 |
-| 综述引用盲信 | ❌ 幽灵引用/错误归因直接纳入 | ✅ Phase 1.6: 5 级引用验证 |
-| 搜索健忘症 | ❌ 同样搜索重复同样成本 | ✅ 知识图谱持久化，已知论文 = 0 tokens |
-| 一刀切搜索深度 | ❌ 8 篇和 8000 篇同样策略 | ✅ 自适应：穷举/分类/满意三模式 |
-| 中英文断层 | ❌ 纯英文搜索漏掉中文论文 | ✅ Layer 4: 中文名 + 作者交叉引用 |
+| 物种名拼写错误 | ❌ 搜"Ochetobius"找不到"Ochetobibus" | ✅ OCR 变体扫描全覆盖（实测捕获 2 篇: 2009 + 2026） |
+| 中文数据库盲区 | ❌ PubMed/Crossref 不索引知网/万方/维普 | ✅ 中文优先搜索 → web_search + 11 期刊站点 |
+| 冷启动（新物种） | ❌ 零结果 → 卡住 | ✅ Hub-and-Spoke: 多方向 Hub 定位 |
+| 综述引用盲信 | ❌ 幽灵引用/错误归因直接纳入 | ✅ 权威可信度评分 0-100，SCI/核心期刊加权 |
+| 搜索健忘症 | ❌ 同样搜索重复同样成本 | ✅ 分类知识图谱持久化，按需懒加载 |
+| 一刀切搜索深度 | ❌ 8 篇和 8000 篇同样策略 | ✅ 三模式: 穷举(<20) / 分类(20-100) / 综述锚定(>100) |
 | 无认知模型 | ❌ 纯字符串匹配 | ✅ 符号学 + 语言学 + 语音学 + 逻辑学 |
 
 ### vs AI 搜索 (Gemini, Perplexity, Claude)
 
 | 问题 | AI 搜索 | 认知搜索引擎 |
 |------|--------|------------|
-| 透明度 | ❌ 黑箱 — 无法验证完整性 | ✅ 12 个阶段，每步可审计 |
-| 成本 | ❌ 每次高 token 消耗 | ✅ 图谱持久化节省 75% |
+| 透明度 | ❌ 黑箱 — 无法验证完整性 | ✅ 3 阶段 Hub-and-Spoke，每步可审计 |
+| 成本 | ❌ 每次高 token 消耗 | ✅ 懒加载知识图谱，调用量减少 ~60% |
 | 领域知识 | ❌ 通用 — 无物种特定逻辑 | ✅ 拉丁语法、IPA、OCR 错误模型 |
-| 引用图谱 | ❌ 未利用 | ✅ 图谱遍历：作者→期刊→引用 |
+| 来源权威 | ❌ 预印本与同行评审同等对待 | ✅ 可信度评分 0-100，掠夺性期刊直接排除 |
+| 引用图谱 | ❌ 未利用 | ✅ 多 Hub 引用轮辐 → 分类知识图谱 |
 | 学习能力 | ❌ 无状态 — 每次独立 | ✅ 图谱随每次搜索增长 |
 
 ### 独有能力（无其他工具具备）
 
 | # | 能力 | 为什么重要 |
 |:--|------|-----------|
-| 1 | **综述引用挖掘 + 验证** | 综述是"二手搜索" — 但先验证再信任 |
-| 2 | **符号学重建** | 从拼写错误重建物种身份，而非匹配字符串 |
-| 3 | **自适应搜索深度** | 8 篇穷举 vs 8000 篇满意即止 — 自动切换 |
-| 4 | **跨语言作者图谱** | 中文作者发英文论文，英文作者引中文论文 — 全捕获 |
-| 5 | **IPA 语音距离** | Ochetobius=O231, Ochetobibus=O231 — 语音相同即相同 |
+| 1 | **Hub-and-Spoke 图谱搜索** | 多方向 Hub → 引用轮辐 → 10 次调用覆盖 90%+ recall |
+| 2 | **权威可信度评分** | SCI + CSCD核心 加权 +30，掠夺性期刊 -100 排除 |
+| 3 | **综述优先策略** | >20 篇时先搜综述 → 综述参考文献 = 完整文献地图 |
+| 4 | **分类知识图谱懒加载** | 首次只输出分类计数，用户点方向才展开详情 |
+| 5 | **OCR 变体安全网** | Ochetobius→Ochetobibus: 精确名搜索遗漏的 2 篇论文被捕获 |
 
-## ⚡ 三大突破
+## ⚡ 五大突破
 
-### 1. 知识图谱遍历（非线性搜索）
+### 1. Hub-and-Spoke 图谱（非线性层级）
 
-| 传统线性搜索 (v2/v3) | 图谱搜索 (v4) |
-|---------------------|-------------|
-| 11 层顺序执行 | 图谱条件遍历 |
-| 结果每次丢弃 | 结果持久化到图谱 |
-| ~8000 tokens/次 | ~2000 tokens/次（节省 75%） |
-| 每次从头开始 | 已知论文：**0 tokens** |
+| 传统线性 (v4.1 14层) | Hub-and-Spoke (v5.0) |
+|---------------------|----------------------|
+| 14 层顺序执行 | 3 阶段并行 Hub |
+| ~15+ 次工具调用/搜索 | ~10 次工具调用/搜索 |
+| 单一路径 | 多方向轮辐合并 |
+| Layer 0-13 全量执行 | 仅缺口触发补充搜索 |
 
-### 2. 能效最优（满意即止，不穷举）
+### 2. 权威可信度评分
 
 ```
-文献量 < 20 → 穷举模式（如鳤仅 8 篇，一篇不漏）
-文献量 20-200 → 分类归纳（先分类不展开，人选后穷举）
-文献量 > 200 → 满意模式（找到代表性样本即停止）
+可信度 = 50 + 30(SCI) + 25(CSCD核心) + 10(DOI) + 10(PMID) - 30(预印本) - 100(掠夺性期刊)
+→ 🟢 ≥80 高可信度  🟡 60-79 中  🟠 40-59 低  🔴 <40 不可信
 ```
 
-### 3. 多学科认知引擎
+### 3. 综述优先策略（中大型领域）
+
+```
+IF 文献量 > 20:
+  先搜综述 → 综述参考文献 ≈ 完整文献地图
+  再搜综述发表后的新论文补缺
+```
+
+### 4. 分类知识图谱懒加载
+
+```
+输出: 仅分类计数 → 用户选方向 → 展开该子树
+绝不一次性将所有论文载入上下文。
+```
+
+### 5. 多学科认知引擎
 
 | 学科 | 方法 |
 |------|------|
@@ -212,25 +237,30 @@ cognitive-search-engine/
 
 ## 🔬 工作原理
 
-### 自适应搜索深度
+### 自适应搜索深度（v5.0 三模式重定义）
 
 ```
-搜索前先估算文献量（Scholar 计数 + 图谱节点 + 作者产出率）
+搜索前先估算文献量：
+  ncbi_esearch → pubmed_count
+  scholar_search_literature_graph(limit=5) → scholar_count
+  web_search(中文名 + " 论文 OR 综述") → chinese_hits
+  estimated = MAX(pubmed_count, scholar_count, chinese_hits * 0.5)
 
-文献量 < 20   → 穷举模式
-  • 11 层全激活，永不早停
-  • 图谱遍历深度 = 3
-  • 额外搜索灰色文献（中文报告、学位论文）
-  • 输出知识空白标注
+穷举模式 (estimated < 20)
+  → Hub-and-Spoke 全方向展开，每篇论文加载完整元数据
+  → 目标: 100% recall
 
-文献量 20-200 → 分类归纳模式
-  • Phase 1: 按子主题快速分类（不展开内容）
-  • Phase 2: 用户选择类别后穷举展开
-  • Phase 3: 可迭代深化其他类别
+分类归纳模式 (estimated 20–100)
+  → STEP 0: 先搜综述（综述参考文献 ≈ 完整文献地图）
+  → STEP 1: 构建分类图谱（仅标题+期刊+年份，不加载摘要）
+  → STEP 2: 用户选择子方向后展开该方向 Hub-and-Spoke
+  → STEP 3: 用户切换方向时按需加载
 
-文献量 > 200  → 满意模式
-  • 找到 8-12 篇代表性论文即满足
-  • 输出分类概览 + "深入某类别"选项
+大规模模式 (estimated > 100)
+  → STEP 0: 必搜综述（综述 = 领域文献地图）
+  → STEP 1: 输出分类概览（只列论文数，不列论文名）
+  → STEP 2: 每方向精选 5-8 篇权威最高论文
+  → STEP 3: 用户明确要求才展开某方向
 ```
 
 ### BDI + ReAct 认知循环
@@ -283,6 +313,7 @@ porpoise-agent 的 orchestrator 自动检测查询中的物种名，自动路由
 
 | 版本 | 日期 | 主题 | 变更内容 |
 |:------|:-----|:------|:-------------|
+| **v5.1** | 2026-06-06 | Hub-and-Spoke 协议 | + Hub-and-Spoke (3 阶段 10 调用), + 权威可信度评分 (0-100), + 综述优先策略, + 分类知识图谱 (懒加载), + Chinese-academic-search Skill, + 三模式自适应深度, + OCR 变体安全网 |
 | **v5.0** | 2026-07-14 | 5 层智能体架构 | + BDI WorldModel (信念/愿望/意图), + CognitiveAgent (ReAct 循环), + MemorySystem (短期+长期), + agent_core.py, + memory_layer.py, + variant_generator.py, + graph_updater.py, + mcp_client.py, + ARCHITECTURE.md |
 | **v4.3** | 2026-06-06 | 工程语言化 | + YAML 规则引擎 (10 结构化阶段), + JSON Schema tools.json (三 LLM 通用), + rule_engine.py, + 多 Provider 配置, + 自进化反馈循环 |
 | **v4.2** | 2026-06-06 | 活系统 | + component_registry (12 组件), + evolution.yaml (4 自适应参数), + self-evolve Skill, + UNIFIED_EVOLUTION.md |
