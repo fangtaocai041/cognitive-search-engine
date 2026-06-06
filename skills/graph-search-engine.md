@@ -294,7 +294,33 @@ AFTER Phase 1:
     REVIEW_VALUE = new_papers / total_references
     IF REVIEW_VALUE > 0:
       LOG: "综述挖掘发现 {new_papers} 篇遗漏论文"
-    IF satisficed, STOP (reviews may have already filled the gap)
+```
+
+### Phase 1.6: Reference Verification (引用验证) 🛡️
+
+> **原则**: "信任但验证" — 综述引用不准确是常见问题，需独立确认。
+
+```
+FOR EACH paper from review mining:
+  # L1: DOI 存在性
+  VERIFY doi_exists → no DOI AND no URL → ⚠️ SUSPICIOUS
+
+  # L2: 独立搜索确认
+  SEARCH exact title in scholar → NOT found → 🔴 UNVERIFIED
+
+  # L3: 引用三角验证
+  ≥ 2 reviews cite it → 🟢 HIGH | =1 → 🟡 MEDIUM | =0 → ⚠️ LOW
+
+  # L4: 作者-期刊-年份一致性
+  author_journal_year_mismatch → 🔴 INCONSISTENT
+
+  # L5: 摘要匹配
+  abstract mentions species? → NO → ⚠️ MAY_BE_IRRELEVANT
+
+TRUST SCORE = 50 + 20(DOI) + 15(search) + 10×(reviews-1) + 10(consistent)
+  ≥ 80: 🟢 VERIFIED → include
+  50-79: 🟡 TENTATIVE → include with ⚠️ flag
+  < 50: 🔴 UNVERIFIED → appendix only
 ```
 
 ### Phase 2: Citation Traversal (1000 tokens)
