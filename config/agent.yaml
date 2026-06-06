@@ -1,0 +1,59 @@
+# Cognitive Search Engine — Agent Configuration
+# 能效优化 + 图谱搜索
+
+agent:
+  name: "Cognitive Search Engine"
+  version: "4.0.0"
+  description: "Frontier species literature search — semiotics + graph traversal + energy-efficient"
+
+search:
+  # 能效优化 (Energy Efficiency)
+  energy:
+    max_total_tokens: 50000         # 单次搜索最大 token 预算
+    min_papers_satisfice: 8         # 找到 8 篇即满足 (satisfice)
+    max_papers_target: 20           # 理想目标
+    stop_on_diminishing: true       # 边际收益递减时停止
+
+  # 渐进深化 (Progressive Deepening)
+  progressive:
+    cheap_layers_first: true        # 先跑便宜的层
+    cost_per_layer:                 # 每层估算 token 成本
+      exact: 500
+      variant: 1500
+      author: 2000
+      citation: 1000
+      phonetic: 800
+      llm_expansion: 3000
+      journal_scan: 1200
+
+  # 图谱搜索 (Graph Traversal)
+  graph:
+    enabled: true
+    max_depth: 3                    # 最大遍历深度
+    max_branching: 5                # 每节点最大分支数
+    edge_types:                     # 关系类型
+      - cites                        # A 引用 B
+      - cited_by                     # A 被 B 引用
+      - co_author                    # A 和 B 有共同作者
+      - same_journal                 # A 和 B 发表在同一期刊
+      - same_species                 # A 和 B 关于同一物种
+
+  # 信息增益/Token 优化
+  info_gain:
+    track_per_layer: true           # 追踪每层 IG/token
+    reorder_on_fly: true            # 根据实际 IG 动态重排
+    prune_low_ig: true              # 低 IG 层自动剪枝
+    ig_threshold: 0.005             # IG < 0.005 → 停止该层
+
+# 符号学配置
+semiotics:
+  enabled: true
+  signifier_decomposition: true     # 能指分解 (词根+词缀)
+  ocr_error_model: true             # OCR 错误概率模型
+  ipa_transcription: true           # IPA 语音转录
+
+# 逻辑推理配置
+logic:
+  deductive_chain: true             # 演绎链 (作者→期刊→年份)
+  abductive_inference: true         # 溯因推理 (最佳解释)
+  inductive_pattern: true           # 归纳模式 (typo 率统计)
