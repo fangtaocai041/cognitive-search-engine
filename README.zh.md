@@ -1,42 +1,192 @@
-# 🕸️ 认知搜索引擎 v4 — 中文说明
+<p align="center">
+  🇬🇧 <a href="README.md">English</a>
+</p>
 
-> **前沿物种文献搜索** — 知识图谱遍历 + 能效最优 + 符号学 + 语言学 + DeepSeek 思维链
+<div align="center">
+  <h1>🕸️ 认知搜索引擎 v4</h1>
+  <p><strong>前沿物种文献搜索</strong> — 知识图谱遍历 + 能效最优 + 符号学 + 语言学 + DeepSeek 思维链</p>
+  <p>2 Skills · 5 搜索引擎 · 预建知识图谱 · 自适应搜索深度</p>
+</div>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-4.1.0-6366f1?style=flat-square" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/skills-2-22c55e?style=flat-square" alt="Skills"></a>
+  <a href="#"><img src="https://img.shields.io/badge/MCP-5-f59e0b?style=flat-square" alt="MCP"></a>
+  <a href="#"><img src="https://img.shields.io/badge/DeepSeek-optimized-8b5cf6?style=flat-square" alt="DeepSeek"></a>
+</p>
+
+---
 
 ## 🧠 核心创新
 
 **不是字符串匹配 — 是认知重建。**
 
-传统搜索匹配字符串。如果论文把"Ochetobius"拼成"Ochetobibus"，传统搜索找不到。
-本引擎从多条**能指路径**同时重建**所指**（物种本身）。
+传统搜索匹配字符串。如果论文把"Ochetobius"错拼成"Ochetobibus"，传统搜索永远找不到。
+我们的引擎从多条**能指**路径同时重建**所指**（物种本身）。
+
+```
+能指路径 → 所指（物种）
+─────────────────────────────
+精确学名    ─┐
+拼写变体    ─┤
+作者网络    ─┼─→ Ochetobius elongatus（鳤）
+引用图谱    ─┤
+期刊上下文  ─┤
+中文名称    ─┘
+```
 
 ## ⚡ 三大突破
 
 ### 1. 知识图谱遍历（非线性搜索）
 
-| 传统 (v2/v3) | 图谱搜索 (v4) |
-|-------------|-------------|
+| 传统线性搜索 (v2/v3) | 图谱搜索 (v4) |
+|---------------------|-------------|
 | 11 层顺序执行 | 图谱条件遍历 |
-| 结果每次丢弃 | 结果存入图谱，下次免费 |
-| ~8000 tokens/次 | ~2000 tokens/次 |
+| 结果每次丢弃 | 结果持久化到图谱 |
+| ~8000 tokens/次 | ~2000 tokens/次（节省 75%） |
+| 每次从头开始 | 已知论文：**0 tokens** |
 
 ### 2. 能效最优（满意即止，不穷举）
 
-找到 8 篇即满足。边际收益递减时停止。便宜层先跑。
+```
+文献量 < 20 → 穷举模式（如鳤仅 8 篇，一篇不漏）
+文献量 20-200 → 分类归纳（先分类不展开，人选后穷举）
+文献量 > 200 → 满意模式（找到代表性样本即停止）
+```
 
 ### 3. 多学科认知引擎
 
-符号学 (能指→所指) + 语言学 (拉丁词根) + 语音学 (IPA) + 逻辑学 (演绎+溯因+归纳) + DeepSeek CoT
+| 学科 | 方法 |
+|------|------|
+| 符号学 | 能指分解 → 所指重建 |
+| 语言学 | 拉丁词根提取、OCR 错误模型 |
+| 语音学 | IPA 国际音标转录、Soundex+Metaphone 双码 |
+| 逻辑学 | 演绎链 + 溯因推理 + 归纳模式 |
+| DeepSeek CoT | 信息增益排序 + 稀疏 MoE + 熵预算 |
+
+---
 
 ## 🚀 快速上手
 
 ```bash
 git clone https://github.com/fangtaocai041/cognitive-search-engine.git
+cd cognitive-search-engine
 ```
+
+集成到 Reasonix 项目：
+```yaml
+# 在项目的 config/agent.yaml 中
+skills:
+  external_skills:
+    - path: "../cognitive-search-engine/skills"
+      skills: ["graph-search-engine", "cognitive-species-search"]
+```
+
+或作为 git submodule：
+```bash
+git submodule add https://github.com/fangtaocai041/cognitive-search-engine.git external/cognitive-search-engine
+```
+
+独立使用：
+```
+/skill graph-search-engine species="Ochetobius elongatus"
+```
+
+---
+
+## 📁 项目结构
+
+```
+cognitive-search-engine/
+├── README.md                     ← English
+├── README.zh.md                  ← 中文
+├── LICENSE
+│
+├── config/
+│   ├── agent.yaml                ← 能效配置 + 自适应搜索深度
+│   ├── mcp_servers.yaml          ← 5 搜索引擎 (Scholar/Article/Tavily/Exa/Scholarly)
+│   └── species_graph.yaml        ← 预建知识图谱（物种→作者→论文→期刊→引用边）
+│
+├── skills/
+│   ├── graph-search-engine.md    ← v4.1 核心：图谱遍历 + Pareto 能效最优
+│   └── cognitive-species-search.md ← v3.1：符号学 + 语言学 + 语音学 + 逻辑学
+│
+└── .github/workflows/
+    └── validate.yml              ← CI/CD 自动验证
+```
+
+---
+
+## 🔬 工作原理
+
+### 自适应搜索深度
+
+```
+搜索前先估算文献量（Scholar 计数 + 图谱节点 + 作者产出率）
+
+文献量 < 20   → 穷举模式
+  • 11 层全激活，永不早停
+  • 图谱遍历深度 = 3
+  • 额外搜索灰色文献（中文报告、学位论文）
+  • 输出知识空白标注
+
+文献量 20-200 → 分类归纳模式
+  • Phase 1: 按子主题快速分类（不展开内容）
+  • Phase 2: 用户选择类别后穷举展开
+  • Phase 3: 可迭代深化其他类别
+
+文献量 > 200  → 满意模式
+  • 找到 8-12 篇代表性论文即满足
+  • 输出分类概览 + "深入某类别"选项
+```
+
+### 图谱遍历算法
+
+```
+1. 从图谱加载已知论文（0 tokens — 预计算）
+2. 若已知论文 ≥ 8 → 满意，立即返回
+3. 遍历图谱边：作者 → 期刊 → 引用
+4. 语言学过滤：词根相似度 > 0.80
+5. 新论文合并入图谱（持久化，下次免费）
+6. 边际收益递减时停止
+```
+
+---
 
 ## 📡 内置搜索引擎
 
-Google Scholar · Europe PMC · PubMed · OpenAlex · Semantic Scholar · Tavily · Exa
+| 引擎 | 用途 | 模糊匹配 |
+|------|------|:------:|
+| Google Scholar | 主力 — 模糊匹配最强 | ✅✅✅ |
+| Europe PMC + PubMed | 生物医学文献 | ✅ |
+| OpenAlex + Semantic Scholar | 跨学科学术搜索 | ✅✅ |
+| Tavily | 网络搜索（灰色文献、报告） | ✅✅ |
+| Exa | 语义网络搜索 | ✅ |
+
+---
+
+## 🔗 关联项目
+
+本引擎作为 git submodule 集成到以下项目：
+
+| 项目 | 用途 |
+|------|------|
+| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | 鱼类生态学 AI 研究助手 |
+| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | 江豚研究智能体 |
+
+porpoise-agent 的 orchestrator 自动检测查询中的物种名，自动路由到 graph-search-engine。
+
+---
 
 ## 📜 许可证
 
 MIT © 2026 fangtaocai041
+
+---
+
+> **"不枚举，不穷举。遍历图谱，满意即止。"**
+> Don't enumerate. Traverse the graph. Stop when satisfied.
+>
+> **"不要搜索字符串，要重建所指。"**
+> Don't search for strings — reconstruct the signified.

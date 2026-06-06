@@ -7,6 +7,18 @@
 [![Skills](https://img.shields.io/badge/skills-2-22c55e)](skills/)
 [![MCP](https://img.shields.io/badge/MCP-5-f59e0b)](config/mcp_servers.yaml)
 [![DeepSeek](https://img.shields.io/badge/DeepSeek-optimized-8b5cf6)]()
+[![submodule](https://img.shields.io/badge/git-submodule-ec4899)]()
+
+---
+
+## 🔗 Linked Projects
+
+This engine is integrated as a git submodule in:
+
+| Project | Description |
+|---------|-------------|
+| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | Fish ecology AI research team |
+| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | Porpoise research agent — auto-routes species queries to this engine |
 
 ---
 
@@ -47,7 +59,15 @@ Satisfice at 8 papers. Stop at diminishing returns.
 Cheapest layers first. Only go deeper if needed.
 ```
 
-### 3. Multi-Discipline Cognitive Engine
+### 3. Adaptive Search Depth (v4.1)
+
+```
+Volume < 20   → EXHAUSTIVE (e.g., 鳤 only 8 papers — find every single one)
+Volume 20-200 → CLASSIFIED (classify first, drill down on demand)
+Volume > 200  → SATISFICING (stop when enough representative papers found)
+```
+
+### 4. Multi-Discipline Cognitive Engine
 
 | Discipline | Method |
 |-----------|--------|
