@@ -20,6 +20,20 @@
 
 ---
 
+## 🔺 三角形启发的架构 (S-T-V + D₀→D₃)
+
+> **源自 DeepSeek & Gemini 几何哲学**: "点动成线，线动成面，面动成体"
+> 三个项目编织为 S-T-V 刚性三角形: State → Transition → Validation
+
+| 维度 | 概念 | 实现 |
+|:----:|------|------|
+| 🔺 **S-T-V 三角** | fish(S)→porpoise(T)→cognitive(V) 闭环 | `config/stv_protocol.yaml` |
+| D₀ **点** | 原子操作 | 单次工具调用、`search_exact()` |
+| D₁ **线** | 因果轨迹 | 11 层协议、5 阶段流水线、FSM |
+| D₂ **面** | 拓扑网格 | 图谱遍历、debate-validator (3 Agent 辩论)、综述挖掘 |
+| D₃ **体** | 自愈生态 | `SelfHealingMonitor` (熵值→重置)、`WorldModel` (搜索前仿真) |
+| 📐 **三角验证** | ≥3 独立源才可信 | FB-1: `min_sources_core_claim = 3`, trust_score 5 级 |
+
 ## 🔧 工程语言承诺
 
 > **所有功能用可执行的工程语言表达 — 非自然语言。**

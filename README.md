@@ -27,6 +27,20 @@ This engine is integrated as a git submodule in:
 
 ---
 
+## 🔺 Triangle-Inspired Architecture (S-T-V + D₀→D₃)
+
+> **From DeepSeek & Gemini geometric philosophy**: "点动成线，线动成面，面动成体"
+> Three projects woven into an S-T-V rigid triangle: State → Transition → Validation
+
+| Dimension | Concept | Implementation |
+|:---------:|---------|---------------|
+| 🔺 **S-T-V Triangle** | State(fish) → Transition(porpoise) → Validation(cognitive) closed loop | `config/stv_protocol.yaml` |
+| D₀ **Point** | Atomic operations | Single tool calls, `search_exact()` |
+| D₁ **Line** | Causal trajectory | 11-layer protocol, 5-phase pipeline, FSM |
+| D₂ **Plane** | Topological mesh | Graph traversal, debate-validator (3-agent quorum), review mining |
+| D₃ **Body** | Self-healing ecosystem | `SelfHealingMonitor` (entropy → reset), `WorldModel` (pre-search simulation) |
+| 📐 **Triangulation** | ≥3 independent sources to verify | FB-1: `min_sources_core_claim = 3`, trust_score 5-level |
+
 ## 🔧 Engineering Language Commitment
 
 > **Every feature is expressed in executable engineering language — not natural language.**
