@@ -13,45 +13,32 @@ allowed-tools:
 ---
 # 🕸️ Graph-Based Cognitive Search Engine v4
 
-> **核心突破**: 不枚举，不穷举。用知识图谱遍历 + 能效最优理论替代线性 11 层搜索。
-> **v4.1 新增**: 自适应搜索深度 — 根据文献量自动切换穷举/分类/满意三种模式。
+> **Canonical execution**: `python src/rule_engine.py` — loads `config/search_rules.yaml` → executes phases → returns papers.
+> **Skill mode**: instruction reference for AI agents. **Code mode**: direct Python execution.
+> **v4.3**: +search_rules.yaml (structured rules) +rule_engine.py (Python executor)
 
 ---
 
 ## -1. Adaptive Search Depth (自适应搜索深度)
 
-### 核心问题
-
-> "满意即止"在文献量少时可能遗漏关键论文。"穷举搜索"在文献量大时浪费资源。
-> **解决方案**: 先估算文献量，再自动选择策略。
-
-### 三模式自适应切换
+### estimate_volume(species_id: str) → int
 
 ```
-PRE-SEARCH: Estimate literature volume
-  → Quick Google Scholar count (title-only)
-  → Graph node count for species
-  → Author publication frequency
+v1 = scholar_count(title="{species_name}", source="google_scholar")
+v2 = graph_node_count(species_id)
+v3 = Σ(author.papers_per_year × author.years_active) / |top_authors| for top 3 authors
+RETURN max(v1, v2, v3)
+```
 
+### select_mode(estimated_volume: int) → SearchMode
+
+```
 IF estimated_volume < 20:
-  → MODE: EXHAUSTIVE (穷举模式)
-     Goal: 100% recall
-     Satisficing: DISABLED
-     Layers: ALL 11 layers active
-     Graph depth: max (3)
-     Stop: only when no new papers for 2 consecutive layers
-
-ELIF estimated_volume 20-200:
-  → MODE: CLASSIFIED (分类归纳模式)
-     Phase 1: Quick classification by sub-topic
-     Phase 2: Human selects categories → exhaustive within each
-     Output: Classification tree with paper counts per category
-
-ELIF estimated_volume > 200:
-  → MODE: SATISFICING (满意模式)
-     Goal: representative sample
-     Satisficing: ENABLED (threshold = 8-15)
-     Output: Classification summary + "drill down" options
+  RETURN EXHAUSTIVE(satisficing=false, all_layers=true, graph_depth=3, stop="2_consecutive_zero")
+ELIF estimated_volume <= 200:
+  RETURN CLASSIFIED(phase1="classify_only", phase2="drill_down_on_select", phase3="iterative_deepen")
+ELSE:
+  RETURN SATISFICING(threshold=12, output="classification_summary")
 ```
 
 ### 体积估算方法
@@ -129,13 +116,11 @@ Phase 3: 迭代深化
 
 ## 0. Energy Efficiency Principle (能效最优理论)
 
-### 0.1 Satisficing (满意即止)
+### 0.1 satisfice(papers_found: int, threshold: int) → bool
 
 ```
-不是"找到所有论文" → 是"找到足够好的论文"
-不是 100% recall → 是 Pareto-optimal recall/cost
-
-Satisficing threshold (from agent.yaml):
+RETURN papers_found >= threshold
+# threshold from config.search.energy.min_papers_satisfice (default=8)
   min_papers: 8      → 找到 8 篇即满足
   target: 20          → 理想目标
   stop_if: IG_delta < 0.005 for 2 consecutive layers
@@ -214,7 +199,35 @@ Step D: Add discovered papers to graph
   GRAPH.merge(new_papers) → future searches are FREE
 ```
 
-### 1.3 Graph Advantage Over Linear Search
+### 1.3 Layer 12: Review Paper Reference Mining (综述文献引用挖掘)
+
+> **Engineering**: review papers contain pre-compiled reference lists. mine_review_references() extracts these at ~500 tokens/review.
+
+```
+DETECT review papers in results:
+  Title contains: "review", "systematic review", "meta-analysis",
+                  "综述", "研究进展", "进展", "概述"
+
+FOR EACH review paper:
+  1. GET references (article_get_references, identifier=DOI)
+  2. EXTRACT papers that mention {genus} OR {species} OR {chinese_name}
+  3. CROSS-CHECK with existing results:
+     - Already in our set → ✅ covered
+     - NOT in our set → 🆕 gap! Add to results with label "via_review_{review_title}"
+
+REVIEW_VALUE := new_papers_found / total_references_checked
+IF REVIEW_VALUE > 0:
+  → Review paper was productive for gap-filling
+  → FLAG: "综述 {title} 引用了 {N} 篇我们未发现的论文"
+```
+
+**为什么综述引用挖掘是最强搜索层**:
+- 零拼写错误风险：参考文献列表通常格式规范
+- 跨语言覆盖：英文综述引中文论文，反之亦然
+- 时间深度：综述引用可能追溯到几十年前的基础论文
+- 灰色文献：综述常引用报告、学位论文等非期刊文献
+
+### 1.4 Graph Advantage Over Linear Search
 
 | 线性搜索 (v2/v3) | 图谱搜索 (v4) |
 |------------------|-------------|
@@ -223,6 +236,7 @@ Step D: Add discovered papers to graph
 | ~8000 tokens/次 | ~2000 tokens/次 (75% 节省) |
 | 搜索结果丢弃 | 搜索结果存入图谱，下次免费 |
 | 拼写错误靠变体枚举 | 拼写错误靠图边关系绕过 |
+| 综述仅作为普通结果 | 综述 → 挖掘引用 → 发现遗漏论文 🆕 |
 
 ---
 
@@ -242,6 +256,46 @@ IF |known_papers| ≥ config.search.energy.min_papers_satisfice:
 ```
 Search exact name → if satisficed, STOP
 Search by known authors from graph → if satisficed, STOP
+```
+
+### Phase 1.5: mine_review_references(results: list[Paper]) → list[Paper]
+
+```
+review_pattern = regex("review|systematic.review|meta.analysis|综述|研究进展|进展|概述")
+reviews = filter(results, λp: review_pattern.matches(p.title))
+new_papers = []
+
+FOR EACH review IN reviews:
+  refs = article_get_references(identifier=review.doi, max_results=100)
+  relevant = filter(refs, λr: (genus IN r.title) OR (species IN r.title) OR (chinese_name IN r.title))
+  FOR EACH r IN relevant:
+    IF r.doi NOT IN existing_dois:
+      r.source = "via_review_" + review.title[:50]
+      new_papers.append(r)
+
+review_value = len(new_papers) / max(len(reviews) * avg_refs_per_review, 1)
+IF review_value > 0: log(f"review_mining: +{len(new_papers)} papers, value={review_value:.2f}")
+RETURN new_papers
+```
+
+### Phase 1.6: verify_references(papers: list[Paper]) → dict[Paper, TrustLevel]
+
+```
+trust_score(p: Paper) → int:
+  score = 50
+  IF p.doi AND doi_resolves(p.doi): score += 20       # L1: DOI exists
+  IF scholar_search(exact_title=p.title).found: score += 15  # L2: independent search
+  citing_reviews = count_reviews_citing(p) - 1
+  score += min(20, 10 × citing_reviews)                # L3: triangulation
+  IF author_journal_year_consistent(p): score += 10    # L4: consistency
+  IF p.abstract AND (species IN p.abstract): score += 5  # L5: relevance
+  RETURN score
+
+FOR EACH p IN papers:
+  score = trust_score(p)
+  IF score >= 80:    p.trust = VERIFIED
+  ELIF score >= 50:  p.trust = TENTATIVE; p.warning = "⚠️ 综述引用，待独立确认"
+  ELSE:              p.trust = UNVERIFIED; move_to_appendix(p)
 ```
 
 ### Phase 2: Citation Traversal (1000 tokens)
