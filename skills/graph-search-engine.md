@@ -214,7 +214,36 @@ Step D: Add discovered papers to graph
   GRAPH.merge(new_papers) → future searches are FREE
 ```
 
-### 1.3 Graph Advantage Over Linear Search
+### 1.3 Layer 12: Review Paper Reference Mining (综述文献引用挖掘)
+
+> **核心洞察**: 综述文献是"二手搜索"——综述作者已经做了文献查找工作。
+> 找到一篇综述 = 免费获得其全部参考文献列表。
+
+```
+DETECT review papers in results:
+  Title contains: "review", "systematic review", "meta-analysis",
+                  "综述", "研究进展", "进展", "概述"
+
+FOR EACH review paper:
+  1. GET references (article_get_references, identifier=DOI)
+  2. EXTRACT papers that mention {genus} OR {species} OR {chinese_name}
+  3. CROSS-CHECK with existing results:
+     - Already in our set → ✅ covered
+     - NOT in our set → 🆕 gap! Add to results with label "via_review_{review_title}"
+
+REVIEW_VALUE := new_papers_found / total_references_checked
+IF REVIEW_VALUE > 0:
+  → Review paper was productive for gap-filling
+  → FLAG: "综述 {title} 引用了 {N} 篇我们未发现的论文"
+```
+
+**为什么综述引用挖掘是最强搜索层**:
+- 零拼写错误风险：参考文献列表通常格式规范
+- 跨语言覆盖：英文综述引中文论文，反之亦然
+- 时间深度：综述引用可能追溯到几十年前的基础论文
+- 灰色文献：综述常引用报告、学位论文等非期刊文献
+
+### 1.4 Graph Advantage Over Linear Search
 
 | 线性搜索 (v2/v3) | 图谱搜索 (v4) |
 |------------------|-------------|
@@ -223,6 +252,7 @@ Step D: Add discovered papers to graph
 | ~8000 tokens/次 | ~2000 tokens/次 (75% 节省) |
 | 搜索结果丢弃 | 搜索结果存入图谱，下次免费 |
 | 拼写错误靠变体枚举 | 拼写错误靠图边关系绕过 |
+| 综述仅作为普通结果 | 综述 → 挖掘引用 → 发现遗漏论文 🆕 |
 
 ---
 
@@ -242,6 +272,29 @@ IF |known_papers| ≥ config.search.energy.min_papers_satisfice:
 ```
 Search exact name → if satisficed, STOP
 Search by known authors from graph → if satisficed, STOP
+```
+
+### Phase 1.5: Review Paper Mining (500 tokens per review) 🆕
+
+> **二手搜索**: 综述已做文献查找，我们只需挖掘其参考文献。
+
+```
+AFTER Phase 1:
+  SCAN results for review papers:
+    Title contains: "review", "systematic review", "meta-analysis",
+                    "综述", "研究进展", "进展", "概述", "systematic review"
+
+  IF review_found:
+    FOR EACH review:
+      1. GET references via article_get_references(DOI)
+      2. EXTRACT papers about our species
+      3. CROSS-CHECK: already found? → skip. New? → add! 🆕
+      4. FLAG: "via_review_{review_title_short}"
+
+    REVIEW_VALUE = new_papers / total_references
+    IF REVIEW_VALUE > 0:
+      LOG: "综述挖掘发现 {new_papers} 篇遗漏论文"
+    IF satisficed, STOP (reviews may have already filled the gap)
 ```
 
 ### Phase 2: Citation Traversal (1000 tokens)
