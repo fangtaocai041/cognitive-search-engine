@@ -309,6 +309,83 @@ porpoise-agent 的 orchestrator 自动检测查询中的物种名，自动路由
 
 ---
 
+## 🗺️ 后续计划
+
+> **当前状态：** 领域领先的研究原型 (v5.1)。以下里程碑计划在后续版本中逐步实现。
+
+### ⚠️ 已知限制
+
+| 方面 | 限制 | 影响 |
+|------|------|------|
+| **用户界面** | 仅 CLI，依赖 Reasonix 运行时 | 非 Reasonix 用户无法直接使用 |
+| **部署方式** | 无 Docker 镜像，无 REST API | 无法独立部署/嵌入到其他项目 |
+| **基准测试** | 仅在鳤（12 篇）上验证 | 对其他 100+ 物种的 recall 未知 |
+| **实时索引** | 依赖第三方 API (PubMed, Crossref 等) | 延迟受外部服务状态影响 |
+| **中文数据库** | web_search + web_fetch 降级方案，无直接 CNKI API | 有频率限制，部分付费论文可能遗漏 |
+| **同行评审** | 无已发表论文 | 学术界尚未评审该架构 |
+
+### 🎯 里程碑 1：独立产品化
+
+```
+产品需求:
+  - Web UI (Streamlit / Gradio) → 输入物种名 → 输出知识图谱
+  - REST API (FastAPI) → POST /search?species=Ochetobius+elongatus
+  - Docker 镜像 → docker pull fangtaocai/cognitive-search-engine
+  - pip 安装 → python -m cognitive_search.search "鳤"
+```
+
+**为什么重要：** 最先进的物种搜索引擎如果只能在 Reasonix 内部运行，等于不存在。
+
+### 🎯 里程碑 2：多物种基准测试
+
+```
+基准测试:
+  - 整理 50 种中国淡水鱼类的已知论文列表
+  - 基线: PubMed / Google Scholar / Semantic Scholar 的 recall
+  - 对比: 本引擎的 recall、precision、每物种 token 成本
+  - 发布: 基准测试表作为技术报告
+```
+
+**为什么重要：** 一个数据点（鳤，100% recall）不足以服众。50 个物种才叫证据。
+
+### 🎯 里程碑 3：学术论文发表
+
+```
+论文:
+  - 标题: "Hub-and-Spoke Graph Search for Critically Endangered Fish Species"
+  - 目标期刊: 水生生物学报 / Animals / Scientific Data
+  - 贡献:
+      1. Hub-and-Spoke 协议（替代线性 14 层）
+      2. 权威可信度评分 (0-100)
+      3. OCR 变体安全网
+      4. 中文优先搜索策略
+  - 实证: 50 个物种的 recall vs token 成本对比
+```
+
+**为什么重要：** 同行评审验证架构价值，并打开学术引用影响力。
+
+### 🎯 里程碑 4：生产环境加固
+
+```
+工程目标:
+  - 自动扩容: 处理 100 个并发物种搜索
+  - 缓存: Redis 查询缓存 (TTL 7 天)
+  - 监控: Prometheus + Grafana (recall、延迟、每物种 token 成本)
+  - 自托管: 外部 API 不可用时回退到本地 PDF 语料库
+  - 插件系统: 社区贡献每种鱼的搜索规则
+```
+
+**为什么重要：** 从"在我机器上能跑"到"稳定服务 100 个用户"。
+
+### 💡 正在探索的想法
+
+- **多 Agent 协作**：每个学科方向一个 agent Hub，合并结果
+- **本地 LLM 推理**：将 DeepSeek API 替换为 Ollama (Qwen2.5-7B) 降低调用成本
+- **CNKI 直连 API**：如有机构访问权限，绕过 web_search 直接搜索中文数据库
+- **多模态搜索**：鱼类图片 → 物种鉴定 → 论文检索
+
+---
+
 ## 📋 README 变更记录
 
 | 版本 | 日期 | 主题 | 变更内容 |

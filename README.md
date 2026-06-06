@@ -298,6 +298,83 @@ IF consecutive zeros ≥ 2 → STOP (diminishing returns)
 
 ---
 
+## 🗺️ Future Roadmap
+
+> **Current status:** Domain-leading research prototype (v5.1). The following milestones are planned for future iterations.
+
+### ⚠️ Known Limitations
+
+| Area | Limitation | Impact |
+|------|-----------|--------|
+| **UI** | CLI-only, depends on Reasonix runtime | Cannot be used standalone or by non-Reasonix users |
+| **Deployment** | No Docker image, no REST API | No independent deploy / embed scenario |
+| **Benchmark** | Only verified on 鳤 (12 papers) | Unknown recall on other 100+ species |
+| **Real-time Index** | Relies on 3rd party APIs (PubMed, Crossref, etc.) | Latency depends on external services |
+| **Chinese DB** | web_search + web_fetch fallback, no direct CNKI API | Rate-limited, may miss some paywalled papers |
+| **Peer Review** | No published paper | Academic community hasn't reviewed the approach |
+
+### 🎯 Milestone 1: Ship as Standalone Product
+
+```
+PRD:
+  - Web UI (Streamlit / Gradio) → input species name → output knowledge graph
+  - REST API (FastAPI) → POST /search?species=Ochetobius+elongatus
+  - Docker image → docker pull fangtaocai/cognitive-search-engine
+  - pip install → python -m cognitive_search.search "鳤"
+```
+
+**Why:** The most advanced species search engine is useless if it only runs inside Reasonix.
+
+### 🎯 Milestone 2: Multi-Species Benchmark
+
+```
+BENCHMARK:
+  - Curate 50 Chinese freshwater fish species with known paper lists
+  - Baseline: PubMed/Google Scholar/Semantic Scholar recall
+  - Compare: this engine's recall, precision, token cost per species
+  - Publish: benchmark table as a technical report
+```
+
+**Why:** One data point (鳤, 100% recall) is anecdotal. 50 species is evidence.
+
+### 🎯 Milestone 3: Academic Publication
+
+```
+PAPER:
+  - Title: "Hub-and-Spoke Graph Search for Critically Endangered Fish Species"
+  - Venue target: BMC Bioinformatics / J. of Fish Biology / Scientific Data
+  - Contributions:
+      1. Hub-and-Spoke protocol (replaces 14-layer linear)
+      2. Authority credibility scoring (0-100)
+      3. OCR variant safety net
+      4. Chinese-first search strategy
+  - Empirical results: recall vs token cost across 50 species
+```
+
+**Why:** Peer review validates the architecture and opens citation impact.
+
+### 🎯 Milestone 4: Production Hardening
+
+```
+ENGINEERING:
+  - Auto-scaling: handle 100 concurrent species searches
+  - Caching: Redis-backed query cache (TTL 7 days)
+  - Monitoring: Prometheus + Grafana (recall, latency, token cost per species)
+  - Self-hosted: fallback to local PDF corpus when APIs are down
+  - Plugin system: community-contributed search rules per fish family
+```
+
+**Why:** From "works on my machine" to "serves 100 users reliably."
+
+### 💡 Ideas Being Explored
+
+- **CrewAI-style multi-agent**: one agent per sub-discipline Hub, merge results
+- **Local LLM inference**: replace DeepSeek API calls with Ollama (Qwen2.5-7B) for cost reduction
+- **CNKI direct API**: if institutional access available, bypass web_search for Chinese papers
+- **Multi-modal**: add image search (fish photos → species ID → paper retrieval)
+
+---
+
 ## 📋 README Changelog
 
 | Version | Date | Theme | What Changed |
