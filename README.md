@@ -1,3 +1,7 @@
+<p align="center">
+  🇨🇳 <a href="README.zh.md">中文</a>
+</p>
+
 # 🕸️ Cognitive Search Engine v4
 
 > **Frontier species literature search** — Knowledge Graph Traversal + Energy Efficiency + Semiotics + Linguistics + DeepSeek Chain-of-Thought
