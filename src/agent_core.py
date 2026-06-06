@@ -105,7 +105,7 @@ class CognitiveAgent:
         # Trace
         self._trace: list[dict] = []
 
-    def _load_phases(self, rules_path: str):
+    def _load_phases(self, rules_path: str) -> None:
         """Parse phase configurations from search_rules.yaml."""
         if yaml is None:
             return
@@ -131,7 +131,7 @@ class CognitiveAgent:
     def phase_specs(self) -> dict[str, PhaseSpec]:
         return self._phase_specs
 
-    def set_executor(self, executor: Callable):
+    def set_executor(self, executor: Callable) -> None:
         """Wire the phase executor (rule_engine._execute_phase)."""
         self._phase_executor = executor
 
