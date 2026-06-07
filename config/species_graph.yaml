@@ -61,7 +61,7 @@ graph:
     - Luciobrama macrocephalu
   authors:
   - name: Cai Fangtao
-    chinese: 蔡方涛
+    chinese: 蔡方陶
     institutions:
     - Jianghan University
     species:
@@ -158,6 +158,13 @@ graph:
     - Sun Yat-sen University
     species:
     - Ochetobius_elongatus
+  - name: Xiong Fangyuan
+    chinese: 熊芳园
+    institutions:
+    - Institute of Hydrobiology
+    - CAS
+    species:
+    - Ochetobius_elongatus
   journals:
   - name: Animals
     species:
@@ -178,6 +185,9 @@ graph:
     species:
     - Ochetobius_elongatus
   - name: 南方水产科学 (South China Fisheries Science)
+    species:
+    - Ochetobius_elongatus
+  - name: Science
     species:
     - Ochetobius_elongatus
   papers:
@@ -381,6 +391,20 @@ graph:
     - Ochetobius_elongatus
     type: mention
     note: Post-fishing ban survey, O. elongatus detected in Poyang Lake Basin
+  - doi: 10.1126/science.adu5160
+    pmid: '41678633'
+    title: Fishing ban halts seven decades of biodiversity decline in the Yangtze
+      River
+    year: 2026
+    journal: Science
+    authors:
+    - Xiong Fangyuan
+    - Li Zhongyang
+    - Chen Yushun
+    species:
+    - Ochetobius_elongatus
+    type: mention
+    note: O. elongatus showed initial recovery trends post-fishing ban
   - doi: 10.1016/j.marpolbul.2026.119895
     title: 'Novel attempt to assess marine mammal dynamics over the past 100 years
       using sedimentary DNA: An example in finless porpoise.'
