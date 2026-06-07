@@ -18,11 +18,11 @@
 [![Docker](https://img.shields.io/badge/Docker-planning-lightgrey)]()
 [![Self-Evolve](https://img.shields.io/badge/self_evolve-feedback_loop-10b981)](skills/self-evolve.md)
 
-## 🔺 S-T-V Triangle Role: **Validation (V)**
+## 🔺 S-T-V-P₁-P₂ Architecture Role: **Validation (V)**
 
-> Part of the S-T-V rigid triangle: `fish(S) → porpoise(T) → cognitive(V) → fish(S)`
-> Validates search results, authority credibility scoring, maintains shared knowledge graph.
-> **D₁ Point**: `DirectLoader` (importlib — zero MCP process). **Triangulation**: ≥3 sources per core claim.
+> Part of the S-T-V-P₁-P₂ ecosystem: `fish(S) → meso-cosmos(T) → cognitive(V)`, with `porpoise(P₁)` + `coilia(P₂)` as domain specialists.
+> Validates search results, authority credibility scoring, enforces cross-project independence.
+> **DirectLoader**: `importlib` zero MCP process. **Triangulation**: ≥3 sources, ≥2 independent projects.
 
 ## 🔗 Linked Projects
 
@@ -30,8 +30,10 @@ This engine is integrated as a git submodule in:
 
 | Project | Role | Description |
 |---------|:----:|-------------|
-| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S** (State) | Fish ecology AI research team — 22 MCP · 25 skills · knowledge provider |
-| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **T** (Transition) | Porpoise research agent — 16 MCP · 16 skills · pipeline executor |
+| [meso-cosmos-agent](https://github.com/fangtaocai041/meso-cosmos-agent) | **T** (Transition) | Execution hub — 6-phase pipeline · cross-project routing · self-healing |
+| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S** (State) | Fish ecology — 22 MCP · 28 skills · Yangtze 443 species KB |
+| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **P₁** (Porpoise) | Finless porpoise specialist — NBHF acoustics · habitat modeling |
+| [coilia-agent](https://github.com/fangtaocai041/coilia-agent) | **P₂** (Coilia) | Tapertail anchovy specialist — otolith microchemistry · migration ecology |
 
 > **Co-evolution**: Engine code updated → fish & porpoise auto-benefit via submodule.
 > Knowledge graph evolves → shared across all three projects.
