@@ -18,6 +18,11 @@
 [![Docker](https://img.shields.io/badge/Docker-planning-lightgrey)]()
 [![Self-Evolve](https://img.shields.io/badge/self_evolve-feedback_loop-10b981)](skills/self-evolve.md)
 
+## 🧠 Intelligent Optimization Layers
+
+> 验证引擎集成了三层优化：**DeepSeek 级效率** (MoE 门控 + KV 缓存)、**学者级置信** (Rule of Three 统计停止)、**混沌增强探索** (Rössler 扰动 + wildcard 发现)。
+> 协调由 [meso-cosmos-agent](https://github.com/fangtaocai041/meso-cosmos-agent) 统一调度。
+
 ## 🔺 S-T-V-P₁-P₂ Architecture Role: **Validation (V)**
 
 > Part of the S-T-V-P₁-P₂ ecosystem: `fish(S) → meso-cosmos(T) → cognitive(V)`, with `porpoise(P₁)` + `coilia(P₂)` as domain specialists.

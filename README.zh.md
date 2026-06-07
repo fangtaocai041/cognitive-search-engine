@@ -22,7 +22,12 @@
   <a href="skills/self-evolve.md"><img src="https://img.shields.io/badge/自进化-反馈循环-10b981?style=flat-square" alt="自进化"></a>
 </p>
 
-## 🔺 S-T-V 三角角色: **Validation (V)**
+## 🧠 三层智能优化
+
+> 验证引擎集成了三层优化：**DeepSeek 级效率** (MoE 门控 + KV 缓存)、**学者级置信** (Rule of Three 统计停止)、**混沌增强探索** (Rössler 扰动 + wildcard 发现)。
+> 协调由 [meso-cosmos-agent](https://github.com/fangtaocai041/meso-cosmos-agent) 统一调度。
+
+## 🔺 S-T-V-P₁-P₂ 架构角色: **Validation (V)**
 
 > S-T-V 刚性三角形: `fish(S) → porpoise(T) → cognitive(V) → fish(S)`
 > 验证搜索结果、提供权威可信度评分、维护共享知识图谱。
