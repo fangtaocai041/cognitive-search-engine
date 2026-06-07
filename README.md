@@ -4,27 +4,69 @@
 
 # 🕸️ Cognitive Search Engine v5
 
-> **Meso-Cosmos Agent** — BDI + ReAct + Authority Scoring + CN/EN Dynamic Graph + Lazy Loading
+> **Meso-Cosmos Agent** — BDI + ReAct + Authority Scoring + ZN/EN Dynamic Graph + Lazy Loading
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-5.2-8b5cf6)](config/agent.yaml)
 [![Skills](https://img.shields.io/badge/skills-4-22c55e)](skills/)
-[![MCP](https://img.shields.io/badge/MCP-5-f59e0b)](config/mcp_servers.yaml)
+[![MCP](https://img.shields.io/badge/MCP-7-f59e0b)](config/mcp_servers.yaml)
 [![Architecture](https://img.shields.io/badge/architecture-meso_cosmos-8b5cf6)](docs/ARCHITECTURE.md)
 [![Multi-LLM](https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6)]()
 [![BDI](https://img.shields.io/badge/BDI-ReAct-22c55e)]()
 [![Authority Score](https://img.shields.io/badge/authority-scoring_0_100-ec4899)]()
+[![DeepWiki](https://devin.ai/assets/askdeepwiki.png)](https://deepwiki.com/fangtaocai041/cognitive-search-engine)
+[![Docker](https://img.shields.io/badge/Docker-planning-lightgrey)]()
+[![Self-Evolve](https://img.shields.io/badge/self_evolve-feedback_loop-10b981)](skills/self-evolve.md)
 
----
+## 🔺 S-T-V Triangle Role: **Validation (V)**
+
+> Part of the S-T-V rigid triangle: `fish(S) → porpoise(T) → cognitive(V) → fish(S)`
+> Validates search results, authority credibility scoring, maintains shared knowledge graph.
+> **D₁ Point**: `DirectLoader` (importlib — zero MCP process). **Triangulation**: ≥3 sources per core claim.
 
 ## 🔗 Linked Projects
 
 This engine is integrated as a git submodule in:
 
-| Project | Description |
-|---------|-------------|
-| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | Fish ecology AI research team |
-| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | Porpoise research agent — auto-routes species queries to this engine |
+| Project | Role | Description |
+|---------|:----:|-------------|
+| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S** (State) | Fish ecology AI research team — 22 MCP · 25 skills · knowledge provider |
+| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **T** (Transition) | Porpoise research agent — 16 MCP · 16 skills · pipeline executor |
+
+> **Co-evolution**: Engine code updated → fish & porpoise auto-benefit via submodule.
+> Knowledge graph evolves → shared across all three projects.
+> Full coordination spec: `coordination.yaml` at workspace root.
+
+### 🧠 Meso-Cosmos Agent (Workspace Level)
+
+> **Macro(BDI) → Meso(Coordination) → Micro(Execution)** — spanning all three S-T-V projects.
+
+```
+User Question
+     │
+     ▼
+┌────────────────────────────────────────────────┐
+│  Meso-Cosmos Agent (workspace root)             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────┐ │
+│  │UNDERSTAND│→│  ROUTE   │→│   EXECUTE     │ │
+│  │(Macro)   │  │(Meso)    │  │(Micro)       │ │
+│  │BDI意图   │  │S-T-V路由 │  │项目委派       │ │
+│  └──────────┘  └──────────┘  └──────┬───────┘ │
+│                                     │          │
+│  ┌──────────┐  ┌──────────┐  ┌─────▼───────┐ │
+│  │  EVOLVE  │←─│SYNTHESIZE│←─│  VALIDATE   │ │
+│  │(Feedback)│  │(Merge)   │  │(Cross-Verify)│ │
+│  └──────────┘  └──────────┘  └─────────────┘ │
+└────────────────────────────────────────────────┘
+     │                   │                   │
+     ▼                   ▼                   ▼
+┌─────────┐      ┌──────────┐       ┌──────────────┐
+│  fish   │      │ porpoise  │       │  cognitive    │
+│  (S)    │      │   (T)     │       │    (V)        │
+└─────────┘      └──────────┘       └──────────────┘
+```
+
+> Config: `config/meso_agent.yaml` · Skill: `skills/meso-orchestrator.md`
 
 ---
 
@@ -37,8 +79,8 @@ This engine is integrated as a git submodule in:
 | Feature | Description | Module |
 |:--------|:------------|:-------|
 | **MesoAgent** | 中宇宙式协调层 — 统一管理 WorldModel/SearchRuleEngine/MemorySystem/GraphUpdater | `src/meso_agent.py` |
-| **Dynamic Graph v2.0** | CN/EN-aware auto-update — 中文期刊自动填入 `authors_zh`，新作者/期刊自动注册，中英文双语去重 | `src/graph_updater.py` |
-| **CN/EN Literature Rule** | 中文期刊走中文署名（杨计平），英文走英文名（Yang Jiping）；论文防双版本重复 | `project memory (high)` |
+| **Dynamic Graph v2.0** | ZN/EN-aware auto-update — 中文期刊自动填入 `authors_zh`，新作者/期刊自动注册，中英文双语去重 | `src/graph_updater.py` |
+| **ZN/EN Literature Rule** | 中文期刊走中文署名（杨计平），英文走英文名（Yang Jiping）；论文防双版本重复 | `project memory (high)` |
 | **MCP Timeout Protection** | 15 秒 threading 超时防止 MCP 子进程永久阻塞 | `src/mcp_client.py` |
 | **Chinese Academic Search Skill** | 覆盖 8 种中文期刊的专用搜索策略 | `skills/chinese-academic-search.md` |
 
@@ -55,7 +97,7 @@ This engine is integrated as a git submodule in:
 │  MesoAgent.search(species_id)                       │
 │                                                     │
 │  Pipeline: BDI预测 → 模式选择(穷举/分类/轻量)          │
-│          → 执行分发 → 图谱更新 → CN/EN规则            │
+│          → 执行分发 → 图谱更新 → ZN/EN规则            │
 │                                                     │
 │  Components: WorldModel + SearchRuleEngine          │
 │              + MemorySystem + GraphUpdater          │
@@ -68,13 +110,13 @@ This engine is integrated as a git submodule in:
 └─────────────────────────────────────────────────────┘
 ```
 
-### CN/EN Automatic Rules
+### ZN/EN Automatic Rules
 
 | Context | Before | After |
 |:--------|:-------|:------|
 | Chinese journal paper | `authors: [Yang Jiping]` | `authors_zh: [杨计平]` ✅ |
 | English journal paper | `authors: [Yang Jiping]` | `authors: [Yang Jiping]` ✅ (unchanged) |
-| CN/EN duplicate papers | Kept both versions | DOI + title_zh dedup → keep Chinese version |
+| ZN/EN duplicate papers | Kept both versions | DOI + title_zh dedup → keep Chinese version |
 | New author found | Manually add to graph | Auto-register with Chinese name |
 | New journal found | Manual entry | Auto-register |
 
@@ -307,6 +349,7 @@ cognitive-search-engine/
 ├── skills/
 │   ├── graph-search-engine.md    ← v4 core: graph traversal + Pareto-optimal
 │   ├── cognitive-species-search.md ← v3: semiotics + linguistics + phonetics
+│   ├── chinese-academic-search.md  ← 中文期刊搜索 (8 journals)
 │   └── self-evolve.md            ← 🧬 Post-search feedback → auto-adjust
 │
 ├── docs/
@@ -444,7 +487,8 @@ ENGINEERING:
 
 | Version | Date | Theme | What Changed |
 |:--------|:-----|:------|:-------------|
-| **v5.2** | 2026-06-06 | Meso-Cosmos Agent | + MesoAgent (src/meso_agent.py), + Dynamic Graph v2.0 (CN/EN auto authors_zh, auto-register, dedup), + CN/EN Literature Rule, + MCP 15s Timeout Protection, + Chinese Academic Search Skill (4th skill), + architecture: meso_cosmos |
+| **v5.2.1** | 2026-06-07 | Cross-Project Sync | + S-T-V triangle role declaration, + DeepWiki/Docker/Self-Evolve badges, + Linked Projects enhancement with co-evolution description, + alignment with fish/porpoise project conventions |
+| **v5.2** | 2026-06-06 | Meso-Cosmos Agent | + MesoAgent (src/meso_agent.py), + Dynamic Graph v2.0 (ZN/EN auto authors_zh, auto-register, dedup), + ZN/EN Literature Rule, + MCP 15s Timeout Protection, + Chinese Academic Search Skill (4th skill), + architecture: meso_cosmos |
 | **v5.1** | 2026-06-06 | Hub-and-Spoke Protocol | + Hub-and-Spoke (3-phase, 10 calls), + Authority Credibility Scoring (0-100), + Review-First Strategy, + Classified Knowledge Graph (lazy-load), + Chinese-academic-search Skill, + 3-mode adaptive depth (exhaustive/classified/review-anchored), + OCR variant safety net |
 | **v5.0** | 2026-07-14 | 5-Layer Agent Architecture | + BDI WorldModel (Belief/Desire/Intention), + CognitiveAgent (ReAct loop), + MemorySystem (short-term + long-term), + agent_core.py, + memory_layer.py, + variant_generator.py, + graph_updater.py, + mcp_client.py, + ARCHITECTURE.md |
 | **v4.3** | 2026-06-06 | Engineering Language | + YAML Rule Engine (10 structured phases), + JSON Schema tools.json, + rule_engine.py, + multi-provider config, + self-evolve feedback loop |

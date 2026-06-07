@@ -5,6 +5,25 @@ agent:
   name: "Cognitive Search Engine"
   version: "5.2.0"
   description: "BDI + ReAct + 5-Layer Agent Architecture — semiotics + graph traversal + energy-efficient"
+  philosophy:
+    worldview: "Panta Rhei — knowledge is provisional, emergence is the norm"
+    methodology: "Systems Thinking — contradiction analysis · phase strategy · concentration of force"
+    handbook_ref: "fish-ecology-assistant/.reasonix/handbooks/systems-thinking.md"
+    grammar_ref: "fish-ecology-assistant/.reasonix/handbooks/engineering-grammar.md"
+
+# 求同: 共享协议 (三个项目一致)
+# Fish-ecology-assistant 和 porpoise-agent 已有此节。Cognitive 加入以统一协调。
+shared:
+  version: "5.2.0"
+  rule_framework: "FB-1..DS-4 (18 rules, referenced from fish-ecology-assistant)"
+  philosophy: "dual-core (Panta Rhei + Systems Thinking)"
+  coordination: "D:\\Reasonix\\coordination.yaml"
+  stv_role: "V (Validation) — authority scoring + graph maintenance + search verification"
+  peers:
+    - { project: "fish-ecology-assistant", role: "S (State)", skill_dir: ".reasonix/skills" }
+    - { project: "porpoise-agent", role: "T (Transition)", skill_dir: "src/skills" }
+  rule_doc: "fish-ecology-assistant/.reasonix/handbooks/engineering-grammar.md (canonical source)"
+  graph_path: "config/species_graph.yaml (shared across all three projects via submodule)"
 
 # DeepSeek 标准配置 (YAML 1.2)
 llm:

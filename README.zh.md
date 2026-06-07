@@ -4,7 +4,7 @@
 
 <div align="center">
   <h1>🕸️ 认知搜索引擎 v5</h1>
-  <p><strong>中宇宙式 Agent</strong> — BDI + ReAct + 权威可信度评分 + CN/EN 动态图谱 + 按需加载</p>
+  <p><strong>中宇宙式 Agent</strong> — BDI + ReAct + 权威可信度评分 + ZN/EN 动态图谱 + 按需加载</p>
   <p>7 模块 · 5 搜索引擎 · 5 层架构 · BDI 推理 · 中宇宙协调层</p>
 </div>
 
@@ -12,12 +12,21 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/version-5.2-8b5cf6?style=flat-square" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/skills-4-22c55e?style=flat-square" alt="Skills"></a>
-  <a href="#"><img src="https://img.shields.io/badge/MCP-5-f59e0b?style=flat-square" alt="MCP"></a>
+  <a href="#"><img src="https://img.shields.io/badge/MCP-7-f59e0b?style=flat-square" alt="MCP"></a>
   <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/架构-meso_cosmos-8b5cf6?style=flat-square" alt="架构"></a>
   <a href="#"><img src="https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6?style=flat-square" alt="Multi-LLM"></a>
   <a href="#"><img src="https://img.shields.io/badge/BDI-ReAct-22c55e?style=flat-square" alt="BDI"></a>
   <a href="#"><img src="https://img.shields.io/badge/权威评分-0_100-ec4899?style=flat-square" alt="权威评分"></a>
+  <a href="https://deepwiki.com/fangtaocai041/cognitive-search-engine"><img src="https://devin.ai/assets/askdeepwiki.png" alt="Ask DeepWiki" height="20"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Docker-规划中-lightgrey?style=flat-square" alt="Docker"></a>
+  <a href="skills/self-evolve.md"><img src="https://img.shields.io/badge/自进化-反馈循环-10b981?style=flat-square" alt="自进化"></a>
 </p>
+
+## 🔺 S-T-V 三角角色: **Validation (V)**
+
+> S-T-V 刚性三角形: `fish(S) → porpoise(T) → cognitive(V) → fish(S)`
+> 验证搜索结果、提供权威可信度评分、维护共享知识图谱。
+> **D₁ 点**: `DirectLoader` (importlib — 零 MCP 进程)。**三角验证**: 每个核心声明 ≥3 独立源。
 
 ---
 
@@ -30,8 +39,8 @@
 | 功能 | 说明 | 模块 |
 |:----|:-----|:-----|
 | **MesoAgent** | 中宇宙式协调层 — 统一管理 WorldModel/SearchRuleEngine/MemorySystem/GraphUpdater | `src/meso_agent.py` |
-| **动态图谱 v2.0** | CN/EN 感知自动更新 — 中文期刊自动填入 `authors_zh`，新作者/期刊自动注册，中英文双语去重 | `src/graph_updater.py` |
-| **CN/EN 文献规则** | 中文期刊走中文署名（杨计平），英文走英文名（Yang Jiping）；论文防双版本重复 | `project memory (high)` |
+| **动态图谱 v2.0** | ZN/EN 感知自动更新 — 中文期刊自动填入 `authors_zh`，新作者/期刊自动注册，中英文双语去重 | `src/graph_updater.py` |
+| **ZN/EN 文献规则** | 中文期刊走中文署名（杨计平），英文走英文名（Yang Jiping）；论文防双版本重复 | `project memory (high)` |
 | **MCP 超时保护** | 15 秒 threading 超时防止 MCP 子进程永久阻塞 | `src/mcp_client.py` |
 | **中文期刊搜索技能** | 覆盖 8 种中文期刊的专用搜索策略 | `skills/chinese-academic-search.md` |
 
@@ -48,7 +57,7 @@
 │  MesoAgent.search(species_id)                       │
 │                                                     │
 │  管线: BDI预测 → 模式选择(穷举/分类/轻量)            │
-│       → 执行分发 → 图谱更新 → CN/EN规则              │
+│       → 执行分发 → 图谱更新 → ZN/EN规则              │
 │                                                     │
 │  组件: WorldModel + SearchRuleEngine                │
 │        + MemorySystem + GraphUpdater                │
@@ -61,7 +70,7 @@
 └─────────────────────────────────────────────────────┘
 ```
 
-### CN/EN 自动规则
+### ZN/EN 自动规则
 
 | 情境 | 以前 | 现在 |
 |:----|:----|:----|
@@ -289,6 +298,7 @@ cognitive-search-engine/
 ├── skills/
 │   ├── graph-search-engine.md    ← v4 核心：图谱遍历 + 能效最优
 │   ├── cognitive-species-search.md ← v3：符号学 + 语言学 + 语音学
+│   ├── chinese-academic-search.md  ← 中文期刊搜索 (8 种期刊)
 │   └── self-evolve.md            ← 🧬 搜索后反馈 → 自动调参
 │
 ├── docs/
@@ -365,12 +375,43 @@ cognitive-search-engine/
 
 本引擎作为 git submodule 集成到以下项目：
 
-| 项目 | 用途 |
-|------|------|
-| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | 鱼类生态学 AI 研究助手 |
-| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | 江豚研究智能体 |
+| 项目 | 角色 | 说明 |
+|------|:----:|------|
+| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S** (State) | 鱼类生态学 AI 研究团队 — 22 MCP · 25 skills · 知识提供者 |
+| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **T** (Transition) | 江豚研究智能体 — 16 MCP · 16 skills · 管线执行者 |
 
-porpoise-agent 的 orchestrator 自动检测查询中的物种名，自动路由到 graph-search-engine。
+> **协同进化**: 引擎代码更新 → fish 和 porpoise 通过 submodule 自动受益。
+> 知识图谱进化 → 三项目共享。
+> 完整协调规范: workspace 根目录 `coordination.yaml`。
+
+### 🧠 中宇宙式 Agent (Workspace Level)
+
+> **宏观(BDI) → 中宇宙(协调) → 微观(执行)** — 跨越三个 S-T-V 项目的统一协调层。
+
+```
+用户问题
+     │
+     ▼
+┌────────────────────────────────────────────────┐
+│  中宇宙式 Agent (workspace root)                │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────┐ │
+│  │ 理解     │→│  路由    │→│   执行       │ │
+│  │(Macro)   │  │(Meso)    │  │(Micro)       │ │
+│  └──────────┘  └──────────┘  └──────┬───────┘ │
+│                                     │          │
+│  ┌──────────┐  ┌──────────┐  ┌─────▼───────┐ │
+│  │  进化    │←─│  合成    │←─│   验证      │ │
+│  └──────────┘  └──────────┘  └─────────────┘ │
+└────────────────────────────────────────────────┘
+     │                   │                   │
+     ▼                   ▼                   ▼
+┌─────────┐      ┌──────────┐       ┌──────────────┐
+│  fish   │      │ porpoise  │       │  cognitive    │
+│  (S)    │      │   (T)     │       │    (V)        │
+└─────────┘      └──────────┘       └──────────────┘
+```
+
+> 配置: `config/meso_agent.yaml` · 技能: `skills/meso-orchestrator.md`
 
 ---
 
@@ -455,7 +496,8 @@ porpoise-agent 的 orchestrator 自动检测查询中的物种名，自动路由
 
 | 版本 | 日期 | 主题 | 变更内容 |
 |:------|:-----|:------|:-------------|
-| **v5.2** | 2026-06-06 | 中宇宙式 Agent | + MesoAgent (src/meso_agent.py), + 动态图谱 v2.0 (CN/EN 自动 authors_zh/自动注册/双语去重), + CN/EN 文献规则, + MCP 15 秒超时保护, + Chinese Academic Search Skill (第 4 个技能), + 架构: meso_cosmos |
+| **v5.2.1** | 2026-06-07 | 跨项目同步 | + S-T-V 三角角色声明, + DeepWiki/Docker/自进化徽标, + 关联项目增强 (协同进化描述), + 与 fish/porpoise 项目规范对齐 |
+| **v5.2** | 2026-06-06 | 中宇宙式 Agent | + MesoAgent (src/meso_agent.py), + 动态图谱 v2.0 (ZN/EN 自动 authors_zh/自动注册/双语去重), + CN/EN 文献规则, + MCP 15 秒超时保护, + Chinese Academic Search Skill (第 4 个技能), + 架构: meso_cosmos |
 | **v5.1** | 2026-06-06 | Hub-and-Spoke 协议 | + Hub-and-Spoke (3 阶段 10 调用), + 权威可信度评分 (0-100), + 综述优先策略, + 分类知识图谱 (懒加载), + Chinese-academic-search Skill, + 三模式自适应深度, + OCR 变体安全网 |
 | **v5.0** | 2026-07-14 | 5 层智能体架构 | + BDI WorldModel (信念/愿望/意图), + CognitiveAgent (ReAct 循环), + MemorySystem (短期+长期), + agent_core.py, + memory_layer.py, + variant_generator.py, + graph_updater.py, + mcp_client.py, + ARCHITECTURE.md |
 | **v4.3** | 2026-06-06 | 工程语言化 | + YAML 规则引擎 (10 结构化阶段), + JSON Schema tools.json (三 LLM 通用), + rule_engine.py, + 多 Provider 配置, + 自进化反馈循环 |

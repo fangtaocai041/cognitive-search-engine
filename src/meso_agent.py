@@ -15,7 +15,7 @@ MesoAgent — 中宇宙式 Agent，宏观（BDI）与微观（工具调用）之
 │                   └──────┬───────┘          │                    │
 │                          │                  │                    │
 │                   ┌──────▼───────┐   ┌──────▼───────┐            │
-│                   │ GraphUpdater │   │ CN/EN Rules  │            │
+│                   │ GraphUpdater │   │ ZN/EN Rules  │            │
 │                   │ (Persistence)│   │ (Language)   │            │
 │                   └──────────────┘   └──────────────┘            │
 └──────────────────────────┬───────────────────────────────────────┘
@@ -115,9 +115,9 @@ class MesoConfig:
     min_papers_satisfice: int = 8
     max_papers_exhaustive: int = 20
 
-    # CN/EN
+    # ZN/EN (中文/English)
     cn_auto_authors_zh: bool = True             # auto-fill authors_zh
-    cn_en_dedup: bool = True                    # dedup CN/EN dual versions
+    zn_en_dedup: bool = True                    # dedup ZN/EN dual versions
     cn_review_first: bool = True                # review-first for Chinese species
     
     # Self-evolution
@@ -145,7 +145,7 @@ class MesoAgent:
         self._memory: Any = None
         self._graph: dict | None = None
 
-        # CN/EN species registry (lazy-loaded from graph)
+        # ZN/EN species registry (lazy-loaded from graph)
         self._species_map: dict[str, dict] = {}  # species_id → {name, chinese, family, ...}
 
     # ──── Public API ────
@@ -154,7 +154,7 @@ class MesoAgent:
         """Execute a full search for a species through the meso-cosmos pipeline.
 
         Pipeline:
-          1. Load species info (CN/EN detection)
+          1. Load species info (ZN/EN detection)
           2. Initialize BDI belief (WorldModel.predict)
           3. Load known papers (MemorySystem / Graph)
           4. Execute search phases (SearchRuleEngine)
@@ -191,6 +191,7 @@ class MesoAgent:
             })
 
             # ── Phase 3: Execute search ──
+            self._ensure_engine()
             if self._engine is None:
                 result.errors.append("SearchRuleEngine not available")
             else:
@@ -212,7 +213,7 @@ class MesoAgent:
                     "stop_reason": result.stop_reason,
                 })
 
-                # ── Phase 4: Graph update (with CN/EN rules) ──
+                # ── Phase 4: Graph update (with ZN/EN rules) ──
                 new_count = self._update_graph(
                     species_id, new_papers, is_chinese
                 )
@@ -245,7 +246,7 @@ class MesoAgent:
         except Exception:
             return []
 
-    # ──── CN/EN helpers ────
+    # ──── ZN/EN helpers ────
 
     def _is_chinese_species(self, species_id: str) -> bool:
         """Check if a species has a Chinese common name (implies Chinese literature exists)."""
@@ -277,6 +278,17 @@ class MesoAgent:
         return False
 
     # ──── Internal ────
+
+    def _ensure_engine(self):
+        """Lazy-init SearchRuleEngine."""
+        if self._engine is not None:
+            return
+        if SearchRuleEngine is None:
+            return
+        try:
+            self._engine = SearchRuleEngine(self.config.rules_path, mode=self.config.mode)
+        except Exception:
+            pass
 
     def _ensure_graph_loaded(self):
         """Load species_graph.yaml into memory and build species map."""
@@ -326,13 +338,13 @@ class MesoAgent:
             return []
 
     def _update_graph(self, species_id: str, papers: list[dict], is_chinese: bool) -> int:
-        """Update graph with CN/EN-aware rules.
+        """Update graph with ZN/EN-aware rules.
 
         Handles:
           - authors_zh auto-fill for Chinese journals
           - New author registration
           - New journal registration
-          - CN/EN dedup
+          - ZN/EN dedup
         """
         try:
             from src.graph_updater import update_species_graph

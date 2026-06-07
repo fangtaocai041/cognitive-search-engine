@@ -8,7 +8,7 @@ are merged back into the knowledge graph, enabling:
   - Automatic citation edge generation
   - Graph-based cold-start for future searches
 
-v2.0 — CN/EN-aware dynamic update:
+v2.0 — ZN/EN-aware dynamic update:
   - Chinese journal papers get authors_zh auto-filled
   - New authors auto-registered in authors list
   - New journals auto-registered in journals list
@@ -74,7 +74,7 @@ def update_species_graph(species_id: str, new_papers: list[dict]) -> int:
     v2.0 enhancements:
       - Chinese journal papers get authors_zh auto-filled
       - New authors + journals auto-registered
-      - CN/EN duplicate detection before insert
+      - ZN/EN duplicate detection before insert
 
     Args:
         species_id: e.g. "Ochetobius_elongatus"
@@ -120,7 +120,7 @@ def update_species_graph(species_id: str, new_papers: list[dict]) -> int:
         if doi and doi in existing_dois:
             continue
 
-        # ── Dedup by Chinese title (CN/EN duplicate detection) ──
+        # ── Dedup by Chinese title (ZN/EN duplicate detection) ──
         if title_zh and title_zh in existing_titles_zh:
             continue
 
@@ -209,7 +209,7 @@ def get_graph_stats(species_id: str | None = None) -> dict:
     }
 
 
-# ──── CN/EN helpers ────
+# ──── ZN/EN helpers ────
 
 
 def _is_chinese_journal(journal_name: str) -> bool:

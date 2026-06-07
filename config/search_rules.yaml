@@ -127,7 +127,7 @@ phases:
       primary_key: "doi"                    # DOI 去重（最精确）
       secondary_key: "title_similarity"     # 英文标题模糊匹配
       similarity_threshold: 0.90
-      cn_en_dedup:                          # [v2.0] 中英文双语去重
+      zn_en_dedup:                          # [v2.0] 中英文双语去重
         enabled: true
         match_key: "title_zh"               # 中文标题（非机翻）
         fallback_to_translation: true       # 无 title_zh 时对比机翻标题

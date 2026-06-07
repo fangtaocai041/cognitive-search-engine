@@ -19,3 +19,12 @@ jobs:
             name=$(basename "$skill")
             grep -q '^---$' "$skill" && echo "✅ $name" || echo "❌ $name: missing frontmatter"
           done
+      - name: Cross-Project Validation (S-T-V)
+        if: always()
+        run: |
+          echo "🔗 Running cross-project validation..."
+          if [ -f ../scripts/validate_cross_project.py ]; then
+            python ../scripts/validate_cross_project.py --ci
+          else
+            echo "⚠️ Cross-project script not found (expected at workspace root)"
+          fi
