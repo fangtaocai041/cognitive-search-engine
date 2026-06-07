@@ -22,8 +22,9 @@ Usage:
 import json
 import subprocess
 import sys
+import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 try:
     import yaml
@@ -124,8 +125,26 @@ class McpClient:
             process.stdin.write(payload)
             process.stdin.flush()
 
-            # Read from stdout (one JSON-RPC response line)
-            line = process.stdout.readline()
+            # Read from stdout with timeout (prevents infinite block)
+            line: Optional[bytes] = None
+            def _readline():
+                nonlocal line
+                try:
+                    line = process.stdout.readline()
+                except Exception:
+                    pass
+
+            reader = threading.Thread(target=_readline, daemon=True)
+            reader.start()
+            reader.join(timeout=15.0)  # 15-second timeout
+            if reader.is_alive():
+                # Timeout — close stdin to signal the process
+                try:
+                    process.stdin.close()
+                except Exception:
+                    pass
+                return []  # Return empty on timeout
+
             if not line:
                 return []
 

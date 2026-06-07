@@ -10,7 +10,7 @@
 [![Version](https://img.shields.io/badge/version-5.1-8b5cf6)](config/agent.yaml)
 [![Skills](https://img.shields.io/badge/skills-4-22c55e)](skills/)
 [![MCP](https://img.shields.io/badge/MCP-5-f59e0b)](config/mcp_servers.yaml)
-[![Architecture](https://img.shields.io/badge/architecture-hub_and_spoke-ec4899)](docs/ARCHITECTURE.md)
+[![Architecture](https://img.shields.io/badge/architecture-meso_cosmos-8b5cf6)](docs/ARCHITECTURE.md)
 [![Multi-LLM](https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6)]()
 [![BDI](https://img.shields.io/badge/BDI-ReAct-22c55e)]()
 [![Authority Score](https://img.shields.io/badge/authority-scoring_0_100-ec4899)]()
