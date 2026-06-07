@@ -1,0 +1,253 @@
+# ═══════════════════════════════════════════════════════════════════
+# Meso-Cosmos Agent — 中宇宙式协调层 (Workspace-Level)
+# ═══════════════════════════════════════════════════════════════════
+# 路径: D:\Reasonix\config\meso_agent.yaml
+# 管辖: cognitive-search-engine + fish-ecology-assistant + porpoise-agent
+#
+# 架构: Macro(BDI意图) → Meso(跨项目协调) → Micro(项目执行)
+# 灵感: cognitive-search-engine/src/meso_agent.py — 中宇宙式协调层
+#       扩展至 workspace 级别，统一三项目 S-T-V 管线
+#
+# S (State):    fish-ecology-assistant  — 知识库, 数据供给, 矛盾分析
+# T (Transition): porpoise-agent         — 管线执行, 阶段编排, 野外调查
+# V (Value):    cognitive-search-engine  — 认知搜索, 图谱进化, 变体生成
+
+agent:
+  name: "Meso-Cosmos Agent"
+  version: "1.0.0"
+  created: "2026-06-07"
+  description: "Workspace-level Meso-Cosmos coordination layer — BDI + ReAct spanning all three S-T-V projects"
+  philosophy:
+    worldview: "Panta Rhei — the world is dynamic, knowledge is provisional, emergence is the norm"
+    methodology: "Systems Thinking — contradiction analysis · practice verification · phased strategy · concentration of force"
+    macro_cosmos: "BDI Intent Layer — user research question → belief/desire/intention formation"
+    meso_cosmos: "Coordination Layer — S-T-V routing · pipeline orchestration · cross-project delegation"
+    micro_cosmos: "Execution Layer — project-level agents · MCP tools · domain skills"
+
+# ══════════════════════════════════════════════════════════════
+# S-T-V 项目注册表
+# ══════════════════════════════════════════════════════════════
+projects:
+  fish:
+    name: "fish-ecology-assistant"
+    role: "S (State)"
+    path: "fish-ecology-assistant/"
+    agent_config: "config/agent.yaml"
+    entry_skill: "research-orchestrator"
+    pipeline: "5-stage: Plan → Search → Analyze → Write → Review"
+    skill_dir: ".reasonix/skills"
+    skill_count: 26
+    mcp_count: 21
+    exports: ["stats-assistant", "research-analyst", "phd-proposal-writer", "ima-smart-search"]
+    imports: ["detect-clicks", "estimate-abundance", "assess-threats", "search-literature"]
+    activation_keywords: ["fish", "fishery", "fishing", "ecology", "community", "isotope", "morphometric", "diet", "feeding", "habitat", "biodiversity", "species diversity", "ichthyology"]
+
+  porpoise:
+    name: "porpoise-agent"
+    role: "T (Transition)"
+    path: "porpoise-agent/"
+    agent_config: "config/agent.yaml"
+    entry_skill: "search-literature"
+    pipeline: "5-phase: Literature → Analysis → Survey → Conservation → Report"
+    skill_dir: "src/skills"
+    skill_count: 17
+    mcp_count: 16
+    exports: ["detect-clicks", "estimate-abundance", "assess-threats", "search-literature"]
+    imports: ["stats-assistant", "research-analyst", "phd-proposal-writer", "ima-smart-search"]
+    activation_keywords: ["porpoise", "cetacean", "dolphin", "whale", "acoustic", "click", "NBHF", "PAM", "echolocation", "vocalization", "bycatch", "Yangtze finless porpoise", "江豚", "豚类"]
+
+  cognitive:
+    name: "cognitive-search-engine"
+    role: "V (Validation)"
+    path: "cognitive-search-engine/"
+    agent_config: "config/agent.yaml"
+    entry_skill: "graph-search-engine"
+    pipeline: "3-phase Hub-and-Spoke: Locate Hubs → Extract Spokes → Gap Detection"
+    skill_dir: "skills"
+    skill_count: 4
+    mcp_count: 7
+    exports: ["graph-search-engine", "cognitive-species-search", "parallel-search"]
+    imports: []
+    activation_keywords: ["search", "literature", "paper", "review", "systematic", "species", "taxonomy", "genus", "species name", "OCR variant"]
+    always_validate: true  # ALL cross-project searches route through cognitive for validation
+
+# ══════════════════════════════════════════════════════════════
+# 中宇宙协调管线
+# ══════════════════════════════════════════════════════════════
+meso_pipeline:
+  version: "1.0.0"
+  
+  phases:
+    # ── Phase 0: UNDERSTAND (Macro-BDI) ──
+    understand:
+      order: 0
+      name: "理解与意图形成"
+      description: "解析研究问题 → 识别领域 → 评估复杂度 → 形成 BDI 意图"
+      actions:
+        - parse_question: "提取关键词、物种名、方法类型"
+        - classify_domain: "fish / porpoise / cross-domain / literature-only"
+        - estimate_complexity: "simple(单项目+单阶段) / medium(单项目+多阶段) / complex(跨项目+全管线)"
+        - form_intention: "BDI policy π(Belief, Desire) → Intention (选择项目+管线模式)"
+      complexity_modes:
+        simple:
+          pipeline: "single_project_single_phase"
+          max_projects: 1
+          max_phases: 1
+        medium:
+          pipeline: "single_project_full"
+          max_projects: 1
+          max_phases: 5
+        complex:
+          pipeline: "cross_project_full_s_t_v"
+          max_projects: 3
+          max_phases: 15  # 5 fish + 5 porpoise + 3 cognitive + 2 cross-validate
+
+    # ── Phase 1: ROUTE (Meso-Coordination) ──
+    route:
+      order: 1
+      name: "路由与资源分配"
+      description: "根据意图选择目标项目 → 分配资源 → 建立执行顺序"
+      routing_rules:
+        - condition: "domain == fish AND NOT (porpoise OR genetic)"
+          route_to: ["fish"]
+          pipeline_mode: "fish_5_stage"
+        - condition: "domain == porpoise AND NOT (fish OR community)"
+          route_to: ["porpoise"]
+          pipeline_mode: "porpoise_5_phase"
+        - condition: "domain == cross OR (fish AND porpoise)"
+          route_to: ["fish", "porpoise"]
+          pipeline_mode: "parallel_then_merge"
+        - condition: "always"
+          route_to: ["cognitive"]
+          pipeline_mode: "validation_gate"
+          trigger: "after_primary_project_completes"
+      resource_allocation:
+        contradiction_budget_multiplier: 2.5  # 主要矛盾方向 2.5x 资源
+        budget_split:
+          principal_direction: 0.60           # 60% 给主要项目
+          secondary_direction: 0.30           # 30% 给次要项目
+          peripheral: 0.10                    # 10% 给验证/补充
+
+    # ── Phase 2: EXECUTE (Micro-Execution) ──
+    execute:
+      order: 2
+      name: "执行与监控"
+      description: "委派到项目级 agent → 监控进度 → 处理异常"
+      delegation:
+        protocol: "DELEGATE to {project}: skill={name} context={...}"
+        format: "cross_delegation (coordination.yaml §cross_delegation)"
+      monitoring:
+        timeout_per_phase_sec: 300
+        max_retries: 1
+        dead_end_detection: true
+        strategic_retreat_enabled: true
+      parallel_execution:
+        enabled: true
+        max_concurrent_projects: 2
+        strategy: "fan_out"
+
+    # ── Phase 3: VALIDATE (Cross-Verification) ──
+    validate:
+      order: 3
+      name: "交叉验证与涌现检测"
+      description: "cognitive authority scoring → 三角验证 → 矛盾分析 → 涌现检测"
+      verification:
+        min_sources_core_claim: 3
+        cross_project_triangulation: true
+        authority_scoring: "cognitive credibility_score 0-100"
+      contradiction_analysis:
+        enabled: true
+        cross_project_contradictions: true  # 不同项目的结论矛盾
+        transformation_detection: true
+      emergence:
+        enabled: true
+        threshold: 3  # ≥3 独立源
+        cross_project_signals: true  # 跨项目的涌现信号
+
+    # ── Phase 4: SYNTHESIZE (Merge) ──
+    synthesize:
+      order: 4
+      name: "合成与输出"
+      description: "合并多项目结果 → 统一格式 → 生成最终报告"
+      merge_strategy: "by_topic_then_source"
+      output_format: "structured_report"
+      include_sections:
+        - "executive_summary"
+        - "literature_review"
+        - "data_analysis"
+        - "cross_project_synthesis"
+        - "contradiction_analysis"
+        - "emergence_signals"
+        - "verification_report"
+        - "evolution_metrics"
+
+    # ── Phase 5: EVOLVE (Feedback) ──
+    evolve:
+      order: 5
+      name: "进化与反馈"
+      description: "Post-pipeline evaluation → trigger cross-project evolution → update coordination"
+      evaluation:
+        metrics: ["pipeline_success_rate", "verification_pass_rate", "contradiction_resolution_rate", "cross_project_efficiency"]
+      evolution_triggers:
+        cross_project_bottleneck:
+          condition: "cross_project_pipeline_failure_rate > 0.3 for 3 sessions"
+          action: "simplify routing or increase timeout"
+        validation_gap:
+          condition: "cross_project_verification_mismatch_rate > 0.2"
+          action: "increase verification_min_sources by 1"
+      shared_evolution:
+        log_path: ".evolution/meso-evolution-log.jsonl"
+        peers: ["fish-ecology-assistant", "porpoise-agent", "cognitive-search-engine"]
+        direction: "bi-directional"
+
+# ══════════════════════════════════════════════════════════════
+# BDI 模型 (Workspace Level)
+# ══════════════════════════════════════════════════════════════
+bdi:
+  enabled: true
+  belief:
+    source: "coordination.yaml + all project states + evolution history"
+    initial_belief: "load project component health, known species graph, recent evolution metrics"
+  desire:
+    primary: "produce publish-quality cross-domain ecology research output"
+    constraints:
+      - "scientific_rigor > speed"
+      - "ecological_significance > statistical_significance"
+      - "cross_project_verification > single_project_confidence"
+      - "local_knowledge >= international_literature"
+  intention:
+    formation: "π(Belief, Desire) → Intention (which projects, which pipeline, which order)"
+    max_active_intentions: 3
+    monitoring: "coordinated across all three project orchestrators"
+
+# ══════════════════════════════════════════════════════════════
+# ReAct 循环 (Workspace Level)
+# ══════════════════════════════════════════════════════════════
+react:
+  enabled: true
+  max_rounds: 10
+  stopping_conditions:
+    - "desire_satisfied: all_pipeline_phases_complete AND verification_pass"
+    - "budget_exhausted: total_tokens > 100000"
+    - "diminishing_returns: 2 consecutive rounds with IG < 0.005"
+    - "dead_end: unresolvable_antagonistic_contradiction"
+  think:
+    action: "evaluate current belief → check desire gap → form/revise intention"
+  act:
+    action: "execute intention → delegate to project agents → MCP calls"
+  observe:
+    action: "collect results → count outputs → compute info_gain → update belief"
+  reflect:
+    action: "compare belief vs desire → continue / restructure / retreat / stop"
+    strategic_retreat:
+      enabled: true
+      trigger: "unresolvable dead end in primary direction"
+      action: "retreat to planner → re-analyze contradiction → re-route"
+
+# ══════════════════════════════════════════════════════════════
+# 协调配置引用
+# ══════════════════════════════════════════════════════════════
+coordination_ref: "D:\\Reasonix\\coordination.yaml"
+evolution_ref: "D:\\Reasonix\\config\\meso_agent.yaml (this file)"
+skill_ref: "D:\\Reasonix\\skills\\meso-orchestrator.md"
+cross_validation_script: "D:\\Reasonix\\scripts\\validate_cross_project.py"

@@ -1,0 +1,230 @@
+# ============================================================
+# S-T-V 三角协调配置 — Unified Coordination Config
+# ============================================================
+# 路径: D:\Reasonix\coordination.yaml
+# 所有三个项目共享此文件。
+#
+# S (State):    fish-ecology-assistant  — 知识库
+# T (Transition): porpoise-agent         — 管线执行
+# V (Value):    cognitive-search-engine  — 知识引擎
+#
+# 🧠 Meso-Cosmos Agent (v4.0): workspace-level coordination
+#    Macro(BDI意图) → Meso(跨项目协调) → Micro(项目执行)
+#    Config: D:\Reasonix\config\meso_agent.yaml
+#    Skill:  D:\Reasonix\skills\meso-orchestrator.md
+
+coordination:
+  version: "4.0.0"
+  root: "D:\\Reasonix"
+  last_sync: "2026-06-07"
+  changelog:
+    - "v3.2.0 (2026-06-07): Cross-project evolution engine propagation — +evolution.yaml (porpoise + fish), +component_registry.yaml (porpoise), +self-evolve skill (porpoise + fish). All three projects now have self-evolution capability."
+    - "v4.0.0 (2026-06-07): Meso-Cosmos Agent — workspace-level coordination layer. +config/meso_agent.yaml, +skills/meso-orchestrator.md. Macro(BDI)→Meso(Route)→Micro(Execute) across all 3 S-T-V projects."
+    - "v3.2.0 (2026-06-07): Cross-project evolution engine propagation — +evolution.yaml (porpoise + fish), +component_registry.yaml (porpoise), +self-evolve skill (porpoise + fish). All three projects now have self-evolution capability."
+    - "v3.1.0 (2026-06-07): Full cross-project co-evolution pass — all READMEs (EN+ZH) synced with Linked Projects sections, agent.version badges on all 3 projects, cognitive agent.yaml +shared section, fish + porpoise WEAKNESSES.md refreshed, porpoise zh README v3→v4.1"
+
+  # ===== Meso-Cosmos Agent (Workspace Level) =====
+  meso_cosmos:
+    enabled: true
+    config: "D:\\Reasonix\\config\\meso_agent.yaml"
+    skill: "D:\\Reasonix\\skills\\meso-orchestrator.md"
+    architecture: "Macro(BDI意图) → Meso(跨项目协调) → Micro(项目执行)"
+    description: "统一入口 — 解析研究问题 → 路由到 S-T-V 项目 → 协调管线执行 → 交叉验证 → 进化反馈"
+    pipeline:
+      - { phase: 0, name: "UNDERSTAND", layer: "Macro-BDI", action: "解析问题 → 识别领域 → 形成意图" }
+      - { phase: 1, name: "ROUTE", layer: "Meso-Coordination", action: "路由到 S/T/V 项目 → 资源分配" }
+      - { phase: 2, name: "EXECUTE", layer: "Micro-Execution", action: "委派到项目 agent → 并行监控" }
+      - { phase: 3, name: "VALIDATE", layer: "Cross-Verification", action: "权威评分 → 三角验证 → 矛盾检测" }
+      - { phase: 4, name: "SYNTHESIZE", layer: "Merge", action: "多项目结果合并 → 统一报告" }
+      - { phase: 5, name: "EVOLVE", layer: "Feedback", action: "评估 → 触发跨项目进化" }
+
+  # ===== S-T-V 三角 =====
+  stv_triangle:
+    state:
+      project: "fish-ecology-assistant"
+      role: "知识库, 数据供给, 矛盾分析"
+      exports: ["stats-assistant", "research-analyst", "phd-proposal-writer", "ima-smart-search"]
+    transition:
+      project: "porpoise-agent"
+      role: "管线执行, 阶段编排, 野外调查"
+      exports: ["detect-clicks", "estimate-abundance", "assess-threats", "search-literature"]
+    value:
+      project: "cognitive-search-engine"
+      role: "认知搜索, 图谱进化, 变体生成"
+      exports: ["graph-search-engine", "cognitive-species-search", "self-evolve"]
+      engine_path: "D:\\Reasonix\\cognitive-search-engine\\"
+      loader: "importlib (DirectLoader, 零 MCP 进程)"
+
+  # ===== 求同: 共享协议 =====
+  shared:
+    philosophy: "dual-core (Panta Rhei + Systems Thinking)"
+    rule_ids: ["FB-1","FB-2","CP-1","CP-2","SM-1","SM-2","WF-1","WF-2","PT-1","PT-2","EH-1","EH-2","MO-1","MO-2","DS-1","DS-2","DS-3","DS-4"]
+    verification: { min_sources_core_claim: 3, max_iterations: 3 }
+    contradiction: { budget_multiplier: 2.5, transformation_threshold: 5 }
+    preflight: "read config/agent.yaml before all Skills"
+
+  # ===== 存异: 项目特定 =====
+  project_specific:
+    fish:
+      runtime: "Reasonix Agent + Markdown Skills"
+      skill_dir: ".reasonix/skills"
+      skill_count: 25
+      mcp_count: 22
+      pipeline_type: "explicit_stages"
+    porpoise:
+      runtime: "Python orchestrator + importlib"
+      skill_dir: "src/skills"
+      skill_count: 16
+      mcp_count: 16
+      pipeline_type: "orchestrator"
+    cognitive:
+      runtime: "Python importlib (被调用)"
+      skill_dir: "skills"
+      skill_count: 3
+      mcp_count: 0
+      pipeline_type: "rule_engine"
+
+  # ===== 跨项目委托协议 =====
+  cross_delegation:
+    enabled: true
+    protocol: "DELEGATE to {project}: skill={name} context={...}"
+    fish_exports: ["stats-assistant","research-analyst","phd-proposal-writer","ima-smart-search"]
+    porpoise_exports: ["detect-clicks","estimate-abundance","assess-threats","search-literature"]
+    cognitive_exports: ["graph-search-engine","cognitive-species-search","parallel-search"]
+
+  # ===== 搜索引擎注册表 (v3.0 统一) =====
+  search_engine_registry:
+    scholar:
+      category: "academic"
+      mcp_server: "scholar"
+      tools: ["scholar_search_literature_graph","scholar_search_google_scholar_key_words"]
+      priority: 1
+      primary: true
+    article:
+      category: "academic"
+      mcp_server: "article"
+      tools: ["article_search_literature","article_get_article_details","article_get_references"]
+      priority: 2
+    scholarly:
+      category: "academic"
+      mcp_server: "scholarly"
+      tools: ["scholarly_search"]
+      priority: 3
+    baidu_scholar:
+      category: "chinese_academic"
+      mcp_server: "reasonix_builtin"
+      tools: ["web_search"]
+      strategy: "site:xueshu.baidu.com"
+      language: "zh"
+      priority: 4
+    cnki:
+      category: "chinese_academic"
+      mcp_server: "reasonix_builtin"
+      tools: ["web_search"]
+      strategy: "site:cnki.net"
+      language: "zh"
+      priority: 5
+    wanfang:
+      category: "chinese_academic"
+      mcp_server: "reasonix_builtin"
+      tools: ["web_search"]
+      strategy: "site:wanfangdata.com.cn"
+      language: "zh"
+      priority: 6
+    cas:
+      category: "chinese_academic"
+      mcp_server: "reasonix_builtin"
+      tools: ["web_search"]
+      strategy: "site:cas.cn OR site:ihb.ac.cn"
+      language: "zh"
+      priority: 7
+    ncbi:
+      category: "academic"
+      mcp_server: "ncbi"
+      tools: ["ncbi_ncbi_esearch","ncbi_ncbi_esummary","ncbi_ncbi_efetch"]
+      priority: 8
+    tavily:
+      category: "web"
+      requires_api_key: true
+      env_var: "TAVILY_API_KEY"
+      mcp_server: "tavily"
+      tools: ["tavily_search","tavily_extract"]
+      priority: 9
+    exa:
+      category: "web"
+      requires_api_key: true
+      env_var: "EXA_API_KEY"
+      mcp_server: "exa"
+      tools: ["exa_web_search"]
+      priority: 10
+    cognitive_search:
+      category: "cognitive"
+      requires_api_key: false
+      loader: "DirectLoader (importlib)"
+      engine_path: "D:\\Reasonix\\cognitive-search-engine\\"
+      tools: ["csearch_species","csearch_graph","csearch_add_paper"]
+      priority: 0
+      primary: false
+      note: "专用认知搜索 — 引擎更新自动生效，零 MCP 开销"
+    web_search:
+      category: "builtin"
+      mcp_server: "reasonix_builtin"
+      tools: ["web_search","web_fetch"]
+      priority: 11
+
+  # ===== 图谱数据源 =====
+  knowledge_graph:
+    primary: "D:\\Reasonix\\cognitive-search-engine\\config\\species_graph.yaml"
+    variants: "D:\\Reasonix\\fish-ecology-assistant\\config\\species_variants.yaml"
+    note: "species_variants.yaml 待合并入 species_graph.yaml。变体生成逻辑在 cognitive-search-engine/src/variant_generator.py"
+
+  # ===== 并行策略 (统一) =====
+  parallelism:
+    search_engines:
+      max_concurrent: 11
+      strategy: "fan_out"
+    domain_skills:
+      max_concurrent: 3
+      strategy: "independent"
+    cross_project:
+      max_concurrent: 2
+      strategy: "fan_out"
+
+  # ===== 激活顺序 (统一) =====
+  activation_order:
+    - { stage: 0, name: "PREFLIGHT", rule: null }
+    - { stage: 1, name: "Contradiction Analysis", rule: "CP-1,CP-2" }
+    - { stage: 2, name: "Cognitive Search", rule: "DS-1,DS-2" }
+    - { stage: 3, name: "Domain Execution", rule: null, parallel: true }
+    - { stage: 4, name: "Verification", rule: "FB-1,FB-2" }
+    - { stage: 5, name: "Graph Update", rule: "MO-2" }
+    - { stage: 6, name: "Review + Adapt", rule: "MO-1,MO-2,DS-1..4" }
+
+  # ===== 进化机制 (v3.2 升级：三项目均有自进化) =====
+  evolution:
+    cognitive_engine:
+      path: "D:\\Reasonix\\cognitive-search-engine\\"
+      loader: "importlib"
+      update_model: "auto"           # engine 代码更新 → 下次 import 自动生效
+      evolution_file: "cognitive-search-engine/config/evolution.yaml"
+      self_evolve_skill: "cognitive-search-engine/skills/self-evolve.md"
+    fish:
+      evolution_file: "fish-ecology-assistant/config/evolution.yaml"
+      self_evolve_skill: "fish-ecology-assistant/.reasonix/skills/self-evolve.md"
+      component_registry: "fish-ecology-assistant/config/component_registry.yaml"
+    porpoise:
+      evolution_file: "porpoise-agent/config/evolution.yaml"
+      self_evolve_skill: "porpoise-agent/src/skills/self-evolve/SKILL.md"
+      component_registry: "porpoise-agent/config/component_registry.yaml"
+    graph:
+      path: "D:\\Reasonix\\cognitive-search-engine\\config\\species_graph.yaml"
+      writeback: "auto"              # 搜索完成后自动回写图谱
+      shared_across: ["fish", "porpoise", "cognitive"]
+    rules:
+      spread: "manual"              # 规则跨项目同步需手动 commit
+      coordination: "this file (D:\\Reasonix\\coordination.yaml)"
+    cross_feedback:
+      enabled: true
+      direction: "bi-directional"
+      shared_metrics: ["verification_pass_rate", "contradiction_resolution_rate", "false_positive_rate"]
+      log_format: "JSONL (shared across all three projects)"
