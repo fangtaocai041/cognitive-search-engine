@@ -19,6 +19,11 @@ shared:
   philosophy: "dual-core (Panta Rhei + Systems Thinking)"
   coordination: "D:\\Reasonix\\coordination.yaml"
   stv_role: "V (Validation) — authority scoring + graph maintenance + search verification"
+  meso_agent:
+    enabled: true
+    config: "D:\\Reasonix\\config\\meso_agent.yaml"
+    skill: "D:\\Reasonix\\skills\\meso-orchestrator.md"
+    role: "V (Validation) — authority scoring, graph maintenance, cross-project search verification"
   peers:
     - { project: "fish-ecology-assistant", role: "S (State)", skill_dir: ".reasonix/skills" }
     - { project: "porpoise-agent", role: "T (Transition)", skill_dir: "src/skills" }
