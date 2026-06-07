@@ -752,31 +752,39 @@ class SearchRuleEngine:
     # ── Trust Score ──
 
     def _trust_score(self, paper: Paper, ctx: dict) -> int:
-        """5-level trust scoring."""
-        score = 50
+        """5-level trust scoring — delegates to src/validator.py.
 
-        # L1: DOI resolves
+        Uses the extracted validator module for independence from search logic.
+        Falls back to inline scoring if validator is unavailable.
+        """
+        try:
+            from src.validator import trust_score as validator_trust_score
+            known_authors = self._get_all_known_authors()
+            known_journals = self._get_all_known_journals()
+            species_terms = [ctx.get("species", ""), ctx.get("chinese_name", "")]
+            species_terms = [t for t in species_terms if t]
+            return validator_trust_score(
+                paper, known_authors=known_authors,
+                known_journals=known_journals,
+                species_terms=species_terms,
+            )
+        except ImportError:
+            pass
+
+        # Fallback: inline scoring (backward compatible)
+        score = 50
         if paper.doi and paper.doi.startswith("10."):
             score += 20
-
-        # L2: PMID exists
         if paper.pmid:
             score += 15
-
-        # L3: Title contains species name
         if self._species_in_title(paper, ctx):
             score += 10
-
-        # L4: Known author
         known_authors = {a.lower() for a in self._get_all_known_authors()}
         if any(a.lower() in known_authors for a in paper.authors):
             score += 10
-
-        # L5: Known journal
         known_journals = self._get_all_known_journals()
         if paper.journal and paper.journal.lower() in [j.lower() for j in known_journals]:
             score += 5
-
         return min(100, score)
 
     def _get_all_known_authors(self) -> list[str]:

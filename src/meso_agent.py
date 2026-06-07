@@ -86,6 +86,8 @@ class MesoResult:
     stop_reason: str = ""
     meso_log: list[dict] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
+    validation: dict = field(default_factory=dict)   # cross-project validation result
+    evolution: dict = field(default_factory=dict)    # evolution adaptations
 
     def to_dict(self) -> dict:
         return {
@@ -170,10 +172,18 @@ class MesoAgent:
             species_info = self._species_map.get(species_id, {})
             is_chinese = bool(species_info.get("chinese", ""))
 
-            # ── Phase 1: WorldModel BDI ──
+            # ── Phase 1: WorldModel BDI + Contradiction Analysis ──
             volume_estimate = self._estimate_volume(species_id)
+
+            # Contradiction-driven strategy selection
+            known = self._load_known(species_id)
+            contradiction = self._analyze_contradiction(
+                species_id, volume_estimate, known, is_chinese
+            )
             if full_pipeline is None:
-                full_pipeline = self._decide_pipeline(species_id, volume_estimate, is_chinese)
+                override = contradiction.get("strategy_override", {})
+                full_pipeline = override.get("full_pipeline",
+                    self._decide_pipeline(species_id, volume_estimate, is_chinese))
 
             # Log meso decision
             result.meso_log.append({
@@ -181,6 +191,11 @@ class MesoAgent:
                 "volume_estimate": volume_estimate,
                 "full_pipeline": full_pipeline,
                 "species_chinese": species_info.get("chinese", ""),
+                "contradiction": {
+                    "primary": contradiction["primary_contradiction"],
+                    "type": contradiction["contradiction_type"],
+                    "budget_multiplier": contradiction["budget_multiplier"],
+                },
             })
 
             # ── Phase 2: Memory / Graph load ──
@@ -190,11 +205,21 @@ class MesoAgent:
                 "known_papers": len(known_papers),
             })
 
-            # ── Phase 3: Execute search ──
+            # ── Phase 3: Execute search (with contradiction strategy overrides) ──
             self._ensure_engine()
             if self._engine is None:
                 result.errors.append("SearchRuleEngine not available")
             else:
+                # Apply contradiction strategy overrides to engine parameters
+                strategy = contradiction.get("strategy_override", {})
+                if strategy:
+                    if strategy.get("trust_threshold_boost"):
+                        # Raise trust threshold to filter noise
+                        self._engine.adaptive_params["trust_score_threshold"] = {
+                            "value": 50 + strategy["trust_threshold_boost"]
+                        }
+                    if strategy.get("max_papers_satisfice"):
+                        self.config.min_papers_satisfice = strategy["max_papers_satisfice"]
                 engine_result = self._engine.execute(species_id)
 
                 raw_papers = engine_result.get("papers", [])
@@ -227,6 +252,65 @@ class MesoAgent:
                     "phase": "graph_update",
                     "new_papers_added": new_count,
                 })
+
+                # ── Phase 4.5: Cross-Project Validation ──
+                try:
+                    from src.validator import validate_papers as validate
+                    validation = validate(
+                        result.papers,
+                        min_sources=3,
+                        min_projects=2,
+                    )
+                    result.meso_log.append({
+                        "phase": "cross_validation",
+                        "independence_passed": validation.stats["independence_passed"],
+                        "verified": validation.stats["verified_count"],
+                        "unique_projects": validation.stats["unique_projects"],
+                        "violations": len(validation.independence_violations),
+                    })
+                    result.validation = validation.stats
+                    if validation.independence_violations:
+                        result.errors.extend(
+                            v["violation"] for v in validation.independence_violations
+                        )
+                    # Tag papers with credibility scores
+                    for paper in result.papers:
+                        if "credibility_score" not in paper:
+                            # Re-score if not already done
+                            pass  # validator.validate_papers already scores
+                except ImportError:
+                    pass
+
+                # ── Phase 4.6: Evolution Feedback ──
+                try:
+                    from src.evolution_executor import EvolutionExecutor
+                    evo_path = self.config.evolution_config_path
+                    if not Path(evo_path).exists():
+                        import os as _os
+                        base = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+                        evo_path = _os.path.join(base, "config", "evolution.yaml")
+                    executor = EvolutionExecutor(evo_path)
+                    metrics = {
+                        "pipeline_success_rate": 1.0 if not result.errors else 0.5,
+                        "recall_rate": len(result.papers) / max(volume_estimate, 1),
+                        "avg_tokens_per_query": result.total_cost,
+                        "contradiction_rate": (
+                            0.0 if contradiction["contradiction_type"] != "antagonistic"
+                            else 0.4
+                        ),
+                    }
+                    actions = executor.evaluate_and_adapt(metrics)
+                    result.evolution = {"adaptations": len(actions), "triggered": [a.trigger_name for a in actions]}
+                    if actions:
+                        result.meso_log.append({
+                            "phase": "evolution",
+                            "adaptations": [
+                                {"param": a.param, "old": a.old_value, "new": a.new_value}
+                                for a in actions if a.param
+                            ],
+                        })
+                except ImportError:
+                    pass
 
         except Exception as e:
             logger.exception("MesoAgent.search failed")
@@ -282,6 +366,111 @@ class MesoAgent:
             return True  # No review → need full search
         return False
 
+    def _analyze_contradiction(self, species_id: str, volume: int,
+                                known_papers: list[dict],
+                                is_chinese: bool) -> dict:
+        """Contradiction-driven search strategy analysis.
+
+        Identifies the PRIMARY contradiction for a species search and
+        routes resources accordingly.  Follows the same pattern as
+        porpoise-agent's orchestrator.ContradictionSignal.
+
+        Contradiction types:
+          - DATA_SCARCITY:    < 20 papers known → exhaustive mode, expand all variants
+          - DATA_NOISE:       many papers but low quality → tighten trust threshold
+          - CHINESE_GAP:      Chinese species, Western DB blind spot → CN-first strategy
+          - NEW_EMERGENCE:    recent papers detected → forward-citation traversal
+          - TAXONOMIC_CONFUSION: name variants / OCR errors → variant-first strategy
+
+        Returns:
+            {
+                "primary_contradiction": str,
+                "contradiction_type": "antagonistic" | "non_antagonistic" | "structural",
+                "budget_multiplier": float,
+                "strategy_override": dict | None,
+            }
+        """
+        result = {
+            "primary_contradiction": "DATA_SCARCITY",
+            "contradiction_type": "structural",
+            "budget_multiplier": 1.0,
+            "strategy_override": None,
+        }
+
+        # ── Contradiction 1: Data scarcity (< 20 papers) ──
+        if volume < 20:
+            result["primary_contradiction"] = "DATA_SCARCITY"
+            result["contradiction_type"] = "antagonistic"
+            result["budget_multiplier"] = 2.5  # 2.5x resources
+            result["strategy_override"] = {
+                "full_pipeline": True,
+                "variant_expansion": "aggressive",  # generate ALL OCR variants
+                "citation_traversal_depth": 3,
+                "author_backward_search": True,
+                "chinese_sources": is_chinese,
+            }
+            return result
+
+        # ── Contradiction 2: Chinese database gap ──
+        if is_chinese and volume < 100:
+            result["primary_contradiction"] = "CHINESE_GAP"
+            result["contradiction_type"] = "non_antagonistic"
+            result["budget_multiplier"] = 2.0
+            result["strategy_override"] = {
+                "full_pipeline": True,
+                "chinese_priority": True,    # CNKI/万方/百度学术 first
+                "review_mining_first": True,  # mine Chinese reviews
+            }
+            return result
+
+        # ── Contradiction 3: Data noise (large volume, mixed quality) ──
+        if volume > 200:
+            result["primary_contradiction"] = "DATA_NOISE"
+            result["contradiction_type"] = "structural"
+            result["budget_multiplier"] = 0.5  # conserve tokens
+            result["strategy_override"] = {
+                "full_pipeline": False,
+                "trust_threshold_boost": 10,    # raise trust threshold
+                "max_papers_satisfice": 12,
+            }
+            return result
+
+        # ── Contradiction 4: New emergence ──
+        current_year = 2026  # TODO: use datetime
+        recent_papers = [
+            p for p in known_papers
+            if p.get("year") and p.get("year", 0) >= current_year - 1
+        ]
+        if len(recent_papers) >= 3 and len(recent_papers) / max(volume, 1) > 0.3:
+            result["primary_contradiction"] = "NEW_EMERGENCE"
+            result["contradiction_type"] = "phasic"
+            result["budget_multiplier"] = 1.8
+            result["strategy_override"] = {
+                "full_pipeline": True,
+                "forward_citation_priority": True,  # who cited these new papers?
+                "new_paper_detection": True,
+            }
+            return result
+
+        # ── Contradiction 5: Taxonomic confusion (known OCR variants) ──
+        species_info = self._species_map.get(species_id, {})
+        variants = species_info.get("variants", [])
+        if len(variants) >= 3:
+            result["primary_contradiction"] = "TAXONOMIC_CONFUSION"
+            result["contradiction_type"] = "non_antagonistic"
+            result["budget_multiplier"] = 1.5
+            result["strategy_override"] = {
+                "full_pipeline": True,
+                "variant_first": True,       # search variants before exact name
+                "phonetic_search": True,      # Soundex/Metaphone
+            }
+            return result
+
+        # Default: moderate search
+        result["budget_multiplier"] = 1.0
+        result["strategy_override"] = {"full_pipeline": volume < 100}
+        return result
+
     # ──── Internal ────
 
     def _ensure_engine(self):
@@ -292,8 +481,16 @@ class MesoAgent:
             return
         try:
             self._engine = SearchRuleEngine(self.config.rules_path, mode=self.config.mode)
-        except Exception:
-            pass
+        except (FileNotFoundError, Exception):
+            # Fallback: try absolute path derived from this file's location
+            try:
+                import os
+                base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                abs_rules = os.path.join(base, "config", "search_rules.yaml")
+                self._engine = SearchRuleEngine(abs_rules, mode=self.config.mode)
+                self.config.rules_path = abs_rules  # update for future calls
+            except Exception:
+                pass
 
     def _ensure_graph_loaded(self):
         """Load species_graph.yaml into memory and build species map."""
