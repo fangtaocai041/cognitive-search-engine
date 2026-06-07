@@ -251,3 +251,58 @@ coordination_ref: "D:\\Reasonix\\coordination.yaml"
 evolution_ref: "D:\\Reasonix\\config\\meso_agent.yaml (this file)"
 skill_ref: "D:\\Reasonix\\skills\\meso-orchestrator.md"
 cross_validation_script: "D:\\Reasonix\\scripts\\validate_cross_project.py"
+
+# ══════════════════════════════════════════════════════════════
+# 统一智能体架构 — 点线面体 + S-T-V 刚性三角形 (v1.0)
+# ══════════════════════════════════════════════════════════════
+# 实现: porpoise-agent/src/agent/
+#   - dimensional_evolution.py  (D₀→D₃ 拓扑进化)
+#   - stv_core.py               (S-T-V 刚性三角形)
+#   - meso_experiment.py        (中宇宙对照实验)
+#   - emergence_monitor.py       (涌现自检测)
+
+unified_agent:
+  enabled: true
+  version: "1.0.0"
+  modules:
+    dimensional_evolution:
+      module: "porpoise-agent/src/agent/dimensional_evolution.py"
+      description: "D₀(点)→D₁(线)→D₂(面)→D₃(体) 拓扑进化引擎"
+      exports: [PointState, LineTrajectory, PlaneMesh, BodyEntity, EvolutionEngine, WorldModel]
+    stv_core:
+      module: "porpoise-agent/src/agent/stv_core.py"
+      description: "S-T-V 刚性三角形 — State→Transition→Validation 不可断裂因果链"
+      exports: [STVTriangle, StateVertex, TransitionVertex, ValidationVertex, TriangleManifold]
+    meso_experiment:
+      module: "porpoise-agent/src/agent/meso_experiment.py"
+      description: "中宇宙对照实验 — A/B测试, Cohen's d, Welch t-test"
+      exports: [MesoExperiment, Hypothesis, search_quality_experiment, pipeline_depth_experiment]
+    emergence_monitor:
+      module: "porpoise-agent/src/agent/emergence_monitor.py"
+      description: "涌现自检测 — ≥3源→信号, D₀→D₃ 相变检测"
+      exports: [EmergenceMonitor, DimensionalEmergenceMonitor, EmergenceSignal]
+
+  # 三维度场景映射
+  scenarios:
+    data_analysis:
+      dimensional_path: "D₀:SQL算子 → D₁:分析管线 → D₂:多Agent辩论网格 → D₃:自主知识图谱+闭环实验"
+      stv_implementation: "DataAnalysisSTV"
+      validation_type: "statistical_tests"
+      emergence_check: "correlation_causality_deconfounding"
+    automated_workflow:
+      dimensional_path: "D₀:API调用 → D₁:DAG工作流 → D₂:多Agent协同网格 → D₃:自愈动态生态系统"
+      stv_implementation: "WorkflowSTV"
+      validation_type: "error_capture_retry"
+      emergence_check: "global_entropy_spike"
+    embodied_interaction:
+      dimensional_path: "D₀:感知基元 → D₁:ReAct轨迹 → D₂:语义空间映射 → D₃:世界模型+Sim-to-Real"
+      stv_implementation: "EmbodiedSTV"
+      validation_type: "physics_collision_detection"
+      emergence_check: "mental_simulation_safety"
+
+  # 跨场景编织 (CrossScenarioManifold)
+  cross_scenario:
+    enabled: true
+    global_entropy_threshold: 0.6
+    phase_transition_detection: true
+    auto_experiment_scheduling: true
