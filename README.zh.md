@@ -11,7 +11,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/version-5.2-8b5cf6?style=flat-square" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/skills-4-22c55e?style=flat-square" alt="Skills"></a>
+  <a href="#"><img src="https://img.shields.io/badge/skills-5-22c55e?style=flat-square" alt="Skills"></a>
   <a href="#"><img src="https://img.shields.io/badge/MCP-7-f59e0b?style=flat-square" alt="MCP"></a>
   <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/架构-meso_cosmos-8b5cf6?style=flat-square" alt="架构"></a>
   <a href="#"><img src="https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6?style=flat-square" alt="Multi-LLM"></a>

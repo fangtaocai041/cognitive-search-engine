@@ -8,7 +8,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-5.2-8b5cf6)](config/agent.yaml)
-[![Skills](https://img.shields.io/badge/skills-4-22c55e)](skills/)
+[![Skills](https://img.shields.io/badge/skills-5-22c55e)](skills/)
 [![MCP](https://img.shields.io/badge/MCP-7-f59e0b)](config/mcp_servers.yaml)
 [![Architecture](https://img.shields.io/badge/architecture-meso_cosmos-8b5cf6)](docs/ARCHITECTURE.md)
 [![Multi-LLM](https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6)]()
