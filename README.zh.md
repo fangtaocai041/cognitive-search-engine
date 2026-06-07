@@ -532,5 +532,19 @@ MIT © 2026 fangtaocai041
 > **"不枚举，不穷举。遍历图谱，满意即止。"**
 > Don't enumerate. Traverse the graph. Stop when satisfied.
 >
+---
+
+## 📋 版本历史
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| **v5.2.2** | 2026-06-08 | validator.py 提取 + evolution_executor + contradiction-driven meso_agent |
+| **v5.2.1** | 2026-06-07 | S-T-V 三角验证 + DirectLoader + Meso-Cosmos Agent v4.0 |
+| **v5.2** | 2026-06-07 | Meso-Cosmos 协调层 + ZN/EN 双语图谱 |
+| **v5.1** | 2026-06-07 | Hub-and-Spoke 搜索 + 权威可信度评分 |
+| **v5.0** | 2026-06-07 | BDI + ReAct 认知架构 |
+
+> **最新**: v5.2.2 · 2026-06-08
+
 > **"不要搜索字符串，要重建所指。"**
 > Don't search for strings — reconstruct the signified.
