@@ -4,10 +4,10 @@
 
 # 🕸️ Cognitive Search Engine v5
 
-> **Hub-and-Spoke Graph Search** — BDI + ReAct + Authority Scoring + Classified Knowledge Graph + Lazy Loading
+> **Meso-Cosmos Agent** — BDI + ReAct + Authority Scoring + CN/EN Dynamic Graph + Lazy Loading
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-5.1-8b5cf6)](config/agent.yaml)
+[![Version](https://img.shields.io/badge/version-5.2-8b5cf6)](config/agent.yaml)
 [![Skills](https://img.shields.io/badge/skills-4-22c55e)](skills/)
 [![MCP](https://img.shields.io/badge/MCP-5-f59e0b)](config/mcp_servers.yaml)
 [![Architecture](https://img.shields.io/badge/architecture-meso_cosmos-8b5cf6)](docs/ARCHITECTURE.md)
@@ -25,6 +25,71 @@ This engine is integrated as a git submodule in:
 |---------|-------------|
 | [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | Fish ecology AI research team |
 | [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | Porpoise research agent — auto-routes species queries to this engine |
+
+---
+
+## 🧠 v5.2: Meso-Cosmos Agent — 中宇宙式协调层
+
+> **Macro(BDI) → Meso(Coordination) → Micro(Execution)** — 自动在宏观意图与微观工具调用之间搭建桥梁。
+
+### What's New
+
+| Feature | Description | Module |
+|:--------|:------------|:-------|
+| **MesoAgent** | 中宇宙式协调层 — 统一管理 WorldModel/SearchRuleEngine/MemorySystem/GraphUpdater | `src/meso_agent.py` |
+| **Dynamic Graph v2.0** | CN/EN-aware auto-update — 中文期刊自动填入 `authors_zh`，新作者/期刊自动注册，中英文双语去重 | `src/graph_updater.py` |
+| **CN/EN Literature Rule** | 中文期刊走中文署名（杨计平），英文走英文名（Yang Jiping）；论文防双版本重复 | `project memory (high)` |
+| **MCP Timeout Protection** | 15 秒 threading 超时防止 MCP 子进程永久阻塞 | `src/mcp_client.py` |
+| **Chinese Academic Search Skill** | 覆盖 8 种中文期刊的专用搜索策略 | `skills/chinese-academic-search.md` |
+
+### Meso-Cosmos Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│              Macro-cosmos (BDI 意图层)               │
+│  CognitiveAgent · WorldModel · Belief/Desire/Intention │
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│              Meso-cosmos (协调层)                     │
+│  MesoAgent.search(species_id)                       │
+│                                                     │
+│  Pipeline: BDI预测 → 模式选择(穷举/分类/轻量)          │
+│          → 执行分发 → 图谱更新 → CN/EN规则            │
+│                                                     │
+│  Components: WorldModel + SearchRuleEngine          │
+│              + MemorySystem + GraphUpdater          │
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│              Micro-cosmos (执行层)                    │
+│  PubMed E-utilities · Crossref · OpenAlex · MCP      │
+│  11 search phases · 5 engines · Authority scoring    │
+└─────────────────────────────────────────────────────┘
+```
+
+### CN/EN Automatic Rules
+
+| Context | Before | After |
+|:--------|:-------|:------|
+| Chinese journal paper | `authors: [Yang Jiping]` | `authors_zh: [杨计平]` ✅ |
+| English journal paper | `authors: [Yang Jiping]` | `authors: [Yang Jiping]` ✅ (unchanged) |
+| CN/EN duplicate papers | Kept both versions | DOI + title_zh dedup → keep Chinese version |
+| New author found | Manually add to graph | Auto-register with Chinese name |
+| New journal found | Manual entry | Auto-register |
+
+### Quick Start with MesoAgent
+
+```python
+from src.meso_agent import create_agent
+
+agent = create_agent(mode="http")
+result = agent.search("Ochetobius_elongatus")
+
+print(f"Found {len(result.papers)} papers in {result.elapsed_sec}s")
+print(f"New to graph: {result.new_papers}")
+print(f"Stop reason: {result.stop_reason}")
+```
 
 ---
 
@@ -379,6 +444,7 @@ ENGINEERING:
 
 | Version | Date | Theme | What Changed |
 |:--------|:-----|:------|:-------------|
+| **v5.2** | 2026-06-06 | Meso-Cosmos Agent | + MesoAgent (src/meso_agent.py), + Dynamic Graph v2.0 (CN/EN auto authors_zh, auto-register, dedup), + CN/EN Literature Rule, + MCP 15s Timeout Protection, + Chinese Academic Search Skill (4th skill), + architecture: meso_cosmos |
 | **v5.1** | 2026-06-06 | Hub-and-Spoke Protocol | + Hub-and-Spoke (3-phase, 10 calls), + Authority Credibility Scoring (0-100), + Review-First Strategy, + Classified Knowledge Graph (lazy-load), + Chinese-academic-search Skill, + 3-mode adaptive depth (exhaustive/classified/review-anchored), + OCR variant safety net |
 | **v5.0** | 2026-07-14 | 5-Layer Agent Architecture | + BDI WorldModel (Belief/Desire/Intention), + CognitiveAgent (ReAct loop), + MemorySystem (short-term + long-term), + agent_core.py, + memory_layer.py, + variant_generator.py, + graph_updater.py, + mcp_client.py, + ARCHITECTURE.md |
 | **v4.3** | 2026-06-06 | Engineering Language | + YAML Rule Engine (10 structured phases), + JSON Schema tools.json, + rule_engine.py, + multi-provider config, + self-evolve feedback loop |

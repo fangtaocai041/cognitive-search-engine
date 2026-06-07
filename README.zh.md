@@ -4,20 +4,85 @@
 
 <div align="center">
   <h1>🕸️ 认知搜索引擎 v5</h1>
-  <p><strong>Hub-and-Spoke 图谱搜索</strong> — BDI + ReAct + 权威可信度评分 + 分类知识图谱 + 按需加载</p>
-  <p>7 模块 · 5 搜索引擎 · 5 层架构 · BDI 推理 · 权威评分 0-100</p>
+  <p><strong>中宇宙式 Agent</strong> — BDI + ReAct + 权威可信度评分 + CN/EN 动态图谱 + 按需加载</p>
+  <p>7 模块 · 5 搜索引擎 · 5 层架构 · BDI 推理 · 中宇宙协调层</p>
 </div>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-5.1-8b5cf6?style=flat-square" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-5.2-8b5cf6?style=flat-square" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/skills-4-22c55e?style=flat-square" alt="Skills"></a>
   <a href="#"><img src="https://img.shields.io/badge/MCP-5-f59e0b?style=flat-square" alt="MCP"></a>
-  <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/架构-hub_and_spoke-ec4899?style=flat-square" alt="架构"></a>
+  <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/架构-meso_cosmos-8b5cf6?style=flat-square" alt="架构"></a>
   <a href="#"><img src="https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6?style=flat-square" alt="Multi-LLM"></a>
   <a href="#"><img src="https://img.shields.io/badge/BDI-ReAct-22c55e?style=flat-square" alt="BDI"></a>
   <a href="#"><img src="https://img.shields.io/badge/权威评分-0_100-ec4899?style=flat-square" alt="权威评分"></a>
 </p>
+
+---
+
+## 🧠 v5.2: 中宇宙式 Agent — Meso-Cosmos 协调层
+
+> **宏观(BDI) → 中宇宙(协调) → 微观(执行)** — 自动在宏观意图与微观工具调用之间搭建桥梁。
+
+### 新增功能
+
+| 功能 | 说明 | 模块 |
+|:----|:-----|:-----|
+| **MesoAgent** | 中宇宙式协调层 — 统一管理 WorldModel/SearchRuleEngine/MemorySystem/GraphUpdater | `src/meso_agent.py` |
+| **动态图谱 v2.0** | CN/EN 感知自动更新 — 中文期刊自动填入 `authors_zh`，新作者/期刊自动注册，中英文双语去重 | `src/graph_updater.py` |
+| **CN/EN 文献规则** | 中文期刊走中文署名（杨计平），英文走英文名（Yang Jiping）；论文防双版本重复 | `project memory (high)` |
+| **MCP 超时保护** | 15 秒 threading 超时防止 MCP 子进程永久阻塞 | `src/mcp_client.py` |
+| **中文期刊搜索技能** | 覆盖 8 种中文期刊的专用搜索策略 | `skills/chinese-academic-search.md` |
+
+### 中宇宙架构
+
+```
+┌─────────────────────────────────────────────────────┐
+│              宏观宇宙 (BDI 意图层)                    │
+│  CognitiveAgent · WorldModel · Belief/Desire/Intention │
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│              中宇宙 (协调层)                         │
+│  MesoAgent.search(species_id)                       │
+│                                                     │
+│  管线: BDI预测 → 模式选择(穷举/分类/轻量)            │
+│       → 执行分发 → 图谱更新 → CN/EN规则              │
+│                                                     │
+│  组件: WorldModel + SearchRuleEngine                │
+│        + MemorySystem + GraphUpdater                │
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│              微观宇宙 (执行层)                        │
+│  PubMed E-utilities · Crossref · OpenAlex · MCP      │
+│  11 搜索阶段 · 5 引擎 · 权威评分                     │
+└─────────────────────────────────────────────────────┘
+```
+
+### CN/EN 自动规则
+
+| 情境 | 以前 | 现在 |
+|:----|:----|:----|
+| 中文期刊论文 | `authors: [Yang Jiping]` | `authors_zh: [杨计平]` ✅ |
+| 英文期刊论文 | `authors: [Yang Jiping]` | `authors: [Yang Jiping]` ✅ (不变) |
+| 中英文双版本 | 两个都保留 | DOI + title_zh 去重 → 保留中文版 |
+| 发现新作者 | 手动添加 | 自动注册中文名 |
+| 发现新期刊 | 手动输入 | 自动注册 |
+
+### MesoAgent 快速使用
+
+```python
+from src.meso_agent import create_agent
+
+agent = create_agent(mode="http")
+result = agent.search("Ochetobius_elongatus")
+
+print(f"找到 {len(result.papers)} 篇论文，耗时 {result.elapsed_sec}s")
+print(f"图谱新增: {result.new_papers}")
+print(f"停止原因: {result.stop_reason}")
+```
 
 ---
 
@@ -390,6 +455,7 @@ porpoise-agent 的 orchestrator 自动检测查询中的物种名，自动路由
 
 | 版本 | 日期 | 主题 | 变更内容 |
 |:------|:-----|:------|:-------------|
+| **v5.2** | 2026-06-06 | 中宇宙式 Agent | + MesoAgent (src/meso_agent.py), + 动态图谱 v2.0 (CN/EN 自动 authors_zh/自动注册/双语去重), + CN/EN 文献规则, + MCP 15 秒超时保护, + Chinese Academic Search Skill (第 4 个技能), + 架构: meso_cosmos |
 | **v5.1** | 2026-06-06 | Hub-and-Spoke 协议 | + Hub-and-Spoke (3 阶段 10 调用), + 权威可信度评分 (0-100), + 综述优先策略, + 分类知识图谱 (懒加载), + Chinese-academic-search Skill, + 三模式自适应深度, + OCR 变体安全网 |
 | **v5.0** | 2026-07-14 | 5 层智能体架构 | + BDI WorldModel (信念/愿望/意图), + CognitiveAgent (ReAct 循环), + MemorySystem (短期+长期), + agent_core.py, + memory_layer.py, + variant_generator.py, + graph_updater.py, + mcp_client.py, + ARCHITECTURE.md |
 | **v4.3** | 2026-06-06 | 工程语言化 | + YAML 规则引擎 (10 结构化阶段), + JSON Schema tools.json (三 LLM 通用), + rule_engine.py, + 多 Provider 配置, + 自进化反馈循环 |
