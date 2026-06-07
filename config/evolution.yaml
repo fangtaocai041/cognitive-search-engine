@@ -59,3 +59,19 @@ evolution:
       new_species_discovered:  # 图谱中发现新物种
         condition: "graph_node_count increased by > 20% in one search"
         action: "log discovery + suggest building dedicated species_graph entry"
+
+  # 跨项目进化数据共享 (v4.0 统一)
+  cross_project:
+    enabled: true
+    coordination_ref: "D:\\Reasonix\\coordination.yaml"
+    shared_metrics:
+      - recall_vs_expected
+      - false_positive_rate
+      - token_efficiency
+    peers:
+      fish:
+        evolution_path: "../fish-ecology-assistant/config/evolution.yaml"
+        share: ["verification_pass_rate", "recall_vs_expected"]
+      porpoise:
+        evolution_path: "../porpoise-agent/config/evolution.yaml"
+        share: ["verification_pass_rate", "false_positive_rate"]
