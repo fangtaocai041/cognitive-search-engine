@@ -197,25 +197,30 @@ class MesoAgent:
             else:
                 engine_result = self._engine.execute(species_id)
 
-                new_papers = engine_result.get("papers", [])
-                stats = engine_result.get("stats", {})
+                raw_papers = engine_result.get("papers", [])
+                # Normalize: Paper dataclass → dict
+                result.papers = [
+                    p.__dict__ if hasattr(p, '__dataclass_fields__') else p
+                    for p in raw_papers
+                ]
+                stats = engine_result.get("stats", engine_result)
 
-                result.papers = new_papers
-                result.phase_count = stats.get("phases_run", 0)
-                result.stop_reason = stats.get("stop_reason", "")
-                result.total_cost = stats.get("total_cost", 0.0)
-                result.ig_final = stats.get("ig_final", 0.0)
+                result.phase_count = stats.get("phases_run", 0) or stats.get("phases_executed", 0)
+                result.stop_reason = stats.get("stop_reason", "") or stats.get("stop_reason", "")
+                result.total_cost = stats.get("total_cost", 0.0) or stats.get("tokens_spent", 0)
+                ig = stats.get("ig_final", 0.0) or 0.0
+                result.ig_final = ig
 
                 result.meso_log.append({
                     "phase": "search",
-                    "papers_found": len(new_papers),
+                    "papers_found": len(result.papers),
                     "phases_run": result.phase_count,
                     "stop_reason": result.stop_reason,
                 })
 
                 # ── Phase 4: Graph update (with ZN/EN rules) ──
                 new_count = self._update_graph(
-                    species_id, new_papers, is_chinese
+                    species_id, result.papers, is_chinese
                 )
                 result.new_papers = new_count
                 result.meso_log.append({

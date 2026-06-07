@@ -201,6 +201,74 @@ graph:
     - Institute of Hydroecology
     species:
     - Ochetobius_elongatus
+  - name: Wang Jiayu
+    institutions: &id001 []
+    species:
+    - Luciobrama_macrocephalus
+  - name: Wang Xiaolei
+    institutions: *id001
+    species:
+    - Luciobrama_macrocephalus
+  - name: Cao Qingyuan
+    institutions: *id001
+    species:
+    - Luciobrama_macrocephalus
+  - name: Wang Rui
+    institutions: *id001
+    species:
+    - Luciobrama_macrocephalus
+  - name: Ji Yuanpu
+    institutions: *id001
+    species:
+    - Luciobrama_macrocephalus
+  - name: Zhang Jing
+    institutions: *id001
+    species:
+    - Luciobrama_macrocephalus
+  - name: Wu Fengchang
+    institutions: *id001
+    species:
+    - Luciobrama_macrocephalus
+  - name: Liu Zugen
+    institutions: *id001
+    species:
+    - Luciobrama_macrocephalus
+  - name: Zhao Xiaoli
+    institutions: *id001
+    species:
+    - Luciobrama_macrocephalus
+  - name: Zhang Xiaogu
+    institutions: &id002 []
+    species:
+    - Luciobrama_macrocephalus
+  - name: Tong Jingou
+    institutions: *id002
+    species:
+    - Luciobrama_macrocephalus
+  - name: Yang Jianyuan
+    institutions: *id002
+    species:
+    - Luciobrama_macrocephalus
+  - name: Xiong Bangxi
+    institutions: *id002
+    species:
+    - Luciobrama_macrocephalus
+  - name: Liang Zhishen
+    institutions: &id003 []
+    species:
+    - Luciobrama_macrocephalus
+  - name: Yi Bolu
+    institutions: *id003
+    species:
+    - Luciobrama_macrocephalus
+  - name: Yu Zhitang
+    institutions: *id003
+    species:
+    - Luciobrama_macrocephalus
+  - name: Wang Ning
+    institutions: *id003
+    species:
+    - Luciobrama_macrocephalus
   journals:
   - name: Animals
     species:
@@ -226,6 +294,21 @@ graph:
   - name: Science
     species:
     - Ochetobius_elongatus
+  - name: Environmental research
+    species:
+    - Luciobrama_macrocephalus
+  - name: CABI Compendium
+    species:
+    - Luciobrama_macrocephalus
+  - name: IUCN Red List of Threatened Species
+    species:
+    - Luciobrama_macrocephalus
+  - name: Environmental Biology of Fishes
+    species:
+    - Luciobrama_macrocephalus
+  - name: Hydrobiologia
+    species:
+    - Luciobrama_macrocephalus
   papers:
   - doi: 10.17520/biods.2018121
     title: Genetic diversity and population demographic history of Ochetobius elongatus
@@ -1114,6 +1197,66 @@ graph:
     - 孙 琦
     species:
     - Neophocaena_asiaeorientalis
+    source: auto_ingest
+  - doi: 10.1016/j.envres.2026.123734
+    title: 'Deriving predicted no-effect concentrations for PFASs to protect threatened
+      and endangered fish: A comparison of water- andtissue-residue-based toxicity
+      data.'
+    year: 2026
+    journal: Environmental research
+    authors:
+    - Wang Jiayu
+    - Wang Xiaolei
+    - Cao Qingyuan
+    - Wang Rui
+    - Ji Yuanpu
+    - Zhang Jing
+    - Wu Fengchang
+    - Liu Zugen
+    - Zhao Xiaoli
+    species:
+    - Luciobrama_macrocephalus
+    source: auto_ingest
+  - doi: 10.1079/cabicompendium.76763
+    title: Luciobrama typus
+    year: 2017
+    journal: CABI Compendium
+    authors: []
+    species:
+    - Luciobrama_macrocephalus
+    source: auto_ingest
+  - doi: 10.2305/iucn.uk.2012-1.rlts.t166103a1111639.en
+    title: 'Luciobrama macrocephalus: Huckstorf, V.'
+    year: 2010
+    journal: IUCN Red List of Threatened Species
+    authors: []
+    species:
+    - Luciobrama_macrocephalus
+    source: auto_ingest
+  - doi: 10.1007/s10641-010-9711-0
+    title: 'Threatened fishes of the world: Luciobrama macrocephalus (cyprinidae)'
+    year: 2010
+    journal: Environmental Biology of Fishes
+    authors:
+    - Zhang Xiaogu
+    - Tong Jingou
+    - Yang Jianyuan
+    - Xiong Bangxi
+    species:
+    - Luciobrama_macrocephalus
+    source: auto_ingest
+  - doi: 10.1023/a:1023426909635
+    title: Spawning areas and early development of long spiky-head carp (Luciobrama
+      macrocephalus) in the Yangtze River and Pearl River, China
+    year: 2003
+    journal: Hydrobiologia
+    authors:
+    - Liang Zhishen
+    - Yi Bolu
+    - Yu Zhitang
+    - Wang Ning
+    species:
+    - Luciobrama_macrocephalus
     source: auto_ingest
   edges:
   - from: doi:10.7541/2024.2024.0056

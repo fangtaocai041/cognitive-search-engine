@@ -284,12 +284,16 @@ class WorldModel:
             if not phase_activation.get(name, True):
                 continue
 
-            # IG pruning: if this phase type has IG below threshold, skip
+            # IG pruning: skip if IG below threshold (but NOT after graph_lookup only)
+            # graph_lookup always yields IG=0 for unknown species, so we need at least
+            # one real search phase before pruning kicks in.
             if belief.ig_history and len(belief.ig_history) >= 2:
-                recent_ig = belief.ig_history[-1]
-                if recent_ig < desire.ig_prune_threshold:
-                    pruned.append(name)
-                    continue
+                real_phases = sum(1 for ig in belief.ig_history if ig > 0.0)
+                if real_phases >= 2:
+                    recent_ig = belief.ig_history[-1]
+                    if recent_ig < desire.ig_prune_threshold:
+                        pruned.append(name)
+                        continue
 
             # Budget check
             phase_cost = phase_priorities.get(name, 500)
