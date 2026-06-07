@@ -3,7 +3,7 @@
 
 agent:
   name: "Cognitive Search Engine"
-  version: "5.0.0"
+  version: "5.2.0"
   description: "BDI + ReAct + 5-Layer Agent Architecture — semiotics + graph traversal + energy-efficient"
 
 # DeepSeek 标准配置 (YAML 1.2)

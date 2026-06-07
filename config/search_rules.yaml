@@ -124,9 +124,14 @@ phases:
     budget: 0
     priority: 99
     params:
-      primary_key: "doi"
-      secondary_key: "title_similarity"
+      primary_key: "doi"                    # DOI 去重（最精确）
+      secondary_key: "title_similarity"     # 英文标题模糊匹配
       similarity_threshold: 0.90
+      cn_en_dedup:                          # [v2.0] 中英文双语去重
+        enabled: true
+        match_key: "title_zh"               # 中文标题（非机翻）
+        fallback_to_translation: true       # 无 title_zh 时对比机翻标题
+        keep: "prefer_zh"                   # 中英文重复时保留中文版本（信息更全）
 
 stop_conditions:
   global:
