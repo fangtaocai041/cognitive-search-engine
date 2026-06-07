@@ -165,6 +165,42 @@ graph:
     - CAS
     species:
     - Ochetobius_elongatus
+  - name: Gao Lei
+    chinese: 高磊
+    institutions:
+    - Pearl River Fisheries Research Institute
+    species:
+    - Ochetobius_elongatus
+  - name: Wang Dongqiang
+    chinese: 王东强
+    institutions:
+    - Yangtze River Fisheries Research Institute
+    species:
+    - Ochetobius_elongatus
+  - name: Wang Sheng
+    chinese: 王生
+    institutions:
+    - Jiangxi Provincial Aquatic Biology Protection and Rescue Center
+    species:
+    - Ochetobius_elongatus
+  - name: Yuan Xiping
+    chinese: 袁希平
+    institutions:
+    - Hunan Fisheries Research Institute
+    species:
+    - Ochetobius_elongatus
+  - name: Chen Yuanyuan
+    chinese: 陈元元
+    institutions:
+    - Jianghan University
+    species:
+    - Ochetobius_elongatus
+  - name: Que Yanfu
+    chinese: 阙延福
+    institutions:
+    - Institute of Hydroecology
+    species:
+    - Ochetobius_elongatus
   journals:
   - name: Animals
     species:
@@ -203,6 +239,12 @@ graph:
     - Chen Weitao
     - Li Yuefei
     - Li Xinhui
+    authors_zh:
+    - 杨计平
+    - 李策
+    - 陈蔚涛
+    - 李跃飞
+    - 李新辉
     species:
     - Ochetobius_elongatus
     institutions:
@@ -238,6 +280,13 @@ graph:
     - Li Xinhui
     - Yang Jiping
     - Wang Dongqiang
+    authors_zh:
+    - 陈蔚涛
+    - 段辛斌
+    - 高磊
+    - 李新辉
+    - 杨计平
+    - 王东强
     species:
     - Ochetobius_elongatus
     institutions:
@@ -260,6 +309,17 @@ graph:
     - Xie Zhigang
     - Xia Min
     - Liu Hongyan
+    authors_zh:
+    - 翟东东
+    - 王东
+    - 何天琦
+    - 蔡方陶
+    - 段辛斌
+    - 胡兴坤
+    - 朱滨
+    - 谢志刚
+    - 夏民
+    - 刘红艳
     species:
     - Ochetobius_elongatus
     institutions:
@@ -331,11 +391,24 @@ graph:
     - Xiong Fei
     - Liu Hongyan
     - Duan Xinbin
+    authors_zh:
+    - 蔡方陶
+    - 王生
+    - 胡兴坤
+    - 袁希平
+    - 翟东东
+    - 陈元元
+    - 阙延福
+    - 熊飞
+    - 刘红艳
+    - 段辛斌
     species:
     - Ochetobius_elongatus
     institutions:
     - Jianghan University
+    - Jiangxi Provincial Aquatic Biology Protection and Rescue Center
     - Institute of Hydroecology
+    - Hunan Fisheries Science Institute
     - Yangtze River Fisheries Research Institute
   - doi: 10.3390/ani16091369
     title: Analysis of Ochetobibus elongatus (Kner) Dietary Habits Based on Digestive
@@ -370,6 +443,11 @@ graph:
     - Chen Daqing
     - Liu Shaoping
     - Chi Chenggui
+    authors_zh:
+    - 段辛斌
+    - 陈大庆
+    - 刘绍平
+    - 池成贵
     species:
     - Ochetobius_elongatus
     type: mention
