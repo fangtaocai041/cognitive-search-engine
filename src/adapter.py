@@ -50,10 +50,11 @@ class CognitiveSearchAdapter:
 
         try:
             import importlib, importlib.util
-            # Clear cached 'src' to avoid cross-project conflict
-            for key in list(sys.modules.keys()):
+            # Clear old src cache so cognitive gets its own src package
+            for key in list(sys.modules):
                 if key == "src" or key.startswith("src."):
                     del sys.modules[key]
+
             spec = importlib.util.spec_from_file_location(
                 f"cogsearch.meso.{id(self)}", str(engine_file))
             if spec and spec.loader:
@@ -62,13 +63,8 @@ class CognitiveSearchAdapter:
                 factory = getattr(mod, "create_agent", None)
                 if factory:
                     self._engine = factory(mode="http")
-                else:
-                    # Fallback: try MesoAgent class
-                    agent_cls = getattr(mod, "MesoAgent", None)
-                    if agent_cls:
-                        self._engine = agent_cls()
-        except Exception as exc:
-            logger.warning(f"Cognitive engine init failed: {exc}")
+        except Exception:
+            pass  # graceful degradation — adapter.search() returns stub
 
     # ── IProjectAdapter interface ──
 
