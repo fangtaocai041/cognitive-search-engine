@@ -544,7 +544,7 @@ MIT © 2026 fangtaocai041
 | **v5.1** | 2026-06-07 | Hub-and-Spoke 搜索 + 权威可信度评分 |
 | **v5.0** | 2026-06-07 | BDI + ReAct 认知架构 |
 
-> **最新**: v5.2.2 · 2026-06-08
+> **最新**: v5.3.0 · 2026-06-08
 
 > **"不要搜索字符串，要重建所指。"**
 > Don't search for strings — reconstruct the signified.
