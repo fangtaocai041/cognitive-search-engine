@@ -523,15 +523,15 @@ def taxonomic_unfold(catalog: Dict, species_id: str,
         })
 
     # L4: Chinese + aliases
-    cn_terms = []
+    zh_terms = []
     if taxon.get("chinese"):
-        cn_terms.append(taxon["chinese"])
-    cn_terms.extend(taxon.get("aliases", [])[:3])
-    if cn_terms:
+        zh_terms.append(taxon["chinese"])
+    zh_terms.extend(taxon.get("aliases", [])[:3])
+    if zh_terms:
         levels.append({
             "level": 4,
-            "label": f"中文+别名 ({', '.join(cn_terms[:3])})",
-            "queries": [f"{t} 研究 OR 论文 OR 综述" for t in cn_terms[:2]],
+            "label": f"中文+别名 ({', '.join(zh_terms[:3])})",
+            "queries": [f"{t} 研究 OR 论文 OR 综述" for t in zh_terms[:2]],
             "strategy": "chinese_sweep",
             "min_expected": 2,
         })
@@ -833,7 +833,7 @@ def should_continue_phase(
 # ═══════════════════════════════════════════════════════════
 
 # CN-priority DB tiers for bilingual search
-_CN_TIER_DBS = [
+_ZH_TIER_DBS = [
     "cnki", "wanfang", "cqvip", "baidu_scholar",
     "biodiversity_science", "acta_hydrobiologica", "south_china_fisheries",
     "journal_fisheries_china", "fishsci_china",
@@ -846,9 +846,9 @@ _EN_TIER_DBS = [
 
 def detect_language(query: str) -> str:
     """
-    detect_language(query: str) → "cn" | "en" | "mixed"
+    detect_language(query: str) → "zh" | "en" | "mixed"
 
-    WHEN any CJK character in query → "cn" or "mixed"
+    WHEN any CJK character in query → "zh" or "mixed"
     WHEN only ASCII → "en"
     """
     has_cn = any("\u4e00" <= c <= "\u9fff" for c in query)
@@ -856,24 +856,24 @@ def detect_language(query: str) -> str:
     if has_cn and has_en:
         return "mixed"
     if has_cn:
-        return "cn"
+        return "zh"
     return "en"
 
 
 def bilingual_route(catalog: Dict, query: str,
                     health_aware: bool = True) -> Dict:
     """
-    bilingual_route(query) → {lang, cn_phase, en_phase, gap_hint}
+    bilingual_route(query) → {lang, zh_phase, en_phase, gap_hint}
 
     Strategy:
       IF query has Chinese → CN databases FIRST, then EN for gap comparison
       IF query is English-only → EN databases (standard progressive_route)
-      Returns phased plan: {cn_phase: [...], en_phase: [...], gap_hint: str}
+      Returns phased plan: {zh_phase: [...], en_phase: [...], gap_hint: str}
     """
     lang = detect_language(query)
     registry = _build_db_registry(catalog)
 
-    cn_dbs = []
+    zh_dbs = []
     en_dbs = []
 
     # Get global scores for lookups (top-50 to cover all tier DBs)
@@ -884,16 +884,16 @@ def bilingual_route(catalog: Dict, query: str,
     ds = dict(score_domains(catalog, query))
     domain_baseline = max(ds.values()) * 0.3 if ds else 0.01
 
-    if lang in ("cn", "mixed"):
-        for db_id in _CN_TIER_DBS:
+    if lang in ("zh", "mixed"):
+        for db_id in _ZH_TIER_DBS:
             if db_id in registry:
                 entry = dict(registry[db_id])
                 score = global_score_map.get(db_id, 0)
                 if score == 0:
                     score = domain_baseline  # fallback for untopolized CN DBs
                 entry["_tier_score"] = score
-                cn_dbs.append(entry)
-        cn_dbs.sort(key=lambda d: -d["_tier_score"])
+                zh_dbs.append(entry)
+        zh_dbs.sort(key=lambda d: -d["_tier_score"])
 
     for db_id in _EN_TIER_DBS:
         if db_id in registry:
@@ -908,34 +908,34 @@ def bilingual_route(catalog: Dict, query: str,
     # Gap hint
     gap_hint = (
         "CN→EN gap: search Chinese DBs first → compare with English results → identify research gaps"
-        if lang in ("cn", "mixed")
+        if lang in ("zh", "mixed")
         else "EN-only search"
     )
 
     return {
         "lang": lang,
-        "cn_phase": {"label": "中文优先", "databases": cn_dbs[:6]},
+        "zh_phase": {"label": "中文优先", "databases": zh_dbs[:6]},
         "en_phase": {"label": "英文对照", "databases": en_dbs[:6]},
         "gap_hint": gap_hint,
     }
 
 
-def align_bilingual(cn_results: List[Dict], en_results: List[Dict]) -> Dict:
+def align_bilingual(zh_results: List[Dict], en_results: List[Dict]) -> Dict:
     """
-    align_bilingual(cn_results, en_results) → {merged, cn_only, en_only, overlap}
+    align_bilingual(zh_results, en_results) → {merged, zh_only, en_only, overlap}
 
     Deduplication rules:
       1. Match by DOI (exact) → keep original-language version
       2. Match by title similarity (≥0.8) → keep CN version for CN papers
-      3. Unmatched → tag as cn_only or en_only (research gap candidates)
+      3. Unmatched → tag as zh_only or en_only (research gap candidates)
     """
     from difflib import SequenceMatcher
 
-    cn_by_doi = {}
-    for r in cn_results:
+    zh_by_doi = {}
+    for r in zh_results:
         doi = (r.get("doi") or "").lower().strip()
         if doi:
-            cn_by_doi[doi] = r
+            zh_by_doi[doi] = r
 
     en_by_doi = {}
     for r in en_results:
@@ -943,18 +943,18 @@ def align_bilingual(cn_results: List[Dict], en_results: List[Dict]) -> Dict:
         if doi:
             en_by_doi[doi] = r
 
-    overlap_dois = set(cn_by_doi) & set(en_by_doi)
-    cn_only_dois = set(cn_by_doi) - set(en_by_doi)
-    en_only_dois = set(en_by_doi) - set(cn_by_doi)
+    overlap_dois = set(zh_by_doi) & set(en_by_doi)
+    zh_only_dois = set(zh_by_doi) - set(en_by_doi)
+    en_only_dois = set(en_by_doi) - set(zh_by_doi)
 
     # Title similarity for papers without DOI
-    cn_no_doi = [r for r in cn_results if not (r.get("doi") or "").strip()]
+    zh_no_doi = [r for r in zh_results if not (r.get("doi") or "").strip()]
     en_no_doi = [r for r in en_results if not (r.get("doi") or "").strip()]
 
     matched_pairs = []
-    cn_matched_idx = set()
+    zh_matched_idx = set()
     en_matched_idx = set()
-    for i, cr in enumerate(cn_no_doi):
+    for i, cr in enumerate(zh_no_doi):
         ct = (cr.get("title") or cr.get("title_zh") or "").lower()
         if not ct:
             continue
@@ -967,34 +967,34 @@ def align_bilingual(cn_results: List[Dict], en_results: List[Dict]) -> Dict:
             sim = SequenceMatcher(None, ct, et).ratio()
             if sim >= 0.6:  # loose threshold for CN→EN title match
                 matched_pairs.append((cr, er, sim))
-                cn_matched_idx.add(i)
+                zh_matched_idx.add(i)
                 en_matched_idx.add(j)
                 break
 
     # Build result
     merged = []
     for doi in overlap_dois:
-        cn_paper = cn_by_doi[doi]
+        zh_paper = zh_by_doi[doi]
         en_paper = en_by_doi[doi]
-        merged.append({**en_paper, "_source": "both", "_primary": "cn", "_cn_title": cn_paper.get("title_zh", cn_paper.get("title", ""))})
+        merged.append({**en_paper, "_source": "both", "_primary": "zh", "_zh_title": zh_paper.get("title_zh", zh_paper.get("title", ""))})
 
     for cr, er, sim in matched_pairs:
-        merged.append({**er, "_source": "both", "_primary": "cn", "_title_sim": round(sim, 3)})
+        merged.append({**er, "_source": "both", "_primary": "zh", "_title_sim": round(sim, 3)})
 
-    cn_only = [cn_by_doi[d] for d in cn_only_dois] + \
-              [cn_no_doi[i] for i in range(len(cn_no_doi)) if i not in cn_matched_idx]
+    zh_only = [zh_by_doi[d] for d in zh_only_dois] + \
+              [zh_no_doi[i] for i in range(len(zh_no_doi)) if i not in zh_matched_idx]
     en_only = [en_by_doi[d] for d in en_only_dois] + \
               [en_no_doi[j] for j in range(len(en_no_doi)) if j not in en_matched_idx]
 
     return {
         "merged": merged,
-        "cn_only": cn_only,
+        "zh_only": zh_only,
         "en_only": en_only,
         "stats": {
-            "total_cn": len(cn_results),
+            "total_zh": len(zh_results),
             "total_en": len(en_results),
             "overlap": len(merged),
-            "cn_only": len(cn_only),
+            "zh_only": len(zh_only),
             "en_only": len(en_only),
         },
     }
