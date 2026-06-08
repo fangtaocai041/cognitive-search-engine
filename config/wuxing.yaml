@@ -1,0 +1,11 @@
+# 🪵 木·生长·扩展
+wuxing:
+  element: "木"
+  phase: "生长"
+  generates: "火"
+  controls: "土"
+  generated_by: "水"
+  controlled_by: "金"
+  health:
+    metric: "validator.independence_pass_rate"
+    normal_range: [0.7, 0.95]
