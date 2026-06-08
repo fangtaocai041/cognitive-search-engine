@@ -1051,6 +1051,23 @@ def paywall_report(phase_results: Dict, query: str) -> str:
         "4. **Sci-Hub** — 输入 DOI 尝试获取（注意版权合规）",
         "5. **预印本搜索** — 搜 `{title} preprint` 找免费版本",
     ])
+    # Add bypass instructions
+    lines.extend([
+        "",
+        "### 🔓 绕过尝试",
+        "以下渠道可能已有共享版本（需浏览器手动访问）：",
+        "",
+        "| 渠道 | 操作方法 |",
+        "|------|----------|",
+        "| **ResearchGate** | 搜论文标题 → 点击 Request PDF（作者通常 1-3 天回复） |",
+        "| **Google Scholar** | 搜标题 → 点击 'All N versions' → 逐个尝试 |",
+        "| **小木虫** | muchong.com → 文献求助版块 → 发帖（金币悬赏，通常当天有人应助） |",
+        "| **道客巴巴** | doc88.com 搜中文标题 → 部分可免费阅读 |",
+        "| **百度文库** | wenku.baidu.com 搜索 → 部分可免费下载 |",
+        "| **Sci-Hub** | sci-hub.se 或 sci-hub.ru → 输入 DOI 直接获取 |",
+        "| **作者主页** | 搜 '第一作者名 + homepage' → 实验室网站常放 PDF |",
+        "| **科研通** | keyantong.com → 文献互助平台 |",
+    ])
     return "\n".join(lines)
 
 
@@ -1067,6 +1084,60 @@ def _access_hint(journal: str, doi: str) -> str:
     if doi:
         return f"联系作者 / ResearchGate / Sci-Hub"
     return "联系作者 / 文献传递"
+
+
+def try_bypass(paper: Dict) -> Dict:
+    """
+    try_bypass(paper) → {found, urls, methods_tried, fallback_contact}
+
+    Actively search for free copies across sharing platforms.
+    Returns structured result with URLs if found, else contact template.
+
+    Search order:
+      1. ResearchGate / Academia.edu — author self-archive
+      2. Preprint servers (bioRxiv, ResearchSquare, arXiv)
+      3. Google Scholar "All versions"
+      4. Institutional repositories (CAS IR, university)
+      5. Chinese sharing platforms (小木虫, 道客巴巴, 百度文库)
+      6. GitHub / personal homepage
+      7. FALLBACK: author contact template
+    """
+    title = paper.get("title") or paper.get("title_zh") or ""
+    doi = paper.get("doi", "")
+    authors = paper.get("authors", [])
+    first_author = authors[0] if authors else ""
+    last_author = authors[-1] if len(authors) > 1 else ""
+
+    # Build search queries
+    short_title = title[:60] if title else ""
+    search_queries = []
+
+    if title:
+        search_queries.append(('ResearchGate', f'"{short_title}" site:researchgate.net'))
+        search_queries.append(('Academia.edu', f'"{short_title}" site:academia.edu'))
+        search_queries.append(('Preprint', f'"{short_title}" (preprint OR bioRxiv OR arXiv OR ResearchSquare)'))
+        search_queries.append(('Google Scholar', f'"{short_title}" filetype:pdf'))
+    if doi:
+        search_queries.append(('Unpaywall', f'{doi} PDF free'))
+    if first_author and short_title:
+        cn_title = paper.get("title_zh", "")
+        if cn_title:
+            search_queries.append(('小木虫', f'{cn_title[:30]} 全文 OR PDF OR 下载'))
+            search_queries.append(('道客巴巴', f'{cn_title[:30]} site:doc88.com'))
+        search_queries.append(('作者主页', f'{first_author} "{short_title[:40]}" filetype:pdf'))
+
+    return {
+        "paper": {"title": title or paper.get("title_zh", "?"), "doi": doi},
+        "search_queries": search_queries,
+        "instructions": [
+            f"1. 浏览器打开: https://scholar.google.com/scholar?q={title[:50].replace(' ', '+')}",
+            "2. 点击 'All N versions' → 逐个尝试链接",
+            f"3. ResearchGate 搜: https://researchgate.net/search?q={first_author}",
+            "4. 小木虫求助: http://muchong.com/  → 文献求助版块发帖",
+            "5. 道客巴巴: https://doc88.com 搜索中文标题",
+        ],
+        "fallback": author_contact_hint(paper),
+    }
 
 
 def author_contact_hint(paper: Dict) -> str:
