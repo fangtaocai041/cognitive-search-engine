@@ -484,80 +484,52 @@ IF consecutive zeros ≥ 2 → STOP (diminishing returns)
 
 ---
 
-## 🗺️ Future Roadmap
+## 🗺️ 演进方向 (Personalized Roadmap)
 
-> **Current status:** Domain-leading research prototype (v5.1). The following milestones are planned for future iterations.
+> 以下方向根据实际研究需求排列，非通用路线图。每个方向对应一个具体痛点。
 
-### ⚠️ Known Limitations
+### 🔴 P0 — 本周可做
 
-| Area | Limitation | Impact |
-|------|-----------|--------|
-| **UI** | CLI-only, depends on Reasonix runtime | Cannot be used standalone or by non-Reasonix users |
-| **Deployment** | No Docker image, no REST API | No independent deploy / embed scenario |
-| **Benchmark** | Only verified on 鳤 (12 papers) | Unknown recall on other 100+ species |
-| **Real-time Index** | Relies on 3rd party APIs (PubMed, Crossref, etc.) | Latency depends on external services |
-| **Chinese DB** | web_search + web_fetch fallback, no direct CNKI API | Rate-limited, may miss some paywalled papers |
-| **Peer Review** | No published paper | Academic community hasn't reviewed the approach |
+| # | 方向 | 痛点 | 技术路径 |
+|:--:|------|------|----------|
+| 1 | **一键物种搜索** | 每次要手动输入学名+中文名 | `search("鳤")` → 自动查 species_graph → 中英双语并行 → 输出差距分析 |
+| 2 | **CNKI/万方直连** | 当前用 web_search 兜底，慢且不全 | 如有机构账号 → 接入 CNKI API / 万方 API → 直接检索+下载摘要 |
+| 3 | **付费论文自动 bypass** | 每次手动去 ResearchGate/小木虫搜 | `try_bypass()` 自动化 → 并行搜索 8 个共享渠道 → 返回可访问 URL |
+| 4 | **搜索记录持久化** | 每次搜鳤都要重新来一遍 | `species_graph.yaml` 已有但未充分利用 → 搜索结果自动写回图谱 |
 
-### 🎯 Milestone 1: Ship as Standalone Product
+### 🟡 P1 — 本月
 
-```
-PRD:
-  - Web UI (Streamlit / Gradio) → input species name → output knowledge graph
-  - REST API (FastAPI) → POST /search?species=Ochetobius+elongatus
-  - Docker image → docker pull fangtaocai/cognitive-search-engine
-  - pip install → python -m cognitive_search.search "鳤"
-```
+| # | 方向 | 痛点 | 技术路径 |
+|:--:|------|------|----------|
+| 5 | **文献综述自动生成** | 搜完 15 篇还要人工分类写综述 | 按学科方向分类 → 提取摘要 → DeepSeek 生成结构化综述 |
+| 6 | **研究差距自动检测** | 不知道国内vs国外研究到哪一步 | CN 5 篇 vs EN 7 篇 → `align_bilingual()` → "国内空白: 食性/基因组" |
+| 7 | **物种对比搜索** | 搜完鳤还要搜鯮、鲥，重复劳动 | `compare_species(["鳤","鯮"])` → 并行搜索 → 对比表 |
+| 8 | **新论文周报** | 不知道鳤最近有没有新论文 | 每日 NCBI/CNKI 自动检索 → 有新论文 → 推送通知 |
 
-**Why:** The most advanced species search engine is useless if it only runs inside Reasonix.
+### 🟢 P2 — 本季度
 
-### 🎯 Milestone 2: Multi-Species Benchmark
+| # | 方向 | 痛点 | 技术路径 |
+|:--:|------|------|----------|
+| 9 | **PDF 自动下载** | 找到论文还要手动下载、重命名 | 免费论文自动下载 → 按 `作者_年_期刊.pdf` 命名 → 本地存档 |
+| 10 | **Zotero 集成** | 文献管理靠手工 | 搜索结果 → 自动导出 `.bib` → Zotero BetterBibTeX 同步 |
+| 11 | **GIS 分布叠加** | 只有 GBIF 点数据，看不到环境背景 | GBIF 分布 + WorldClim 气候 + 水文图层 → 一张图看到栖息地全貌 |
+| 12 | **机构库深度接入** | 中科院学位论文/报告找不到 | CAS IR + NSTL + 高校图书馆 → 学位论文/内部报告专属搜索 |
 
-```
-BENCHMARK:
-  - Curate 50 Chinese freshwater fish species with known paper lists
-  - Baseline: PubMed/Google Scholar/Semantic Scholar recall
-  - Compare: this engine's recall, precision, token cost per species
-  - Publish: benchmark table as a technical report
-```
+### 🔵 P3 — 未来
 
-**Why:** One data point (鳤, 100% recall) is anecdotal. 50 species is evidence.
+| # | 方向 | 痛点 |
+|:--:|------|------|
+| 13 | **微信小程序** | 野外调查时手机查物种文献 |
+| 14 | **语音输入** | "帮我搜一下鳤的最新论文" |
+| 15 | **多语种扩展** | 日文/韩文/俄文鱼类学论文 |
+| 16 | **知识图谱可视化** | 作者合作网络 + 引用关系 → 交互式图谱 |
 
-### 🎯 Milestone 3: Academic Publication
+### ⚡ 技术债务 (持续)
 
-```
-PAPER:
-  - Title: "Hub-and-Spoke Graph Search for Critically Endangered Fish Species"
-  - Venue target: BMC Bioinformatics / J. of Fish Biology / Scientific Data
-  - Contributions:
-      1. Hub-and-Spoke protocol (replaces 14-layer linear)
-      2. Authority credibility scoring (0-100)
-      3. OCR variant safety net
-      4. Chinese-first search strategy
-  - Empirical results: recall vs token cost across 50 species
-```
-
-**Why:** Peer review validates the architecture and opens citation impact.
-
-### 🎯 Milestone 4: Production Hardening
-
-```
-ENGINEERING:
-  - Auto-scaling: handle 100 concurrent species searches
-  - Caching: Redis-backed query cache (TTL 7 days)
-  - Monitoring: Prometheus + Grafana (recall, latency, token cost per species)
-  - Self-hosted: fallback to local PDF corpus when APIs are down
-  - Plugin system: community-contributed search rules per fish family
-```
-
-**Why:** From "works on my machine" to "serves 100 users reliably."
-
-### 💡 Ideas Being Explored
-
-- **CrewAI-style multi-agent**: one agent per sub-discipline Hub, merge results
-- **Local LLM inference**: replace DeepSeek API calls with Ollama (Qwen2.5-7B) for cost reduction
-- **CNKI direct API**: if institutional access available, bypass web_search for Chinese papers
-- **Multi-modal**: add image search (fish photos → species ID → paper retrieval)
+- 触手健康状态从静态 YAML 改为运行时探针
+- `species_graph.yaml` 自动从 NCBI Taxonomy 批量填充
+- 反馈权重自进化从手动 `apply_feedback()` 改为后台定时任务
+- 中文分词替代当前的字串匹配触发词检测
 
 ---
 
