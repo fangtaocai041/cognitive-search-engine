@@ -7,7 +7,7 @@
 > **Meso-Cosmos Agent** — BDI + ReAct + Authority Scoring + ZN/EN Dynamic Graph + Lazy Loading
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-5.2-8b5cf6)](config/agent.yaml)
+[![Version](https://img.shields.io/badge/version-5.3.0-8b5cf6)](config/agent.yaml)
 [![Skills](https://img.shields.io/badge/skills-5-22c55e)](skills/)
 [![MCP](https://img.shields.io/badge/MCP-7-f59e0b)](config/mcp_servers.yaml)
 [![Architecture](https://img.shields.io/badge/architecture-meso_cosmos-8b5cf6)](docs/ARCHITECTURE.md)
@@ -53,7 +53,7 @@
 | **v5.1** | 2026-06-07 | Hub-and-Spoke search + authority credibility scoring |
 | **v5.0** | 2026-06-07 | BDI + ReAct cognitive architecture |
 
-> **Latest**: v5.3.0 · 2026-06-08 · `1edc857`
+> **Latest**: v5.3.0 · 2026-06-08
 
 > **Core Strength**: From "string matching" to "signified reconstruction" — multiple signifier paths (exact, OCR variant, author network, citation graph, Chinese name) converge on the same signified (the species itself).
 
