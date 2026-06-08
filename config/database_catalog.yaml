@@ -1,0 +1,1037 @@
+# config/database_catalog.yaml — 领域数据库目录
+# ============================================================
+# Canonical registry of searchable databases organized by domain.
+# Referenced by: domain-search Skill, project_loader, TendrilManager
+# Path: eon-core/config/database_catalog.yaml
+# Access from any project: ../eon-core/config/database_catalog.yaml
+# ============================================================
+
+catalog_version: "1.0.0"
+last_updated: "2026-06-08"
+
+# ── Domain → Database Mapping ─────────────────────────────
+
+domains:
+
+  # ═══════════════════════════════════════════════════════
+  # 🐟 渔业与鱼类学 (Fisheries & Ichthyology)
+  # ═══════════════════════════════════════════════════════
+  fisheries_ichthyology:
+    label: "渔业与鱼类学"
+    icon: "🐟"
+    triggers: ["鱼", "fish", "鳤", "鲥", "鲟", "江豚", "fishery", "aquaculture", "水产", "淡水鱼类", "海洋渔业",
+               "Ochetobius", "Coilia", "Neophocaena", "Acipenser", "Myxocyprinus"]
+    databases:
+
+      - id: "pubmed"
+        name: "PubMed"
+        url: "https://pubmed.ncbi.nlm.nih.gov"
+        access: "free"
+        type: "academic_papers"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["ncbi_ncbi_esearch", "ncbi_ncbi_efetch", "article_search_literature"]
+        description: "生物医学与生命科学论文，含 PMID/PMCID/DOI"
+
+      - id: "dryad"
+        name: "Dryad Digital Repository"
+        url: "https://datadryad.org"
+        access: "free"
+        type: "research_data"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search", "playwright_browser_navigate"]
+        download_notes: "需浏览器 session cookie，API 下载需 bearer token"
+        description: "原始研究数据（CSV/Excel/R脚本），CC0 许可证"
+
+      - id: "fishbase"
+        name: "FishBase"
+        url: "https://fishbase.se"
+        access: "free"
+        type: "species_database"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:fishbase.se {species_name}"
+        description: "全球鱼类物种数据库，含分布/生态/分类"
+
+      - id: "iucn_redlist"
+        name: "IUCN Red List"
+        url: "https://iucnredlist.org"
+        access: "free"
+        type: "conservation_status"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:iucnredlist.org {species_name}"
+        description: "物种濒危等级评估（CR/EN/VU/NT/LC）"
+
+      - id: "gbif"
+        name: "GBIF (全球生物多样性信息设施)"
+        url: "https://gbif.org"
+        access: "free"
+        type: "species_occurrence"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:gbif.org/species {species_name}"
+        description: "物种全球分布记录，含经纬度/时间"
+
+      - id: "obis"
+        name: "OBIS (海洋生物地理信息系统)"
+        url: "https://obis.org"
+        access: "free"
+        type: "species_occurrence"
+        coverage: "marine"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:obis.org {species_name}"
+        description: "海洋生物分布记录"
+
+      - id: "fao_fisheries"
+        name: "FAO Fisheries & Aquaculture"
+        url: "https://fao.org/fishery"
+        access: "free"
+        type: "fishery_statistics"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:fao.org {species_name} fishery"
+        description: "全球渔业统计，捕捞量/养殖量"
+
+      - id: "cnki"
+        name: "中国知网 (CNKI)"
+        url: "https://kns.cnki.net"
+        access: "paid"
+        type: "academic_papers"
+        coverage: "china"
+        language: ["zh"]
+        search_tools: ["web_search"]
+        search_template: "site:kns.cnki.net {keyword}"
+        description: "中文学术论文全文数据库，付费获取全文"
+
+      - id: "biodiversity_science"
+        name: "生物多样性 (Biodiversity Science)"
+        url: "https://biodiversity-science.net"
+        access: "free"
+        type: "academic_papers"
+        coverage: "china"
+        language: ["zh", "en"]
+        search_tools: ["web_search"]
+        search_template: "site:biodiversity-science.net {keyword}"
+        description: "CSCD核心期刊，物种多样性/遗传/生态"
+
+      - id: "acta_hydrobiologica"
+        name: "水生生物学报"
+        url: "https://aquaticjournal.com"
+        access: "free"
+        type: "academic_papers"
+        coverage: "china"
+        language: ["zh"]
+        search_tools: ["web_search"]
+        search_template: "site:aquaticjournal.com {keyword}"
+        description: "CSCD核心期刊，淡水生物学"
+
+      - id: "south_china_fisheries"
+        name: "南方水产科学"
+        url: "https://schinafish.cn"
+        access: "free"
+        type: "academic_papers"
+        coverage: "china"
+        language: ["zh"]
+        search_tools: ["web_search"]
+        search_template: "site:schinafish.cn {keyword}"
+        description: "北大核心期刊"
+
+      - id: "journal_fisheries_china"
+        name: "水产学报"
+        url: "https://china-fishery.com"
+        access: "free"
+        type: "academic_papers"
+        coverage: "china"
+        language: ["zh"]
+        search_tools: ["web_search"]
+        search_template: "site:china-fishery.com {keyword}"
+        description: "CSCD核心期刊"
+
+      - id: "fishsci_china"
+        name: "中国水产科学"
+        url: "https://fishsci.net"
+        access: "free"
+        type: "academic_papers"
+        coverage: "china"
+        language: ["zh"]
+        search_tools: ["web_search"]
+        search_template: "site:fishsci.net {keyword}"
+        description: "CSCD核心期刊"
+
+  # ═══════════════════════════════════════════════════════
+  # 🧬 分子生物学与遗传学 (Molecular Biology & Genetics)
+  # ═══════════════════════════════════════════════════════
+  molecular_genetics:
+    label: "分子生物学与遗传学"
+    icon: "🧬"
+    triggers: ["基因", "基因组", "genome", "DNA", "RNA", "线粒体", "mitochondrial", "SNP",
+               "遗传", "genetic", "系统发育", "phylogen", "染色体", "chromosome", "转录组",
+               "transcriptom", "蛋白质", "protein", "分子标记", "microsatellite"]
+    databases:
+
+      - id: "ncbi_nucleotide"
+        name: "NCBI Nucleotide"
+        url: "https://ncbi.nlm.nih.gov/nucleotide"
+        access: "free"
+        type: "sequence_database"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["ncbi_ncbi_esearch"]
+        description: "DNA/RNA 序列数据库 (GenBank)"
+
+      - id: "ncbi_genome"
+        name: "NCBI Genome"
+        url: "https://ncbi.nlm.nih.gov/genome"
+        access: "free"
+        type: "genome_assembly"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["ncbi_ncbi_esearch"]
+        description: "全基因组组装数据"
+
+      - id: "uniprot"
+        name: "UniProt"
+        url: "https://uniprot.org"
+        access: "free"
+        type: "protein_database"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:uniprot.org {gene_or_species}"
+        description: "蛋白质序列与功能注释"
+
+      - id: "ena"
+        name: "European Nucleotide Archive"
+        url: "https://ebi.ac.uk/ena"
+        access: "free"
+        type: "sequence_database"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:ebi.ac.uk/ena {accession_or_species}"
+        description: "欧洲核苷酸序列档案"
+
+  # ═══════════════════════════════════════════════════════
+  # 🌿 生态学与生物多样性 (Ecology & Biodiversity)
+  # ═══════════════════════════════════════════════════════
+  ecology_biodiversity:
+    label: "生态学与生物多样性"
+    icon: "🌿"
+    triggers: ["生态", "ecology", "多样性", "biodiversity", "群落", "community", "栖息地",
+               "habitat", "种群", "population", "调查", "survey", "资源", "resource",
+               "禁渔", "fishing ban", "恢复", "restoration", "保护", "conservation"]
+    databases:
+
+      - id: "crossref"
+        name: "CrossRef"
+        url: "https://api.crossref.org"
+        access: "free"
+        type: "academic_papers"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["scholar_search_literature_graph"]
+        description: "学术论文元数据 (DOI注册中心)"
+
+      - id: "openalex"
+        name: "OpenAlex"
+        url: "https://api.openalex.org"
+        access: "free"
+        type: "academic_papers"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["scholar_search_literature_graph"]
+        description: "开放学术知识图谱"
+
+      - id: "semantic_scholar"
+        name: "Semantic Scholar"
+        url: "https://api.semanticscholar.org"
+        access: "free"
+        type: "academic_papers"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["scholar_search_literature_graph"]
+        description: "AI增强学术搜索，含引用网络"
+
+      - id: "google_scholar"
+        name: "Google Scholar"
+        url: "https://scholar.google.com"
+        access: "free"
+        type: "academic_papers"
+        coverage: "global"
+        language: ["en", "zh"]
+        search_tools: ["scholar_search_google_scholar_key_words", "scholar_search_google_scholar_advanced"]
+        description: "综合学术搜索，含被引次数"
+
+      - id: "inaturalist"
+        name: "iNaturalist"
+        url: "https://inaturalist.org"
+        access: "free"
+        type: "citizen_science"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:inaturalist.org {species_name}"
+        description: "公民科学观测记录，含照片/位置"
+
+      - id: "ebird"
+        name: "eBird"
+        url: "https://ebird.org"
+        access: "free"
+        type: "citizen_science"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:ebird.org {species_name}"
+        description: "鸟类观测记录"
+
+      - id: "web_of_science"
+        name: "Web of Science"
+        url: "https://webofscience.com"
+        access: "paid"
+        type: "academic_papers"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        description: "SCI/SSCI索引，付费"
+
+  # ═══════════════════════════════════════════════════════
+  # 🔬 毒理学与环境健康 (Toxicology & Environmental Health)
+  # ═══════════════════════════════════════════════════════
+  toxicology:
+    label: "毒理学与环境健康"
+    icon: "🔬"
+    triggers: ["毒性", "toxic", "PFAS", "污染物", "pollutant", "重金属", "heavy metal",
+               "环境", "environmental", "microplastic", "内分泌", "endocrine"]
+    databases:
+
+      - id: "epa_comptox"
+        name: "EPA CompTox Chemicals Dashboard"
+        url: "https://comptox.epa.gov"
+        access: "free"
+        type: "chemical_toxicity"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:comptox.epa.gov {chemical_name}"
+        description: "化合物毒性数据"
+
+      - id: "ecotox"
+        name: "ECOTOXicology Knowledgebase"
+        url: "https://cfpub.epa.gov/ecotox"
+        access: "free"
+        type: "ecotoxicity"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:cfpub.epa.gov/ecotox {species_or_chemical}"
+        description: "生态毒性数据库"
+
+      - id: "pubchem"
+        name: "PubChem"
+        url: "https://pubchem.ncbi.nlm.nih.gov"
+        access: "free"
+        type: "chemical_database"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:pubchem.ncbi.nlm.nih.gov {compound}"
+        description: "化合物信息与生物活性"
+
+  # ═══════════════════════════════════════════════════════
+  # 📐 形态学 (Morphology)
+  # ═══════════════════════════════════════════════════════
+  morphology:
+    label: "形态学"
+    icon: "📐"
+    triggers: ["形态", "morpholog", "表型", "phenotype", "几何形态", "geometric morphometric",
+               "骨片", "耳石", "otolith", "脊椎", "vertebra"]
+    databases:
+
+      - id: "pubmed"
+        name: "PubMed"
+        url: "https://pubmed.ncbi.nlm.nih.gov"
+        access: "free"
+        type: "academic_papers"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["ncbi_ncbi_esearch", "article_search_literature"]
+        description: "生物医学论文"
+
+      - id: "cnki"
+        name: "中国知网 (CNKI)"
+        url: "https://kns.cnki.net"
+        access: "paid"
+        type: "academic_papers"
+        coverage: "china"
+        language: ["zh"]
+        search_tools: ["web_search"]
+        search_template: "site:kns.cnki.net {keyword} 形态"
+        description: "中文形态学论文"
+
+  # ═══════════════════════════════════════════════════════
+  # 🌍 地球科学与遥感 (Earth Science & Remote Sensing)
+  # ═══════════════════════════════════════════════════════
+  earth_science:
+    label: "地球科学与遥感"
+    icon: "🌍"
+    triggers: ["地质", "geology", "气候", "climate", "遥感", "remote sensing", "GIS",
+               "水文", "hydrology", "水质", "water quality", "泥沙", "sediment",
+               "土地利用", "land use", "卫星", "satellite"]
+    databases:
+
+      - id: "usgs"
+        name: "USGS"
+        url: "https://usgs.gov"
+        access: "free"
+        type: "earth_science"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:usgs.gov {keyword}"
+        description: "美国地质调查局，地质/水文/遥感"
+
+      - id: "noaa"
+        name: "NOAA"
+        url: "https://noaa.gov"
+        access: "free"
+        type: "climate_ocean"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:noaa.gov {keyword}"
+        description: "气候/海洋/渔业数据"
+
+      - id: "nasa_earthdata"
+        name: "NASA EarthData"
+        url: "https://earthdata.nasa.gov"
+        access: "free"
+        type: "remote_sensing"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:earthdata.nasa.gov {keyword}"
+        description: "卫星遥感数据"
+
+      - id: "copernicus"
+        name: "Copernicus (ESA)"
+        url: "https://copernicus.eu"
+        access: "free"
+        type: "remote_sensing"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:copernicus.eu {keyword}"
+        description: "欧洲哥白尼卫星数据"
+
+  # ═══════════════════════════════════════════════════════
+  # 🤖 AI与机器学习 (AI & Machine Learning)
+  # ═══════════════════════════════════════════════════════
+  ai_ml:
+    label: "AI与机器学习"
+    icon: "🤖"
+    triggers: ["深度学习", "deep learning", "神经网络", "neural network", "transformer",
+               "LLM", "大模型", "机器学习", "machine learning", "NLP", "计算机视觉",
+               "computer vision", "强化学习", "reinforcement learning"]
+    databases:
+
+      - id: "arxiv"
+        name: "arXiv"
+        url: "https://arxiv.org"
+        access: "free"
+        type: "preprint"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search", "article_search_literature"]
+        search_template: "site:arxiv.org {keyword}"
+        description: "预印本，CS/AI/数学/物理"
+
+      - id: "papers_with_code"
+        name: "Papers With Code"
+        url: "https://paperswithcode.com"
+        access: "free"
+        type: "paper_code"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:paperswithcode.com {keyword}"
+        description: "论文+代码+benchmark"
+
+      - id: "huggingface"
+        name: "Hugging Face"
+        url: "https://huggingface.co"
+        access: "free"
+        type: "model_dataset"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:huggingface.co {keyword}"
+        description: "预训练模型与数据集"
+
+      - id: "github"
+        name: "GitHub"
+        url: "https://github.com"
+        access: "free"
+        type: "code"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["github_search_code", "github_search_repositories"]
+        description: "开源代码仓库"
+
+  # ═══════════════════════════════════════════════════════
+  # 🩺 生物医学 (Biomedical)
+  # ═══════════════════════════════════════════════════════
+  biomedical:
+    label: "生物医学"
+    icon: "🩺"
+    triggers: ["临床", "clinical", "疾病", "disease", "治疗", "treatment", "药物", "drug",
+               "肿瘤", "cancer", "免疫", "immune", "细胞", "cell"]
+    databases:
+
+      - id: "pubmed_central"
+        name: "PubMed Central"
+        url: "https://ncbi.nlm.nih.gov/pmc"
+        access: "free"
+        type: "academic_papers_fulltext"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["article_get_article_details", "article_search_literature"]
+        description: "开放获取全文论文"
+
+      - id: "clinical_trials"
+        name: "ClinicalTrials.gov"
+        url: "https://clinicaltrials.gov"
+        access: "free"
+        type: "clinical_trials"
+        coverage: "global"
+        language: ["en"]
+        search_tools: ["web_search"]
+        search_template: "site:clinicaltrials.gov {keyword}"
+        description: "临床试验注册"
+
+# ── Cross-cutting databases (all domains) ─────────────────
+
+cross_cutting:
+  - id: "tavily"
+    name: "Tavily Search"
+    access: "free"
+    type: "web_search"
+    search_tools: ["tavily_tavily_search"]
+    description: "通用网页搜索，适合跨领域查询"
+
+  - id: "exa"
+    name: "Exa Search"
+    access: "free"
+    type: "web_search"
+    search_tools: ["exa_web_search_exa"]
+    description: "语义网页搜索"
+
+  - id: "scholarly"
+    name: "Scholarly Research"
+    access: "free"
+    type: "academic_papers"
+    search_tools: ["scholarly_research_search"]
+    description: "多源学术搜索 (PubMed+GoogleScholar+arXiv+JSTOR)"
+
+# ── Search Tiers & Intent ─────────────────────────────────
+# Tier 1 = 综合入口 (先搜)  Tier 2 = 领域专业 (再搜)
+# Tier 3 = 机构特藏 (按需)   Tier 4 = 原始数据 (仅数据需求)
+
+search_tiers:
+  tier_1_general:
+    label: "综合入口"
+    description: "先搜这些——覆盖面最广，含期刊论文、预印本、学位论文"
+    dbs: ["pubmed", "crossref", "openalex", "semantic_scholar", "google_scholar", "web_of_science", "cnki", "scopus", "wanfang", "baidu_scholar"]
+  tier_2_specialized:
+    label: "领域专业"
+    description: "Tier1结果不够时展开——细分学科数据库、中文核心期刊"
+    dbs: ["biodiversity_science", "acta_hydrobiologica", "south_china_fisheries",
+          "journal_fisheries_china", "fishsci_china", "fishbase", "iucn_redlist",
+          "epa_comptox", "ecotox", "pubchem", "ncbi_nucleotide", "ncbi_genome",
+          "uniprot", "ena", "usgs", "noaa", "nasa_earthdata", "copernicus",
+          "arxiv", "papers_with_code", "huggingface", "github",
+          "pubmed_central", "clinical_trials", "inaturalist", "ebird",
+          "asfa", "cab_abstracts", "jstor", "genbank", "bold_systems",
+          "ensembl", "kegg", "cqvip", "ctd", "researchgate"]
+  tier_3_institutional:
+    label: "机构特藏"
+    description: "中科院/高校图书馆/学位论文——知网不覆盖的特藏"
+    dbs: ["cas_ir", "nstl_thesis", "proquest_dissertations", "cnki_thesis", "wanfang_thesis", "ndltd"]
+  tier_4_raw_data:
+    label: "原始数据"
+    description: "仅当用户明确需要数据时搜索——实验数据、分布记录、统计数据"
+    dbs: ["dryad", "gbif", "obis", "fao_fisheries", "zenodo", "figshare", "pangaea", "worldclim", "dataone", "kaggle"]
+
+# Intent detection: query keywords → search mode
+intent_rules:
+  literature:
+    triggers: ["文献", "论文", "研究", "综述", "review", "paper", "发表", "期刊", "参考文献"]
+    tiers: ["tier_1_general", "tier_2_specialized"]
+    description: "学术论文搜索"
+  data:
+    triggers: ["数据", "下载", "dataset", "原始数据", "fasta", "序列", "sequence", "csv", "excel", "分布记录"]
+    tiers: ["tier_4_raw_data"]
+    description: "原始数据搜索"
+  thesis:
+    triggers: ["学位论文", "硕士", "博士", "dissertation", "thesis", "毕业论文"]
+    tiers: ["tier_3_institutional", "tier_1_general"]
+    description: "学位论文搜索"
+  comprehensive:
+    triggers: ["所有", "全部", "穷举", "完整", "一切", "all", "comprehensive"]
+    tiers: ["tier_1_general", "tier_2_specialized", "tier_3_institutional", "tier_4_raw_data"]
+    description: "全量搜索"
+
+# ── Search Strategy Metadata ─────────────────────────────
+
+search_strategies:
+  paywall_bypass:
+    priority_paths:
+      - "preprint"       # bioRxiv, ResearchSquare, arXiv
+      - "institutional"  # 机构知识库 (CAS IR, 高校图书馆)
+      - "researchgate"   # 作者上传
+      - "data_attachment" # Dryad, Figshare, Zenodo
+      - "news_release"   # 中文新闻稿 (中国单位论文特化)
+      - "commentary"     # News & Views, Perspective
+    skill: "paywall-bypass"
+
+  chinese_gap:
+    description: "PubMed/Crossref不索引中文数据库，必须并行搜索"
+    chinese_sources:
+      - "cnki"
+      - "biodiversity_science"
+      - "acta_hydrobiologica"
+      - "south_china_fisheries"
+      - "journal_fisheries_china"
+      - "fishsci_china"
+    skill: "chinese-academic-search"
+
+# ── Tier 3 Institutional Databases ────────────────────────
+
+institutional_databases:
+  - id: "cas_ir"
+    name: "中国科学院机构知识库 (CAS IR)"
+    url: "https://ir.las.ac.cn"
+    access: "free"
+    type: "institutional_repository"
+    coverage: "china"
+    language: ["zh", "en"]
+    search_tools: ["web_search"]
+    search_template: "site:ir.las.ac.cn {keyword}"
+    description: "中科院学位论文/报告/数据集，知网未收录"
+
+  - id: "nstl_thesis"
+    name: "NSTL 国家科技图书文献中心"
+    url: "https://nstl.gov.cn"
+    access: "free"
+    type: "thesis_database"
+    coverage: "china"
+    language: ["zh", "en"]
+    search_tools: ["web_search"]
+    search_template: "site:nstl.gov.cn {keyword} 学位论文"
+    description: "中外文学位论文/会议论文/科技报告"
+
+  - id: "proquest_dissertations"
+    name: "ProQuest Dissertations & Theses"
+    url: "https://proquest.com/dissertations"
+    access: "paid"
+    type: "thesis_database"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:proquest.com {keyword} dissertation"
+    description: "全球硕博士论文 (PQDT)"
+
+  - id: "cnki_thesis"
+    name: "知网博硕士论文"
+    url: "https://kns.cnki.net/kns8?dbcode=CDMD"
+    access: "paid"
+    type: "thesis_database"
+    coverage: "china"
+    language: ["zh"]
+    search_tools: ["web_search"]
+    search_template: "site:kns.cnki.net {keyword} 博士 OR 硕士"
+    description: "中国博硕士论文全文"
+
+  - id: "wanfang_thesis"
+    name: "万方学位论文"
+    url: "https://wanfangdata.com.cn"
+    access: "paid"
+    type: "thesis_database"
+    coverage: "china"
+    language: ["zh"]
+    search_tools: ["web_search"]
+    search_template: "site:wanfangdata.com.cn {keyword} 学位"
+    description: "万方学位论文数据库"
+
+  - id: "ndltd"
+    name: "NDLTD 全球学位论文"
+    url: "https://ndltd.org"
+    access: "free"
+    type: "thesis_database"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:ndltd.org {keyword}"
+    description: "全球开放获取学位论文"
+
+# ── Missing Mainstream Databases (added 2026-06-08) ──────
+
+missing_mainstream:
+  - id: "scopus"
+    name: "Scopus"
+    url: "https://scopus.com"
+    access: "paid"
+    type: "academic_papers"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    description: "Elsevier学术数据库，与WoS互补"
+
+  - id: "wanfang"
+    name: "万方数据"
+    url: "https://wanfangdata.com.cn"
+    access: "paid"
+    type: "academic_papers"
+    coverage: "china"
+    language: ["zh"]
+    search_tools: ["web_search"]
+    search_template: "site:wanfangdata.com.cn {keyword}"
+    description: "中文学术数据库 (#2)，含期刊/会议/学位论文"
+
+  - id: "cqvip"
+    name: "维普 (CQVIP)"
+    url: "https://cqvip.com"
+    access: "paid"
+    type: "academic_papers"
+    coverage: "china"
+    language: ["zh"]
+    search_tools: ["web_search"]
+    search_template: "site:cqvip.com {keyword}"
+    description: "中文学术数据库 (#3)"
+
+  - id: "baidu_scholar"
+    name: "百度学术"
+    url: "https://xueshu.baidu.com"
+    access: "free"
+    type: "academic_papers"
+    coverage: "china"
+    language: ["zh", "en"]
+    search_tools: ["web_search"]
+    search_template: "site:xueshu.baidu.com {keyword}"
+    description: "中文Google Scholar，免费摘要"
+
+  - id: "asfa"
+    name: "ASFA (Aquatic Sciences & Fisheries Abstracts)"
+    url: "https://proquest.com/asfa"
+    access: "paid"
+    type: "academic_papers"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    description: "🔑 水产与渔业核心数据库——必查"
+
+  - id: "cab_abstracts"
+    name: "CAB Abstracts"
+    url: "https://cabdirect.org"
+    access: "paid"
+    type: "academic_papers"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    description: "农林/环境/渔业文献"
+
+  - id: "jstor"
+    name: "JSTOR"
+    url: "https://jstor.org"
+    access: "free"  # free with limits
+    type: "academic_papers"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:jstor.org {keyword}"
+    description: "生态学/保护生物学经典文献"
+
+  - id: "genbank"
+    name: "GenBank"
+    url: "https://ncbi.nlm.nih.gov/genbank"
+    access: "free"
+    type: "sequence_database"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["ncbi_ncbi_esearch"]
+    description: "DNA序列数据库 (NCBI)"
+
+  - id: "bold_systems"
+    name: "BOLD Systems"
+    url: "https://boldsystems.org"
+    access: "free"
+    type: "sequence_database"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:boldsystems.org {species}"
+    description: "DNA条形码数据库，鱼类鉴定"
+
+  - id: "ensembl"
+    name: "Ensembl Genome Browser"
+    url: "https://ensembl.org"
+    access: "free"
+    type: "genome_assembly"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:ensembl.org {species}"
+    description: "基因组浏览器，含注释/比较基因组学"
+
+  - id: "kegg"
+    name: "KEGG Pathway"
+    url: "https://genome.jp/kegg"
+    access: "free"
+    type: "pathway_database"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:genome.jp/kegg {gene_or_species}"
+    description: "代谢通路数据库"
+
+  - id: "zenodo"
+    name: "Zenodo"
+    url: "https://zenodo.org"
+    access: "free"
+    type: "research_data"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:zenodo.org {keyword}"
+    description: "CERN运营的通用研究数据仓库"
+
+  - id: "figshare"
+    name: "Figshare"
+    url: "https://figshare.com"
+    access: "free"
+    type: "research_data"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:figshare.com {keyword}"
+    description: "研究数据/海报/预印本"
+
+  - id: "pangaea"
+    name: "PANGAEA"
+    url: "https://pangaea.de"
+    access: "free"
+    type: "earth_science"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:pangaea.de {keyword}"
+    description: "地球与环境科学数据"
+
+  - id: "worldclim"
+    name: "WorldClim"
+    url: "https://worldclim.org"
+    access: "free"
+    type: "climate_data"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:worldclim.org"
+    description: "全球气候数据 (温度/降水/生物气候)"
+
+  - id: "dataone"
+    name: "DataONE"
+    url: "https://dataone.org"
+    access: "free"
+    type: "earth_science"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:dataone.org {keyword}"
+    description: "地球/环境科学数据聚合搜索"
+
+  - id: "ctd"
+    name: "CTD (Comparative Toxicogenomics Database)"
+    url: "https://ctdbase.org"
+    access: "free"
+    type: "chemical_toxicity"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:ctdbase.org {chemical_or_gene}"
+    description: "化合物-基因-疾病关系"
+
+  - id: "kaggle"
+    name: "Kaggle Datasets"
+    url: "https://kaggle.com/datasets"
+    access: "free"
+    type: "model_dataset"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:kaggle.com {keyword}"
+    description: "ML竞赛数据集"
+
+  - id: "researchgate"
+    name: "ResearchGate"
+    url: "https://researchgate.net"
+    access: "free"
+    type: "academic_papers"
+    coverage: "global"
+    language: ["en"]
+    search_tools: ["web_search"]
+    search_template: "site:researchgate.net {keyword}"
+    description: "作者上传论文/预印本/数据"
+
+# ── Graph Topology (v1.0) ────────────────────────────────
+# Extends the flat catalog with graph edges for weighted routing.
+# Nodes = database.id + domain_id (from above). Edges below.
+#
+# Query routing:
+#   1. Extract entities from query → match domain nodes
+#   2. Traverse edges from matched domains → score databases by edge weight
+#   3. Combine scores → ranked list → top-N parallel search
+
+topology:
+  # ── DB → Domain edges (weight = relevance of DB for that domain) ──
+  db_domain_edges:
+    # PubMed serves many domains with different weights
+    - { from: "pubmed", to: "fisheries_ichthyology", weight: 0.85 }
+    - { from: "pubmed", to: "molecular_genetics", weight: 0.95 }
+    - { from: "pubmed", to: "ecology_biodiversity", weight: 0.80 }
+    - { from: "pubmed", to: "toxicology", weight: 0.90 }
+    - { from: "pubmed", to: "morphology", weight: 0.75 }
+    - { from: "pubmed", to: "biomedical", weight: 0.98 }
+
+    # Chinese databases → primarily fisheries/ecology
+    - { from: "cnki", to: "fisheries_ichthyology", weight: 0.80 }
+    - { from: "cnki", to: "molecular_genetics", weight: 0.60 }
+    - { from: "cnki", to: "ecology_biodiversity", weight: 0.75 }
+    - { from: "cnki", to: "morphology", weight: 0.70 }
+    - { from: "biodiversity_science", to: "fisheries_ichthyology", weight: 0.85 }
+    - { from: "biodiversity_science", to: "ecology_biodiversity", weight: 0.95 }
+    - { from: "biodiversity_science", to: "molecular_genetics", weight: 0.70 }
+    - { from: "acta_hydrobiologica", to: "fisheries_ichthyology", weight: 0.95 }
+    - { from: "acta_hydrobiologica", to: "ecology_biodiversity", weight: 0.85 }
+    - { from: "south_china_fisheries", to: "fisheries_ichthyology", weight: 0.92 }
+    - { from: "journal_fisheries_china", to: "fisheries_ichthyology", weight: 0.90 }
+    - { from: "fishsci_china", to: "fisheries_ichthyology", weight: 0.88 }
+
+    # Species/data DBs → narrow domains
+    - { from: "dryad", to: "fisheries_ichthyology", weight: 0.70 }
+    - { from: "dryad", to: "molecular_genetics", weight: 0.65 }
+    - { from: "dryad", to: "ecology_biodiversity", weight: 0.80 }
+    - { from: "fishbase", to: "fisheries_ichthyology", weight: 0.98 }
+    - { from: "iucn_redlist", to: "fisheries_ichthyology", weight: 0.75 }
+    - { from: "iucn_redlist", to: "ecology_biodiversity", weight: 0.85 }
+    - { from: "gbif", to: "fisheries_ichthyology", weight: 0.80 }
+    - { from: "gbif", to: "ecology_biodiversity", weight: 0.95 }
+    - { from: "obis", to: "fisheries_ichthyology", weight: 0.80 }
+
+    # Genetics-specific
+    - { from: "ncbi_nucleotide", to: "molecular_genetics", weight: 0.98 }
+    - { from: "ncbi_genome", to: "molecular_genetics", weight: 0.98 }
+    - { from: "uniprot", to: "molecular_genetics", weight: 0.90 }
+    - { from: "ena", to: "molecular_genetics", weight: 0.88 }
+
+    # Ecology/academic
+    - { from: "crossref", to: "ecology_biodiversity", weight: 0.85 }
+    - { from: "crossref", to: "fisheries_ichthyology", weight: 0.80 }
+    - { from: "crossref", to: "molecular_genetics", weight: 0.80 }
+    - { from: "openalex", to: "ecology_biodiversity", weight: 0.85 }
+    - { from: "openalex", to: "fisheries_ichthyology", weight: 0.80 }
+    - { from: "semantic_scholar", to: "ecology_biodiversity", weight: 0.82 }
+    - { from: "semantic_scholar", to: "molecular_genetics", weight: 0.85 }
+    - { from: "google_scholar", to: "ecology_biodiversity", weight: 0.80 }
+    - { from: "google_scholar", to: "fisheries_ichthyology", weight: 0.80 }
+    - { from: "google_scholar", to: "molecular_genetics", weight: 0.80 }
+
+    # Tox/environmental
+    - { from: "epa_comptox", to: "toxicology", weight: 0.95 }
+    - { from: "ecotox", to: "toxicology", weight: 0.95 }
+    - { from: "pubchem", to: "toxicology", weight: 0.90 }
+
+    # Earth science
+    - { from: "usgs", to: "earth_science", weight: 0.90 }
+    - { from: "noaa", to: "earth_science", weight: 0.88 }
+    - { from: "nasa_earthdata", to: "earth_science", weight: 0.92 }
+    - { from: "copernicus", to: "earth_science", weight: 0.90 }
+
+    # AI/ML
+    - { from: "arxiv", to: "ai_ml", weight: 0.95 }
+    - { from: "papers_with_code", to: "ai_ml", weight: 0.90 }
+    - { from: "huggingface", to: "ai_ml", weight: 0.85 }
+    - { from: "github", to: "ai_ml", weight: 0.80 }
+
+    # Biomedical
+    - { from: "pubmed_central", to: "biomedical", weight: 0.95 }
+    - { from: "clinical_trials", to: "biomedical", weight: 0.90 }
+
+    # Citizen science
+    - { from: "inaturalist", to: "ecology_biodiversity", weight: 0.75 }
+    - { from: "ebird", to: "ecology_biodiversity", weight: 0.70 }
+    - { from: "fao_fisheries", to: "fisheries_ichthyology", weight: 0.70 }
+
+  # ── DB → DB edges (complementarity) ──
+  db_complement_edges:
+    # PubMed ↔ Dryad: papers + raw data
+    - { from: "pubmed", to: "dryad", weight: 0.50, reason: "PubMed论文+Dryad原始数据互补" }
+    # PubMed ↔ PubMed Central: metadata + fulltext
+    - { from: "pubmed", to: "pubmed_central", weight: 0.70, reason: "PubMed元数据+PMC全文" }
+    # Chinese journals complement each other
+    - { from: "biodiversity_science", to: "acta_hydrobiologica", weight: 0.40, reason: "生物多样性+水生生物学报互补" }
+    # CrossRef ↔ OpenAlex: overlap but complementary coverage
+    - { from: "crossref", to: "openalex", weight: 0.30, reason: "CrossRef DOI+OpenAlex知识图谱互补" }
+    # Google Scholar ↔ PubMed: scholar finds preprints & Chinese papers
+    - { from: "google_scholar", to: "pubmed", weight: 0.45, reason: "Scholar补PubMed中文盲区" }
+    # GBIF ↔ FishBase: occurrence + traits
+    - { from: "gbif", to: "fishbase", weight: 0.55, reason: "GBIF分布+FishBase生物学特性" }
+
+  # ── Domain → Domain edges (cross-domain relevance) ──
+  domain_edges:
+    - { from: "fisheries_ichthyology", to: "ecology_biodiversity", weight: 0.85 }
+    - { from: "fisheries_ichthyology", to: "molecular_genetics", weight: 0.70 }
+    - { from: "fisheries_ichthyology", to: "morphology", weight: 0.60 }
+    - { from: "fisheries_ichthyology", to: "toxicology", weight: 0.40 }
+    - { from: "ecology_biodiversity", to: "molecular_genetics", weight: 0.65 }
+    - { from: "ecology_biodiversity", to: "earth_science", weight: 0.50 }
+    - { from: "ecology_biodiversity", to: "toxicology", weight: 0.55 }
+    - { from: "molecular_genetics", to: "biomedical", weight: 0.75 }
+    - { from: "molecular_genetics", to: "morphology", weight: 0.50 }
+    - { from: "toxicology", to: "biomedical", weight: 0.70 }
+    - { from: "toxicology", to: "earth_science", weight: 0.45 }
+    - { from: "morphology", to: "ai_ml", weight: 0.30 }
+
+  # ── Tendril health mapping (catalog DB → eon-core tendril) ──
+  # When graph_route(health_aware=True), DBs with unhealthy tendrils
+  # are demoted by the penalty factor. DBs not in this map pass through.
+  tendril_map:
+    pubmed: "tendril_pubmed"
+    cnki: "tendril_cnki"
+    crossref: "tendril_crossref"
+    openalex: "tendril_openalex"
+    semantic_scholar: "tendril_semantic_scholar"
+    google_scholar: "tendril_google_scholar"
+    web_of_science: "tendril_web_of_science"
+  # Health penalty: multiply DB score by this factor when tendril is unhealthy
+  tendril_unhealthy_penalty: 0.2
+
+  # ── Context reweighting rules ──
+  # Adjust domain scores when specific domain combinations co-occur.
+  # Prevents generic subject domains from hijacking specialized queries.
+  context_rules:
+    # When toxicology + fisheries co-occur, toxicology dominates
+    - { type: "boost",    if: ["toxicology", "fisheries_ichthyology"], target: "toxicology", factor: 2.0 }
+    - { type: "suppress", if: ["toxicology", "fisheries_ichthyology"], target: "fisheries_ichthyology", factor: 0.25 }
+    # When molecular_genetics + fisheries co-occur, genetics leads
+    - { type: "boost",    if: ["molecular_genetics", "fisheries_ichthyology"], target: "molecular_genetics", factor: 1.5 }
+    # When biomedical + molecular_genetics co-occur, biomedical leads
+    - { type: "boost",    if: ["biomedical", "molecular_genetics"], target: "biomedical", factor: 1.3 }
+    # When morphology + fisheries, morphology is the focus
+    - { type: "boost",    if: ["morphology", "fisheries_ichthyology"], target: "morphology", factor: 1.5 }
+    - { type: "suppress", if: ["morphology", "fisheries_ichthyology"], target: "fisheries_ichthyology", factor: 0.4 }
