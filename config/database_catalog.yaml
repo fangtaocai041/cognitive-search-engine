@@ -583,7 +583,7 @@ intent_rules:
     tiers: ["tier_3_institutional", "tier_1_general"]
     description: "学位论文搜索"
   comprehensive:
-    triggers: ["所有", "全部", "穷举", "完整", "一切", "all", "comprehensive"]
+    triggers: ["所有", "全部", "穷举", "完整", "一切", "全量", "all", "comprehensive"]
     tiers: ["tier_1_general", "tier_2_specialized", "tier_3_institutional", "tier_4_raw_data"]
     description: "全量搜索"
 
