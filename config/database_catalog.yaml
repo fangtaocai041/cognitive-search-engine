@@ -977,6 +977,43 @@ topology:
     - { from: "ebird", to: "ecology_biodiversity", weight: 0.70 }
     - { from: "fao_fisheries", to: "fisheries_ichthyology", weight: 0.70 }
 
+    # New mainstream DBs (v2.0 catalog additions)
+    - { from: "scopus", to: "fisheries_ichthyology", weight: 0.82 }
+    - { from: "scopus", to: "molecular_genetics", weight: 0.85 }
+    - { from: "scopus", to: "ecology_biodiversity", weight: 0.80 }
+    - { from: "scopus", to: "toxicology", weight: 0.83 }
+    - { from: "scopus", to: "biomedical", weight: 0.88 }
+    - { from: "wanfang", to: "fisheries_ichthyology", weight: 0.78 }
+    - { from: "wanfang", to: "molecular_genetics", weight: 0.55 }
+    - { from: "wanfang", to: "ecology_biodiversity", weight: 0.72 }
+    - { from: "cqvip", to: "fisheries_ichthyology", weight: 0.70 }
+    - { from: "cqvip", to: "ecology_biodiversity", weight: 0.65 }
+    - { from: "baidu_scholar", to: "fisheries_ichthyology", weight: 0.75 }
+    - { from: "baidu_scholar", to: "molecular_genetics", weight: 0.60 }
+    - { from: "baidu_scholar", to: "ecology_biodiversity", weight: 0.70 }
+    - { from: "asfa", to: "fisheries_ichthyology", weight: 0.95 }
+    - { from: "asfa", to: "ecology_biodiversity", weight: 0.80 }
+    - { from: "cab_abstracts", to: "fisheries_ichthyology", weight: 0.82 }
+    - { from: "cab_abstracts", to: "ecology_biodiversity", weight: 0.78 }
+    - { from: "jstor", to: "ecology_biodiversity", weight: 0.75 }
+    - { from: "jstor", to: "fisheries_ichthyology", weight: 0.60 }
+    - { from: "genbank", to: "molecular_genetics", weight: 0.95 }
+    - { from: "bold_systems", to: "molecular_genetics", weight: 0.85 }
+    - { from: "bold_systems", to: "fisheries_ichthyology", weight: 0.78 }
+    - { from: "ensembl", to: "molecular_genetics", weight: 0.90 }
+    - { from: "kegg", to: "molecular_genetics", weight: 0.82 }
+    - { from: "zenodo", to: "ecology_biodiversity", weight: 0.60 }
+    - { from: "zenodo", to: "fisheries_ichthyology", weight: 0.55 }
+    - { from: "figshare", to: "ecology_biodiversity", weight: 0.55 }
+    - { from: "pangaea", to: "earth_science", weight: 0.88 }
+    - { from: "worldclim", to: "earth_science", weight: 0.85 }
+    - { from: "dataone", to: "earth_science", weight: 0.82 }
+    - { from: "ctd", to: "toxicology", weight: 0.92 }
+    - { from: "kaggle", to: "ai_ml", weight: 0.78 }
+    - { from: "researchgate", to: "fisheries_ichthyology", weight: 0.65 }
+    - { from: "researchgate", to: "molecular_genetics", weight: 0.70 }
+    - { from: "researchgate", to: "ecology_biodiversity", weight: 0.68 }
+
   # ── DB → DB edges (complementarity) ──
   db_complement_edges:
     # PubMed ↔ Dryad: papers + raw data

@@ -876,31 +876,34 @@ def bilingual_route(catalog: Dict, query: str,
     cn_dbs = []
     en_dbs = []
 
+    # Get global scores for lookups (top-50 to cover all tier DBs)
+    global_scored = graph_route(catalog, query, top_n=50, health_aware=health_aware)
+    global_score_map = {d["id"]: d.get("_graph_score", 0) for d in global_scored}
+
+    # Compute domain score for baseline (DBs with 0 topology score get domain baseline)
+    ds = dict(score_domains(catalog, query))
+    domain_baseline = max(ds.values()) * 0.3 if ds else 0.01
+
     if lang in ("cn", "mixed"):
-        # CN phase: Chinese databases only
         for db_id in _CN_TIER_DBS:
             if db_id in registry:
                 entry = dict(registry[db_id])
+                score = global_score_map.get(db_id, 0)
+                if score == 0:
+                    score = domain_baseline  # fallback for untopolized CN DBs
+                entry["_tier_score"] = score
                 cn_dbs.append(entry)
-        # Score with graph_route
-        if cn_dbs:
-            scored = graph_route(catalog, query, health_aware=health_aware)
-            score_map = {d["id"]: d.get("_graph_score", 0) for d in scored}
-            for d in cn_dbs:
-                d["_tier_score"] = score_map.get(d["id"], 0)
-            cn_dbs.sort(key=lambda d: -d["_tier_score"])
+        cn_dbs.sort(key=lambda d: -d["_tier_score"])
 
-    # EN phase: English/international databases
     for db_id in _EN_TIER_DBS:
         if db_id in registry:
             entry = dict(registry[db_id])
+            score = global_score_map.get(db_id, 0)
+            if score == 0:
+                score = domain_baseline
+            entry["_tier_score"] = score
             en_dbs.append(entry)
-    if en_dbs:
-        scored = graph_route(catalog, query, health_aware=health_aware)
-        score_map = {d["id"]: d.get("_graph_score", 0) for d in scored}
-        for d in en_dbs:
-            d["_tier_score"] = score_map.get(d["id"], 0)
-        en_dbs.sort(key=lambda d: -d["_tier_score"])
+    en_dbs.sort(key=lambda d: -d["_tier_score"])
 
     # Gap hint
     gap_hint = (
