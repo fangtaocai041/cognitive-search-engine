@@ -46,13 +46,14 @@
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v5.3.0** | 2026-06-08 | 🆕 inference_engine + ☯️ TAO architecture (木) + 🔥 WUXING dynamics |
 | **v5.2.2** | 2026-06-08 | validator.py extracted + evolution_executor + paper_health_check + contradiction-driven meso_agent |
 | **v5.2.1** | 2026-06-07 | S-T-V triangulation + DirectLoader + Meso-Cosmos Agent v4.0 |
 | **v5.2** | 2026-06-07 | Meso-Cosmos coordination layer + ZN/EN bilingual graph |
 | **v5.1** | 2026-06-07 | Hub-and-Spoke search + authority credibility scoring |
 | **v5.0** | 2026-06-07 | BDI + ReAct cognitive architecture |
 
-> **Latest**: v5.2.2 · 2026-06-08 · `bb939b5`
+> **Latest**: v5.3.0 · 2026-06-08 · `13c0d34`
 
 > **Core Strength**: From "string matching" to "signified reconstruction" — multiple signifier paths (exact, OCR variant, author network, citation graph, Chinese name) converge on the same signified (the species itself).
 
