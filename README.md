@@ -42,10 +42,53 @@
 
 ---
 
+## 🗄️ v5.4: Living Database Catalog & Graph Router
+
+> **61 databases · 8 domains · 4 tiers · self-evolving weights · tendril health awareness**
+
+| Feature | Description | Module |
+|:--------|:------------|:-------|
+| **Database Catalog** | 61 databases across 8 domains, 4 tiers (general→specialized→institutional→raw data) | `config/database_catalog.yaml` |
+| **Intent Detection** | `detect_intent(query)` → {literature \| data \| thesis \| comprehensive} | `catalog_loader.py` |
+| **Graph Router** | `graph_route(query, health_aware=True)` — weighted topology + tendril health + complementarity | `catalog_loader.py` |
+| **Progressive Search** | Tier 1 first → expandable Tier 2/3/4 — SM-2 retreat when satisficed | `catalog_loader.py` |
+| **Taxonomic Unfolding** | L1(species)→L2(genus)→L3(family)→L4(Chinese+aliases) progressive search | `catalog_loader.py` |
+| **Living System** | `record_search_result()` → feedback logs → `apply_feedback()` auto-tunes weights | `catalog_loader.py` |
+| **Emergence Engine** | `emerge_domains()` — discovers cross-domain DB clusters from usage patterns | `catalog_loader.py` |
+
+### Tiered Search Flow
+
+```
+"search Ochetobius literature"
+  → intent=literature
+  → Tier 1: PubMed, Scopus, WoS, CrossRef, Google Scholar, CNKI, 万方, 百度学术
+  → [satisficed? → stop | expand → Tier 2: ASFA, FishBase, 水生生物学报...]
+
+"download Ochetobius raw data"
+  → intent=data
+  → Tier 4: Dryad, GBIF, Zenodo, Figshare, PANGAEA, WorldClim...
+```
+
+### Engineering Language
+
+```
+graph_route(query: str, health_aware: bool) → List[Dict{id, _graph_score, _tendril}]
+  Step 1: domain_scores = score_domains(query)
+  Step 2: FOR EACH (domain, score) IN domain_scores:
+            db_score[edge.from] = MAX(db_score[edge.from], edge.weight × score)
+  Step 3: cross-domain propagation (decay 0.5)
+  Step 4: complementarity boost (threshold 0.3, factor 0.15)
+  Step 5: IF health_aware THEN tendril health filter (penalty 0.2)
+  Step 6: RETURN sorted[:top_n]
+```
+
+---
+
 ## 📋 Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v5.4.0** | 2026-06-09 | 🗄️ Living DB Catalog (61 DBs, 8 domains, 4 tiers) + Graph Router + Progressive Search + Emergence Engine |
 | **v5.3.0** | 2026-06-08 | 🆕 inference_engine + ☯️ TAO architecture (木) + 🔥 WUXING dynamics |
 | **v5.2.2** | 2026-06-08 | validator.py extracted + evolution_executor + paper_health_check + contradiction-driven meso_agent |
 | **v5.2.1** | 2026-06-07 | S-T-V triangulation + DirectLoader + Meso-Cosmos Agent v4.0 |

@@ -534,10 +534,40 @@ MIT © 2026 fangtaocai041
 >
 ---
 
+## 🗄️ v5.4: 活系统数据库目录 & 图谱路由器
+
+> **61 数据库 · 8 领域 · 4 层级 · 权重自进化 · 触手健康感知**
+
+| 功能 | 说明 | 模块 |
+|:----|:-----|:-----|
+| **数据库目录** | 61 个数据库，8 个领域，4 层级（综合→专业→机构→原始数据） | `config/database_catalog.yaml` |
+| **意图检测** | `detect_intent(query)` → {文献\|数据\|学位论文\|全量} | `catalog_loader.py` |
+| **图谱路由器** | `graph_route(query, health_aware=True)` — 加权拓扑 + 触手健康 + 互补推荐 | `catalog_loader.py` |
+| **渐进搜索** | 先搜综合入口 → 可展开专业数据库 — SM-2 满意即停 | `catalog_loader.py` |
+| **分类学展开** | L1(物种)→L2(属)→L3(科)→L4(中文+别名) 逐级搜索 | `catalog_loader.py` |
+| **活系统** | `record_search_result()` → 反馈日志 → `apply_feedback()` 权重自调 | `catalog_loader.py` |
+| **涌现引擎** | `emerge_domains()` — 从使用模式中发现跨领域数据库集群 | `catalog_loader.py` |
+
+### 渐进搜索流程
+
+```
+"搜索鳤的文献"
+  → intent=文献
+  → 综合入口: PubMed, Scopus, WoS, CNKI, 万方, 百度学术...
+  → [满意? → 停止 | 展开 → 专业库: ASFA, FishBase, 水生生物学报...]
+
+"下载鳤的原始数据"
+  → intent=数据
+  → 原始数据: Dryad, GBIF, Zenodo, Figshare, PANGAEA...
+```
+
+---
+
 ## 📋 版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| **v5.4.0** | 2026-06-09 | 🗄️ 活系统数据库目录 (61库/8领域/4层级) + 图谱路由器 + 渐进搜索 + 涌现引擎 |
 | **v5.2.2** | 2026-06-08 | validator.py 提取 + evolution_executor + contradiction-driven meso_agent |
 | **v5.2.1** | 2026-06-07 | S-T-V 三角验证 + DirectLoader + Meso-Cosmos Agent v4.0 |
 | **v5.2** | 2026-06-07 | Meso-Cosmos 协调层 + ZN/EN 双语图谱 |
