@@ -1001,6 +1001,97 @@ def align_bilingual(cn_results: List[Dict], en_results: List[Dict]) -> Dict:
 
 
 # ═══════════════════════════════════════════════════════════
+# Access-tier routing — free first, then paid, with human handoff
+# ═══════════════════════════════════════════════════════════
+
+def sort_by_access(dbs: List[Dict]) -> Dict:
+    """
+    sort_by_access(dbs) → {free, registration, paid, paywall_report}
+
+    Split databases by access tier, free-first ordering.
+    """
+    free = [d for d in dbs if d.get("access") == "free"]
+    reg = [d for d in dbs if d.get("access") in ("free(registration)",)]
+    paid = [d for d in dbs if d.get("access") == "paid"]
+    return {"free": free, "registration": reg, "paid": paid}
+
+
+def paywall_report(phase_results: Dict, query: str) -> str:
+    """
+    paywall_report(phase_results, query) → str
+
+    Generate human-readable report of inaccessible papers.
+    WHEN paid papers found → list with journal + DOI + action hint
+    WHEN no paid papers → empty string
+    """
+    paid_papers = phase_results.get("paid", [])
+    if not paid_papers:
+        return ""
+
+    lines = [
+        f"\n## 🔒 付费/不可访问 ({len(paid_papers)} 篇)",
+        "以下论文无法直接获取全文，需人工操作：",
+        "",
+        "| # | 标题 | 期刊 | DOI | 获取途径 |",
+        "|---|------|------|-----|----------|",
+    ]
+    for i, p in enumerate(paid_papers, 1):
+        title = (p.get("title") or p.get("title_zh") or "?")[:40]
+        journal = p.get("journal", "?")
+        doi = p.get("doi", "-")
+        hint = _access_hint(journal, doi)
+        lines.append(f"| {i} | {title} | {journal} | {doi} | {hint} |")
+
+    lines.extend([
+        "",
+        "### 📬 建议操作",
+        "1. **联系通讯作者** — 多数作者愿意分享 PDF（ResearchGate / 邮箱）",
+        "2. **机构访问** — 通过中科院/高校图书馆入口登录",
+        "3. **文献传递** — NSTL 文献传递服务 (nstl.gov.cn)",
+        "4. **Sci-Hub** — 输入 DOI 尝试获取（注意版权合规）",
+        "5. **预印本搜索** — 搜 `{title} preprint` 找免费版本",
+    ])
+    return "\n".join(lines)
+
+
+def _access_hint(journal: str, doi: str) -> str:
+    """Generate specific access hint based on journal."""
+    if "知网" in journal or "CNKI" in journal:
+        return "知网付费 → 机构IP登录 或 文献传递"
+    if "万方" in journal:
+        return "万方付费 → 机构IP登录"
+    if "维普" in journal:
+        return "维普付费 → 机构IP登录"
+    if "ProQuest" in journal:
+        return "PQDT付费 → 高校图书馆入口"
+    if doi:
+        return f"联系作者 / ResearchGate / Sci-Hub"
+    return "联系作者 / 文献传递"
+
+
+def author_contact_hint(paper: Dict) -> str:
+    """
+    author_contact_hint(paper) → str
+
+    Generate email template for requesting PDF from author.
+    """
+    title = paper.get("title") or paper.get("title_zh") or "the paper"
+    authors = paper.get("authors", [])
+    first_author = authors[0] if authors else "the author"
+    doi = paper.get("doi", "")
+
+    return (
+        f"Dear Dr. {first_author},\n\n"
+        f"I am researching {title.split()[0] if title else 'this topic'} "
+        f"and found your paper \"{title[:80]}\""
+        f"{' (DOI: ' + doi + ')' if doi else ''}.\n"
+        f"Unfortunately, I cannot access the full text through my institution.\n"
+        f"Would you be willing to share a PDF copy?\n\n"
+        f"Thank you for your consideration.\n"
+    )
+
+
+# ═══════════════════════════════════════════════════════════
 # Main
 # ═══════════════════════════════════════════════════════════
 
