@@ -316,6 +316,24 @@ class MesoAgent:
             logger.exception("MesoAgent.search failed")
             result.errors.append(f"{type(e).__name__}: {e}")
 
+        # ── Post-search: Inference Engine (P3) ──
+        try:
+            from src.inference_engine import InferenceEngine
+            ie = InferenceEngine()
+            inference = ie.infer(result.papers, species_id)
+            result.meso_log.append({
+                "phase": "inference",
+                "gaps_found": len(inference.knowledge_gaps),
+                "followup_queries": len(inference.followup_queries),
+                "contradictions": inference.contradictions_found,
+            })
+            if inference.knowledge_gaps:
+                result.meso_log[-1]["gaps"] = inference.knowledge_gaps[:3]
+            if inference.followup_queries:
+                result.meso_log[-1]["queries"] = inference.followup_queries[:3]
+        except ImportError:
+            pass
+
         result.elapsed_sec = round(time.time() - start, 3)
         return result
 
