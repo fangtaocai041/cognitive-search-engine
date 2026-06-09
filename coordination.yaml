@@ -1,17 +1,17 @@
 # ============================================================
-# S-T-V 三角协调配置 — Unified Coordination Config
+# 三角核心协调配置 — Unified Coordination Config
 # ============================================================
-# 路径: D:\Reasonix\coordination.yaml
+# 路径: D:/Reasonix/coordination.yaml
 # 所有三个项目共享此文件。
 #
-# S (State):    fish-ecology-assistant  — 知识库
-# T (Transition): porpoise-agent         — 管线执行
-# V (Value):    cognitive-search-engine  — 知识引擎
+# fish-ecology-assistant:   多物种通用知识库，文献与数据管理
+# porpoise-agent:           江豚专属智能体，种群监测与保护
+# cognitive-search-engine:  21引擎认知搜索，图谱进化与验证
 #
 # 🧠 Meso-Cosmos Agent (v4.0): workspace-level coordination
 #    Macro(BDI意图) → Meso(跨项目协调) → Micro(项目执行)
-#    Config: D:\Reasonix\config\meso_agent.yaml
-#    Skill:  D:\Reasonix\skills\meso-orchestrator.md
+#    Config: D:/Reasonix/config\meso_agent.yaml
+#    Skill:  D:/Reasonix/skills\meso-orchestrator.md
 
 coordination:
   version: "4.2.1"
@@ -42,23 +42,24 @@ coordination:
       - { phase: 5, name: "EVOLVE", layer: "Feedback", action: "评估 → 触发跨项目进化" }
 
   # ===== S-T-V 三角 =====
-  stv_triangle:
-    state:
+  # ===== 三角核心 (三项目分工) =====
+  # 注: 曾用名 S-T-V，但 porpoise-agent 不是通用 Transition 层，
+  # 而是江豚专属智能体。现按实际职能命名。
+  tri_core:
+    fish_knowledge:
       project: "fish-ecology-assistant"
-      role: "知识库, 数据供给, 矛盾分析"
-      exports: ["stats-assistant", "research-analyst", "phd-proposal-writer", "ima-smart-search"]
-    transition:
+      role: "多物种知识库 — 文献管理, 数据供给, 矛盾分析"
+      exports: ["stats-assistant","research-analyst","phd-proposal-writer","ima-smart-search"]
+    porpoise_specialist:
       project: "porpoise-agent"
-      role: "管线执行, 阶段编排, 野外调查"
-      exports: ["detect-clicks", "estimate-abundance", "assess-threats", "search-literature"]
-    value:
+      role: "江豚专属智能体 — 种群监测, 威胁评估, 野外调查"
+      exports: ["detect-clicks","estimate-abundance","assess-threats","search-literature"]
+    cognitive_engine:
       project: "cognitive-search-engine"
-      role: "认知搜索, 图谱进化, 变体生成"
-      exports: ["graph-search-engine", "cognitive-species-search", "self-evolve"]
-      engine_path: "D:\\Reasonix\\cognitive-search-engine\\"
+      role: "21引擎认知搜索 — 图谱进化, 变体生成, 可信度验证"
+      exports: ["graph-search-engine","cognitive-species-search","self-evolve"]
+      engine_path: "D:/Reasonix/cognitive-search-engine"
       loader: "importlib (DirectLoader, 零 MCP 进程)"
-
-  # ===== 求同: 共享协议 =====
   shared:
     philosophy: "dual-core (Panta Rhei + Systems Thinking)"
     rule_ids: ["FB-1","FB-2","CP-1","CP-2","SM-1","SM-2","WF-1","WF-2","PT-1","PT-2","EH-1","EH-2","MO-1","MO-2","DS-1","DS-2","DS-3","DS-4"]
