@@ -454,7 +454,7 @@ class MesoAgent:
             return result
 
         # ── Contradiction 4: New emergence ──
-        current_year = 2026  # TODO: use datetime
+        current_year = __import__("datetime").datetime.now().year
         recent_papers = [
             p for p in known_papers
             if p.get("year") and p.get("year", 0) >= current_year - 1

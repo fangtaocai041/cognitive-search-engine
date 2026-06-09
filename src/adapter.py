@@ -1,5 +1,9 @@
 """CognitiveSearchAdapter — cognitive-search-engine (V1 / V-Verify).
 
+【核心专精】search_species(genus, species) → SearchResult
+    BDI+ReAct 多源认知搜索 + OCR变体 + 图谱遍历
+    → 通路 P1(←fish) P2(→fish) P3(→domain)
+
 Wraps the existing MesoAgent + SearchRuleEngine into a standard
 IProjectAdapter interface for project_loader.
 
@@ -19,8 +23,14 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+# Import shared adapter protocol (workspace root on sys.path)
+try:
+    from scripts.adapter_protocol import IProjectAdapter
+except ImportError:
+    IProjectAdapter = object  # fallback for standalone usage
 
-class CognitiveSearchAdapter:
+
+class CognitiveSearchAdapter(IProjectAdapter):
     """Adapter for cognitive-search-engine (V1 — 验证引擎).
 
     Wraps MesoAgent.search() for cross-project consumption.

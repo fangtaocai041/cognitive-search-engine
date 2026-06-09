@@ -3,7 +3,7 @@
 
 agent:
   name: "Cognitive Search Engine"
-  version: "5.2.0"
+  version: "5.4.0"
   description: "BDI + ReAct + 5-Layer Agent Architecture — semiotics + graph traversal + energy-efficient"
   philosophy:
     worldview: "Panta Rhei — knowledge is provisional, emergence is the norm"

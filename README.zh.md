@@ -25,7 +25,7 @@
 ## 🧠 三层智能优化
 
 > 验证引擎集成了三层优化：**DeepSeek 级效率** (MoE 门控 + KV 缓存)、**学者级置信** (Rule of Three 统计停止)、**混沌增强探索** (Rössler 扰动 + wildcard 发现)。
-> 协调由 [meso-cosmos-agent](https://github.com/fangtaocai041/meso-cosmos-agent) 统一调度。
+> 协调由 [eon-core](https://github.com/fangtaocai041/eon-core) (10层统一内核) 统一调度。
 
 ## 🔺 S-T-V-P₁-P₂ 架构角色: **Validation (V)**
 
@@ -304,9 +304,28 @@ cognitive-search-engine/
 │   ├── graph-search-engine.md    ← v4 核心：图谱遍历 + 能效最优
 │   ├── cognitive-species-search.md ← v3：符号学 + 语言学 + 语音学
 │   ├── chinese-academic-search.md  ← 中文期刊搜索 (8 种期刊)
+│   ├── meso-orchestrator.md      ← 🧭 中宇宙协调器
 │   └── self-evolve.md            ← 🧬 搜索后反馈 → 自动调参
 │
+├── src/                          ← 15 模块 (5层认知智能体)
+│   ├── adapter.py                ← 🔌 CognitiveSearchAdapter — DirectLoader入口
+│   ├── agent_core.py             ← 🧠 CognitiveAgent — BDI + ReAct 循环
+│   ├── catalog_loader.py         ← 🗄️ 数据库目录 + 图谱路由器 + 涌现引擎
+│   ├── evolution_executor.py     ← 🦋 自进化反馈执行器
+│   ├── graph_updater.py          ← 📊 图谱持久化 + 反向索引
+│   ├── inference_engine.py       ← 🧮 TAO + WuXing 推理引擎
+│   ├── mcp_client.py             ← 🔌 MCP stdio 客户端 (7 服务器)
+│   ├── memory_layer.py           ← 🗄️  MemorySystem — 短期 + 长期记忆
+│   ├── meso_agent.py             ← 🧭 MesoAgent — 协调层
+│   ├── paper_health_check.py     ← 💓 论文有效性健康检查
+│   ├── parallel_search.py        ← ⚡ 多查询并行执行器
+│   ├── rule_engine.py            ← ⚙️  SearchRuleEngine — 阶段 + 执行
+│   ├── validator.py              ← ✅ 跨项目独立性验证器
+│   ├── variant_generator.py      ← 🔤 OCR 变体自动生成
+│   └── world_model.py            ← 🧬 BDI WorldModel — 信念/愿望/意图
+│
 ├── docs/
+│   ├── ARCHITECTURE.md           ← 5层智能体架构全量文档
 │   └── UNIFIED_EVOLUTION.md      ← 三项目协同进化架构
 │
 └── .github/workflows/
@@ -540,13 +559,14 @@ MIT © 2026 fangtaocai041
 | 版本 | 日期 | 变更 |
 |------|------|------|
 | **v5.4.0** | 2026-06-09 | 🗄️ 活系统数据库目录 (61库/8领域/4层级) + 图谱路由器 + 渐进搜索 + 涌现引擎 |
+| **v5.3.0** | 2026-06-08 | 🆕 inference_engine + ☯️ TAO 架构 (木) + 🔥 WUXING dynamics |
 | **v5.2.2** | 2026-06-08 | validator.py 提取 + evolution_executor + contradiction-driven meso_agent |
-| **v5.2.1** | 2026-06-07 | S-T-V 三角验证 + DirectLoader + Meso-Cosmos Agent v4.0 |
-| **v5.2** | 2026-06-07 | Meso-Cosmos 协调层 + ZN/EN 双语图谱 |
+| **v5.2.1** | 2026-06-07 | S-T-V 三角验证 + DirectLoader + eon-core 协调 |
+| **v5.2** | 2026-06-07 | Meso-Cosmos 协调层 + ZN/EN 双语图谱 (→ 废弃，由 eon-core v7.1 取代) |
 | **v5.1** | 2026-06-07 | Hub-and-Spoke 搜索 + 权威可信度评分 |
 | **v5.0** | 2026-06-07 | BDI + ReAct 认知架构 |
 
-> **最新**: v5.3.0 · 2026-06-08
+> **最新**: v5.4.0 · 2026-06-09
 
 > **"不要搜索字符串，要重建所指。"**
 > Don't search for strings — reconstruct the signified.

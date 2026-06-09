@@ -21,11 +21,12 @@
 ## 🧠 Intelligent Optimization Layers
 
 > 验证引擎集成了三层优化：**DeepSeek 级效率** (MoE 门控 + KV 缓存)、**学者级置信** (Rule of Three 统计停止)、**混沌增强探索** (Rössler 扰动 + wildcard 发现)。
-> 协调由 [meso-cosmos-agent](https://github.com/fangtaocai041/meso-cosmos-agent) 统一调度。
+> 协调由 [eon-core](https://github.com/fangtaocai041/eon-core) (10层统一内核) 统一调度。
 
 ## 🔺 S-T-V-P₁-P₂ Architecture Role: **Validation (V)**
 
-> Part of the S-T-V-P₁-P₂ ecosystem: `fish(S) → meso-cosmos(T) → cognitive(V)`, with `porpoise(P₁)` + `coilia(P₂)` as domain specialists.
+> Part of the S-T-V-P₁-P₂ ecosystem, coordinated by [eon-core](https://github.com/fangtaocai041/eon-core) (10-layer unified kernel).
+> `fish(S/V0) → cognitive(V/V1)` with `porpoise(P₁/V2)` + `coilia(P₂/V3)` as domain specialists.
 > Validates search results, authority credibility scoring, enforces cross-project independence.
 > **DirectLoader**: `importlib` zero MCP process. **Triangulation**: ≥3 sources, ≥2 independent projects.
 
@@ -89,14 +90,15 @@ graph_route(query: str, health_aware: bool) → List[Dict{id, _graph_score, _ten
 | Version | Date | Changes |
 |---------|------|---------|
 | **v5.4.0** | 2026-06-09 | 🗄️ Living DB Catalog (61 DBs, 8 domains, 4 tiers) + Graph Router + Progressive Search + Emergence Engine |
+| **v5.4.0** | 2026-06-09 | 🗄️ Living DB Catalog (61 DBs, 8 domains, 4 tiers) + Graph Router + Progressive Search + Emergence Engine |
 | **v5.3.0** | 2026-06-08 | 🆕 inference_engine + ☯️ TAO architecture (木) + 🔥 WUXING dynamics |
 | **v5.2.2** | 2026-06-08 | validator.py extracted + evolution_executor + paper_health_check + contradiction-driven meso_agent |
-| **v5.2.1** | 2026-06-07 | S-T-V triangulation + DirectLoader + Meso-Cosmos Agent v4.0 |
-| **v5.2** | 2026-06-07 | Meso-Cosmos coordination layer + ZN/EN bilingual graph |
+| **v5.2.1** | 2026-06-07 | S-T-V triangulation + DirectLoader + eon-core coordination |
+| **v5.2** | 2026-06-07 | Meso-Cosmos coordination layer + ZN/EN bilingual graph (→ deprecated, superseded by eon-core v7.1) |
 | **v5.1** | 2026-06-07 | Hub-and-Spoke search + authority credibility scoring |
 | **v5.0** | 2026-06-07 | BDI + ReAct cognitive architecture |
 
-> **Latest**: v5.3.0 · 2026-06-08
+> **Latest**: v5.4.0 · 2026-06-09
 
 > **Core Strength**: From "string matching" to "signified reconstruction" — multiple signifier paths (exact, OCR variant, author network, citation graph, Chinese name) converge on the same signified (the species itself).
 
@@ -106,45 +108,45 @@ This engine is integrated as a git submodule in:
 
 | Project | Role | Description |
 |---------|:----:|-------------|
-| [meso-cosmos-agent](https://github.com/fangtaocai041/meso-cosmos-agent) | **T** (Transition) | Execution hub — 6-phase pipeline · cross-project routing · self-healing |
-| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S** (State) | Fish ecology — 22 MCP · 28 skills · Yangtze 443 species KB |
-| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **P₁** (Porpoise) | Finless porpoise specialist — NBHF acoustics · habitat modeling |
-| [coilia-agent](https://github.com/fangtaocai041/coilia-agent) | **P₂** (Coilia) | Tapertail anchovy specialist — otolith microchemistry · migration ecology |
+| [eon-core](https://github.com/fangtaocai041/eon-core) | **Coordinator** | 10-layer unified kernel — EventBus · Samsara karma · DAG routing |
+| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S / V0** (State) | Fish ecology — 21 MCP · 28 skills · Yangtze 443 species KB |
+| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **P₁ / V2** (Porpoise) | Finless porpoise specialist — NBHF acoustics · habitat modeling |
+| [coilia-agent](https://github.com/fangtaocai041/coilia-agent) | **P₂ / V3** (Coilia) | Tapertail anchovy specialist — otolith microchemistry · migration ecology |
 
 > **Co-evolution**: Engine code updated → fish & porpoise auto-benefit via submodule.
 > Knowledge graph evolves → shared across all three projects.
 > Full coordination spec: `coordination.yaml` at workspace root.
 
-### 🧠 Meso-Cosmos Agent (Workspace Level)
+### 🧠 eon-core Unified Kernel (Workspace Level)
 
-> **Macro(BDI) → Meso(Coordination) → Micro(Execution)** — spanning all three S-T-V projects.
+> **10-layer concentric architecture** — OriginKernel → YinYang → 4 Vertices → 8 Trigrams → Tetrahedron → WuXing → Samsara → Sphere → Tendrils → Evolution.
+> Coordinated by [eon-core](https://github.com/fangtaocai041/eon-core). Replaces the now-deprecated meso-cosmos-agent (deleted v7.1).
 
 ```
 User Question
      │
      ▼
 ┌────────────────────────────────────────────────┐
-│  Meso-Cosmos Agent (workspace root)             │
+│  eon-core (workspace root — 10-layer kernel)    │
 │  ┌──────────┐  ┌──────────┐  ┌──────────────┐ │
-│  │UNDERSTAND│→│  ROUTE   │→│   EXECUTE     │ │
-│  │(Macro)   │  │(Meso)    │  │(Micro)       │ │
-│  │BDI意图   │  │S-T-V路由 │  │项目委派       │ │
+│  │ RECEIVE  │→│  ROUTE   │→│   EXECUTE     │ │
+│  │(L7 API)  │  │(L0 DAG)  │  │(L2 Vertices) │ │
 │  └──────────┘  └──────────┘  └──────┬───────┘ │
 │                                     │          │
 │  ┌──────────┐  ┌──────────┐  ┌─────▼───────┐ │
-│  │  EVOLVE  │←─│SYNTHESIZE│←─│  VALIDATE   │ │
-│  │(Feedback)│  │(Merge)   │  │(Cross-Verify)│ │
+│  │  EVOLVE  │←─│  KARMA   │←─│   MONITOR   │ │
+│  │(L9)      │  │(L6 Court)│  │(L5 WuXing)  │ │
 │  └──────────┘  └──────────┘  └─────────────┘ │
 └────────────────────────────────────────────────┘
      │                   │                   │
      ▼                   ▼                   ▼
 ┌─────────┐      ┌──────────┐       ┌──────────────┐
 │  fish   │      │ porpoise  │       │  cognitive    │
-│  (S)    │      │   (T)     │       │    (V)        │
+│(S / V0) │      │(P₁ / V2)  │       │  (V / V1)     │
 └─────────┘      └──────────┘       └──────────────┘
 ```
 
-> Config: `config/meso_agent.yaml` · Skill: `skills/meso-orchestrator.md`
+> Config: `eon-core/config/taiji.yaml` · Kernel: `eon-core/src/kernel/origin.py`
 
 ---
 
@@ -414,15 +416,22 @@ cognitive-search-engine/
 │   ├── stv_protocol.yaml         ← Cross-project STV triangle protocol
 │   └── tools.json                ← JSON Schema: DeepSeek+Gemini+OpenAI tools
 │
-├── src/                          ← 7 modules (5-layer cognitive agent)
+├── src/                          ← 15 modules (5-layer cognitive agent)
+│   ├── adapter.py                ← 🔌 CognitiveSearchAdapter — DirectLoader entry
 │   ├── agent_core.py             ← 🧠 CognitiveAgent — BDI + ReAct loop
-│   ├── memory_layer.py           ← 🗄️  MemorySystem — short-term + long-term
-│   ├── world_model.py            ← 🧬 BDI WorldModel — Belief/Desire/Intention
-│   ├── rule_engine.py            ← ⚙️  SearchRuleEngine — phases + execution
-│   ├── variant_generator.py      ← 🔤 OCR variant auto-generation
+│   ├── catalog_loader.py         ← 🗄️ DB catalog + graph router + emergence
+│   ├── evolution_executor.py     ← 🦋 Self-evolution feedback executor
 │   ├── graph_updater.py          ← 📊 Graph persistence + reverse indexes
-│   ├── mcp_client.py             ← 🔌 MCP stdio client (5 servers)
-│   └── parallel_search.py        ← ⚡ Multi-query parallel executor
+│   ├── inference_engine.py       ← 🧮 TAO + WuXing inference engine
+│   ├── mcp_client.py             ← 🔌 MCP stdio client (7 servers)
+│   ├── memory_layer.py           ← 🗄️  MemorySystem — short-term + long-term
+│   ├── meso_agent.py             ← 🧭 MesoAgent — coordination layer
+│   ├── paper_health_check.py     ← 💓 Paper validity health checker
+│   ├── parallel_search.py        ← ⚡ Multi-query parallel executor
+│   ├── rule_engine.py            ← ⚙️  SearchRuleEngine — phases + execution
+│   ├── validator.py              ← ✅ Cross-project independence validator
+│   ├── variant_generator.py      ← 🔤 OCR variant auto-generation
+│   └── world_model.py            ← 🧬 BDI WorldModel — Belief/Desire/Intention
 │
 ├── skills/
 │   ├── graph-search-engine.md    ← v4 core: graph traversal + Pareto-optimal
