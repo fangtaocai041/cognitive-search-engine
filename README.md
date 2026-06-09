@@ -7,7 +7,7 @@
 > **Meso-Cosmos Agent** — BDI + ReAct + Authority Scoring + ZN/EN Dynamic Graph + Lazy Loading
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-5.6.0-8b5cf6)](config/agent.yaml)
+[![Version](https://img.shields.io/badge/version-5.7.0-8b5cf6)](config/agent.yaml)
 [![Skills](https://img.shields.io/badge/skills-5-22c55e)](skills/)
 [![Auto-Retry](https://img.shields.io/badge/auto_retry-60s_window-22c55e)]()
 [![MCP Parallel](https://img.shields.io/badge/MCP_parallel-7_engines-f59e0b)]()
@@ -29,7 +29,8 @@
 ## 🔺 S-T-V-P₁-P₂ Architecture Role: **Validation (V)**
 
 > Part of the S-T-V-P₁-P₂ ecosystem, coordinated by [eon-core](https://github.com/fangtaocai041/eon-core) (10-layer unified kernel).
-> `fish(S/V0) → cognitive(V/V1)` with `porpoise(P₁/V2)` + `coilia(P₂/V3)` as domain specialists.
+> Triangle Core: fish(Knowledge) + cognitive(Validation) + eon-core(Coordinator)
+> Derived: P₁(porpoise) · P₂(coilia) · C(conflict)
 > Validates search results, authority credibility scoring, enforces cross-project independence.
 > **DirectLoader**: `importlib` zero MCP process. **Triangulation**: ≥3 sources, ≥2 independent projects.
 
@@ -92,6 +93,7 @@ graph_route(query: str, health_aware: bool) → List[Dict{id, _graph_score, _ten
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v5.7.0** | 2026-06-20 | 🧬 KB-First 两阶段搜索 — `search_with_kb_first()` + `continue_full_search()` + `KbFirstSearchResult` 跨项目聚合 · f项目知识库预查 · `kb_first()` 入口 |
 | **v5.6.0** | 2026-06-10 | 🔁 HTTP重连 + 🚀 MCP并行预热 + 🌐 中文三层搜索 + 🛑 停止机制重构 |
 | **v5.5.0** | 2026-06-09 | 🧬 Unified Search Protocol (自适应+附带过滤+CN/EN双通道) + 鲌类分类学修订(v2.2) + unified_search.py |
 | **v5.4.0** | 2026-06-09 | 🗄️ Living DB Catalog (61 DBs, 8 domains, 4 tiers) + Graph Router + Progressive Search + Emergence Engine |
@@ -188,6 +190,78 @@ timeout:
   mcp_per_call_timeout_s: 30        # MCP 单次调用超时
   mcp_parallel_max_workers: 7       # 最大并行连接数
 ```
+
+---
+
+## 🧬 v5.7.0: KB-First 两阶段搜索 — f项目知识库优先
+
+> **先查 f项目知识库，再决定是否启动全量搜索。** 不再无条件触发 7 引擎并行。
+
+### 新 API
+
+```python
+from src.search_coordinator import kb_first, continue_full_search
+
+# Stage 1: KB check (fast, no external API)
+result = kb_first("珠星三块鱼")
+# → KbFirstSearchResult {
+#     stage: "kb_check",
+#     kb_found: True,
+#     kb_summary: "📚 三块鱼 / 鲤科 / 溯河洄游...",
+#     suggested_next: "ask_user"
+#   }
+
+print(result.ask_user_prompt())
+# → 询问用户：留步 or 继续搜索
+
+# Stage 2: Full search (only if user continues)
+result = continue_full_search(result, group="full")
+# → KbFirstSearchResult {
+#     stage: "full_search",
+#     full_search: CoordinatedSearchResult { total_papers: 42, ... }
+#   }
+```
+
+### 新增模块
+
+| 模块 | 文件 | 功能 |
+|------|------|------|
+| `KbFirstResult` | `fish-ecology-assistant/src/orchestrator.py` | KB 查询结果结构体 (found/info/recommendation) |
+| `KbFirstSearchResult` | `cognitive-search-engine/src/unified_search.py` | 两阶段搜索包装器 (ask_user_prompt / full_search) |
+| `_load_fish_kb()` | `cognitive-search-engine/src/unified_search.py` | 跨项目 importlib 加载 f项目 orchestrator |
+| `search_with_kb_first()` | `cognitive-search-engine/src/unified_search.py` | Stage 1 入口 (KB check + fallback) |
+| `continue_full_search()` | `cognitive-search-engine/src/unified_search.py` | Stage 2 入口 (全量搜索 + KB 数据丰富) |
+| `kb_first()` | `cognitive-search-engine/src/search_coordinator.py` | 薄委托入口 |
+| `unified-species-search` v4.0 | `fish-ecology-assistant/.reasonix/skills/` | Skill 层 KB-First 流程 |
+
+### 数据流
+
+```
+fish_species_kb.yaml (f项目)
+  └─ kb_first_lookup()
+       ├─ 精确匹配: scientific / chinese
+       ├─ 别名匹配: aliases[]
+       ├─ 同义名匹配: synonyms[]  ← NEW
+       └─ 模糊匹配: genus + 中文字符
+            │
+            ▼
+       ask_choice: 留步 | 继续搜索
+            │
+       [继续] → coordinated_search()
+                (taxonomy check → mode → 7 engines → dedup → classify)
+```
+
+### 降级策略
+
+```
+IF f项目不可用:
+  → 直接执行 coordinated_search() (自动降级)
+IF KB 查询异常:
+  → 记录错误 → 直接执行 coordinated_search()
+IF KB 未命中:
+  → 展示近缘候选 → 推荐 continue_to_c
+```
+
 : From "string matching" to "signified reconstruction" — multiple signifier paths (exact, OCR variant, author network, citation graph, Chinese name) converge on the same signified (the species itself).
 
 ## 🔗 Linked Projects
@@ -198,8 +272,8 @@ This engine is integrated as a git submodule in:
 |---------|:----:|-------------|
 | [eon-core](https://github.com/fangtaocai041/eon-core) | **Coordinator** | 10-layer unified kernel — EventBus · Samsara karma · DAG routing |
 | [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S / V0** (State) | Fish ecology — 21 MCP · 28 skills · Yangtze 443 species KB |
-| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **P₁ / V2** (Porpoise) | Finless porpoise specialist — NBHF acoustics · habitat modeling |
-| [coilia-agent](https://github.com/fangtaocai041/coilia-agent) | **P₂ / V3** (Coilia) | Tapertail anchovy specialist — otolith microchemistry · migration ecology |
+| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **Derived P₁** (Porpoise) | Finless porpoise specialist — NBHF acoustics · habitat modeling |
+| [coilia-agent](https://github.com/fangtaocai041/coilia-agent) | **Derived P₂** (Coilia) | Tapertail anchovy specialist — otolith microchemistry · migration ecology |
 
 > **Co-evolution**: Engine code updated → fish & porpoise auto-benefit via submodule.
 > Knowledge graph evolves → shared across all three projects.
@@ -230,7 +304,7 @@ User Question
      ▼                   ▼                   ▼
 ┌─────────┐      ┌──────────┐       ┌──────────────┐
 │  fish   │      │ porpoise  │       │  cognitive    │
-│(S / V0) │      │(P₁ / V2)  │       │  (V / V1)     │
+│(三角 V0)│      │(衍生 P₁)  │       │  (三角 V1)    │
 └─────────┘      └──────────┘       └──────────────┘
 ```
 

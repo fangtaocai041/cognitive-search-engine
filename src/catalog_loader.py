@@ -1,4 +1,8 @@
 # catalog_loader.py — Database Catalog Loader & Graph Router v4.0
+# ⚠️ DEPRECATED (v5.7.0, 2026-06-20): Not used by current search pipeline.
+#    unified_search.coordinated_search() handles all routing via
+#    search_streaming() + ENGINE_REGISTRY. KEPT for reference only
+#    and potential future multi-domain routing needs.
 # ================================================================
 # Layer: V1 cognitive-search-engine/src/
 # Input:  cognitive-search-engine/config/database_catalog.yaml

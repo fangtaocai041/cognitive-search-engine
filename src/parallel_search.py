@@ -384,16 +384,16 @@ def search_baidu_scholar(query: str, n: int = 20) -> list[dict]:
     try:
         url = (
             "https://xueshu.baidu.com/s?"
-            f"wd={{urllib.parse.quote(query)}}&pn=0&tn=SE_baiduxueshu_c1g0"
+            f"wd={urllib.parse.quote(query)}&pn=0&tn=SE_baiduxueshu_c1g0"
             f"&ie=utf-8&sc_hit=1"
         )
-        headers = {{
+        headers = {
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/120.0.0.0 Safari/537.36"
             ),
-        }}
+        }
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=15) as resp:
             html = resp.read().decode("utf-8", errors="replace")
@@ -417,16 +417,16 @@ def search_baidu_scholar(query: str, n: int = 20) -> list[dict]:
                 title = re.sub(r'<[^>]+>', '', title_match.group(2)).strip()
                 info_text = re.sub(r'<[^>]+>', ' ', block)
                 info_text = re.sub(r'\s+', ' ', info_text)
-                year_match = re.search(r'(19\d{{2}}|20\d{{2}})', info_text)
+                year_match = re.search(r'(19\d{2}|20\d{2})', info_text)
                 year = int(year_match.group(1)) if year_match else None
-                papers.append({{
+                papers.append({
                     "doi": "",
                     "title": title,
                     "year": year,
                     "journal": "",
                     "authors": [],
                     "_source": "baidu_scholar",
-                }})
+                })
             except Exception:
                 continue
         return papers
@@ -440,15 +440,15 @@ def search_bing_web(query: str, n: int = 10) -> list[dict]:
     try:
         url = (
             "https://www.bing.com/search?"
-            f"q={{urllib.parse.quote(query)}}&count={{n}}"
+            f"q={urllib.parse.quote(query)}&count={n}"
         )
-        headers = {{
+        headers = {
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36"
             ),
             "Accept-Language": "zh-CN,zh;q=0.9",
-        }}
+        }
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=15) as resp:
             html = resp.read().decode("utf-8", errors="replace")
@@ -470,7 +470,7 @@ def search_bing_web(query: str, n: int = 10) -> list[dict]:
                 title = re.sub(r'<[^>]+>', '', title_match.group(2)).strip()
                 snippet_match = re.search(r'<p[^>]*>(.*?)</p>', block, re.DOTALL)
                 snippet = re.sub(r'<[^>]+>|\s+', ' ', snippet_match.group(1)).strip() if snippet_match else ""
-                papers.append({{
+                papers.append({
                     "doi": "",
                     "title": title,
                     "year": None,
@@ -479,7 +479,7 @@ def search_bing_web(query: str, n: int = 10) -> list[dict]:
                     "source_url": link,
                     "abstract": snippet[:300],
                     "_source": "bing_web",
-                }})
+                })
             except Exception:
                 continue
         return papers

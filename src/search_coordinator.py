@@ -57,6 +57,65 @@ CN_JOURNALS = {
 
 
 # ═══════════════════════════════════════════════════════
+# KB-First 两阶段搜索入口 (f项目KB先查 → 询问 → c项目续搜)
+# ═══════════════════════════════════════════════════════
+
+def kb_first(species: str) -> "KbFirstSearchResult":
+    """
+    kb_first("珠星三块鱼") → KbFirstSearchResult (stage="kb_check")
+
+    两阶段搜索 Stage 1: 先查 f项目 (fish-ecology-assistant) 知识库。
+    返回 KbFirstSearchResult，调用方应呈现 ask_user_prompt() 给用户，
+    然后根据用户选择决定是否调用 continue_full_search()。
+
+    Usage:
+      # Stage 1
+      r = kb_first("珠星三块鱼")
+      print(r.ask_user_prompt())
+      # ... user says "continue" or "stay" ...
+
+      # Stage 2 (only if user continues)
+      r = continue_full_search(r, group="full")
+      print(r.full_search.summary())
+    """
+    import sys
+    mod = sys.modules.get("src.unified_search")
+    if mod is not None:
+        return mod.search_with_kb_first(species_name=species)
+    from src.unified_search import search_with_kb_first
+    return search_with_kb_first(species_name=species)
+
+
+def continue_full_search(
+    stage1_result: "KbFirstSearchResult",
+    group: str = "full",
+    limit: int = 10,
+) -> "KbFirstSearchResult":
+    """
+    continue_full_search(stage1_result, group="full") → KbFirstSearchResult
+
+    两阶段搜索 Stage 2: 在 KB 查询结果基础上，启动 c项目全量文献搜索。
+    自动利用 KB 已知的异名/别名/变体来丰富搜索。
+
+    Args:
+        stage1_result: kb_first() 返回的 Stage 1 结果。
+        group: 引擎组 ("quick"/"standard"/"full").
+        limit: 每引擎最大结果数。
+
+    Returns:
+        同一 KbFirstSearchResult 对象，.stage 变为 "full_search"，
+        .full_search 填充为 CoordinatedSearchResult。
+    """
+    import sys
+    mod = sys.modules.get("src.unified_search")
+    if mod is not None:
+        return mod.continue_full_search(
+            stage1_result=stage1_result, group=group, limit=limit)
+    from src.unified_search import continue_full_search as cfs
+    return cfs(stage1_result=stage1_result, group=group, limit=limit)
+
+
+# ═══════════════════════════════════════════════════════
 # 搜索入口 — 委托给 unified_search.coordinated_search()
 # ═══════════════════════════════════════════════════════
 
@@ -90,14 +149,19 @@ def _get_result_types():
         EngineResult,
         StreamEvent,
         SearchMode,
+        KbFirstSearchResult,
     )
-    return CoordinatedSearchResult, EngineResult, StreamEvent, SearchMode
+    return CoordinatedSearchResult, EngineResult, StreamEvent, SearchMode, KbFirstSearchResult
 
 
 def __getattr__(name: str):
     """透明代理: 自动从 unified_search 导入缺失的属性。"""
-    if name in ("CoordinatedSearchResult", "EngineResult", "StreamEvent", "SearchMode"):
+    if name in ("CoordinatedSearchResult", "EngineResult", "StreamEvent", "SearchMode",
+                "KbFirstSearchResult"):
         types = _get_result_types()
-        idx = {"CoordinatedSearchResult": 0, "EngineResult": 1, "StreamEvent": 2, "SearchMode": 3}
+        idx = {"CoordinatedSearchResult": 0, "EngineResult": 1, "StreamEvent": 2,
+               "SearchMode": 3, "KbFirstSearchResult": 4}
         return types[idx[name]]
+    if name in ("kb_first", "continue_full_search"):
+        return globals()[name]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

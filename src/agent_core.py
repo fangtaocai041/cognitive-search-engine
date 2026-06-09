@@ -76,18 +76,7 @@ if _ml_spec and _ml_spec.loader:
 else:
     raise ImportError(f"memory_layer.py not found at {_ml_path}")
 
-
-class DotDict(dict):
-    """Nested dict with attribute-style access for eval() expressions."""
-    def __getattr__(self, key):
-        try:
-            val = self[key]
-        except KeyError:
-            raise AttributeError(f"'{type(self).__name__}' has no attribute '{key}'")
-        if isinstance(val, dict) and not isinstance(val, DotDict):
-            val = DotDict(val)
-            self[key] = val
-        return val
+from src._utils import DotDict  # v5.7: de-duplicated from agent_core + rule_engine
 
 
 # ═══════════════════════════════════════════════════════════════════════

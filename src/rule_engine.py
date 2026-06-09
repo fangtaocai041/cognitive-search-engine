@@ -46,25 +46,7 @@ except ImportError:
 
 # ──── Helpers ────
 
-class DotDict(dict):
-    """Nested dict with attribute-style access for eval() expressions.
-    
-    >>> d = DotDict({"a": {"b": {"c": 8}}})
-    >>> d.a.b.c
-    8
-    """
-    def __getattr__(self, key):
-        try:
-            val = self[key]
-        except KeyError:
-            raise AttributeError(f"'{type(self).__name__}' has no attribute '{key}'")
-        if isinstance(val, dict) and not isinstance(val, DotDict):
-            val = DotDict(val)
-            self[key] = val
-        return val
-    
-    def __setattr__(self, key, value):
-        self[key] = value
+from src._utils import DotDict  # v5.7: de-duplicated from agent_core + rule_engine
 
 # ──── Data Classes ────
 
@@ -240,7 +222,8 @@ class SearchRuleEngine:
             ctx["all_dois"] = self._all_dois
             ctx["consecutive_zero_new"] = self._consecutive_zero
             ig = len(new_papers) / max(budget / 1000, 1)
-            self._ig_history.append(ig)
+            if budget > 0:
+                self._ig_history.append(ig)
             ctx["ig_history"] = self._ig_history
 
         # Dedup & merge (final pass)
@@ -322,6 +305,9 @@ class SearchRuleEngine:
         unrelated species sharing the same epithet (e.g. 'elongatus'
         matching Ophiodon, Dipterocarpus, etc.).  All results are
         filtered through _matches_species_context.
+
+        v2.1: Increased n=50 to get comprehensive results for well-studied
+        species (was 20, missing many papers).
         """
         species_id = ctx["species_id"]
         genus = ctx["genus"]
@@ -334,7 +320,7 @@ class SearchRuleEngine:
 
         papers = []
         for q in queries:
-            raw_results = self._call_search_tools(q, phase.get("tools", []), ctx)
+            raw_results = self._call_search_tools(q, phase.get("tools", []), ctx, n=50)
             for r in raw_results:
                 # Crossref fuzzy search returns any species sharing the
                 # same epithet (e.g. Ophiodon elongatus, Dipterocarpus
@@ -561,7 +547,7 @@ class SearchRuleEngine:
                 query = f'"{genus} {variant}"'
             else:
                 query = f'"{variant}"'
-            results = self._call_search_tools(query, phase.get("tools", []), ctx, n=15)
+            results = self._call_search_tools(query, phase.get("tools", []), ctx, n=30)
             for r in results:
                 if r.doi_key not in existing_dois:
                     # Double-check: reject papers whose title contains none
@@ -702,78 +688,142 @@ class SearchRuleEngine:
             return self._mcp_search(query, tools, n)
         return []
 
+    # ── Tool → API 映射（_http_search 用） ──
+    _TOOLS_PUBMED = {"ncbi_ncbi_esearch", "article_search_literature"}
+    _TOOLS_CROSSREF_OPENALEX = {
+        "scholar_search_literature_graph", "article_search_literature",
+        "scholar_search_google_scholar_key_words",
+    }
+    _TOOLS_WEB_ONLY = {
+        "web_search", "tavily_tavily_search", "tavily_tavily_extract",
+        "exa_web_search_exa", "exa_web_fetch_exa",
+    }
+
     def _http_search(self, query: str, tools: list[str], n: int) -> list[Paper]:
-        """HTTP-mode: call PubMed E-utilities, Crossref, OpenAlex directly."""
+        """HTTP-mode: call PubMed E-utilities, Crossref, OpenAlex directly.
+
+        Respects the `tools` parameter — only calls APIs whose tools are
+        requested.  Web-only tools (web_search, tavily, exa) are not
+        available via raw HTTP and return empty immediately.
+        """
+        # ── Tools routing: determine which APIs to call ──
+        tool_set = {t.lower() for t in tools}
+
+        # Empty tools → backward-compatible: call all 3
+        if not tool_set:
+            call_pubmed = True
+            call_crossref_openalex = True
+        else:
+            call_pubmed = bool(tool_set & self._TOOLS_PUBMED)
+            call_crossref_openalex = bool(tool_set & self._TOOLS_CROSSREF_OPENALEX)
+            # If ALL tools are web-only → nothing available in HTTP mode
+            if tool_set and tool_set.issubset(self._TOOLS_WEB_ONLY):
+                logger.debug(f"HTTP mode has no web tools, skipping '{query[:40]}'")
+                return []
+
         papers = []
+        errors: list[str] = []
 
-        # ── PubMed via NCBI E-utilities (带重试) ──
-        try:
-            from urllib.parse import quote as _q
-            def _fetch_pubmed():
-                esearch_url = (
-                    f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?"
-                    f"db=pubmed&term={_q(query)}&retmax={n}&retmode=json"
-                )
-                with urllib.request.urlopen(esearch_url, timeout=self._http_timeout_per_call) as resp:
-                    return resp.read()
-            esearch_body = self._http_retry(_fetch_pubmed, label=f"PubMed esearch({query[:40]})")
-            esearch_data = json.loads(esearch_body)
-            id_list = esearch_data.get("esearchresult", {}).get("idlist", [])
-            if id_list:
-                ids = ",".join(id_list[:n])
-                efetch_url = (
-                    f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?"
-                    f"db=pubmed&id={ids}&retmode=xml"
-                )
-                papers.extend(self._parse_pubmed_xml(efetch_url))
-            logger.info(f"PubMed: {len(id_list)} hits for '{query}'")
-        except Exception as exc:
-            logger.warning(f"PubMed failed for '{query}' after retry: {exc}")
-            self._search_errors.append(f"PubMed({query}): {exc}")
+        # ── Parallel execution ──
+        from concurrent.futures import ThreadPoolExecutor, as_completed
 
-        # ── Crossref (带重试) ──
-        try:
-            from urllib.parse import quote as _q
-            def _fetch_crossref():
-                cr_url = f"https://api.crossref.org/works?query={_q(query)}&rows={n}"
-                with urllib.request.urlopen(cr_url, timeout=self._http_timeout_per_call) as resp:
-                    return resp.read()
-            cr_body = self._http_retry(_fetch_crossref, label=f"Crossref({query[:40]})")
-            cr_data = json.loads(cr_body)
-            items = cr_data.get("message", {}).get("items", [])
-            for item in items:
-                paper = self._crossref_to_paper(item)
-                if paper:
-                    papers.append(paper)
-            logger.info(f"Crossref: {len(items)} items for '{query}'")
-        except Exception as exc:
-            logger.warning(f"Crossref failed for '{query}' after retry: {exc}")
-            self._search_errors.append(f"Crossref({query}): {exc}")
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            futures = []
 
-        # ── OpenAlex (带重试) ──
-        try:
-            from urllib.parse import quote as _q
-            def _fetch_openalex():
-                oa_query = _q(query, safe='')
-                oa_url = f"https://api.openalex.org/works?search={oa_query}&per_page={min(n, 50)}"
-                req = urllib.request.Request(oa_url, headers={
-                    "User-Agent": "mailto:cognitive-search-engine@reasonix.local",
-                    "Accept": "application/json",
-                })
-                import urllib.request as _ur_req
-                with _ur_req.urlopen(req, timeout=self._http_timeout_per_call) as resp:
-                    return resp.read()
-            oa_body = self._http_retry(_fetch_openalex, label=f"OpenAlex({query[:40]})")
-            oa_data = json.loads(oa_body)
-            results = oa_data.get("results", [])
-            for item in results:
-                paper = self._openalex_to_paper(item)
-                if paper:
-                    papers.append(paper)
-            logger.info(f"OpenAlex: {len(results)} results for '{query}'")
-        except Exception as exc:
-            logger.warning(f"OpenAlex failed for '{query}' after retry: {exc}")
-            self._search_errors.append(f"OpenAlex({query}): {exc}")
+            # Task 1: PubMed
+            if call_pubmed:
+                def _task_pubmed():
+                    from urllib.parse import quote as _q
+                    local_papers: list[Paper] = []
+                    try:
+                        def _fetch():
+                            url = (
+                                f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?"
+                                f"db=pubmed&term={_q(query)}&retmax={n}&retmode=json"
+                            )
+                            with urllib.request.urlopen(url, timeout=self._http_timeout_per_call) as resp:
+                                return resp.read()
+                        body = self._http_retry(_fetch, label=f"PubMed esearch({query[:40]})")
+                        data = json.loads(body)
+                        id_list = data.get("esearchresult", {}).get("idlist", [])
+                        if id_list:
+                            ids = ",".join(id_list[:n])
+                            efetch_url = (
+                                f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?"
+                                f"db=pubmed&id={ids}&retmode=xml"
+                            )
+                            local_papers.extend(self._parse_pubmed_xml(efetch_url))
+                        logger.info(f"PubMed: {len(id_list)} hits for '{query}'")
+                    except Exception as exc:
+                        logger.warning(f"PubMed failed for '{query}': {exc}")
+                        raise exc
+                    return local_papers, "PubMed"
+                futures.append(pool.submit(_task_pubmed))
+
+            # Task 2: Crossref
+            if call_crossref_openalex:
+                def _task_crossref():
+                    from urllib.parse import quote as _q
+                    local_papers: list[Paper] = []
+                    try:
+                        def _fetch():
+                            url = f"https://api.crossref.org/works?query={_q(query)}&rows={n}"
+                            with urllib.request.urlopen(url, timeout=self._http_timeout_per_call) as resp:
+                                return resp.read()
+                        body = self._http_retry(_fetch, label=f"Crossref({query[:40]})")
+                        data = json.loads(body)
+                        items = data.get("message", {}).get("items", [])
+                        for item in items:
+                            paper = self._crossref_to_paper(item)
+                            if paper:
+                                local_papers.append(paper)
+                        logger.info(f"Crossref: {len(items)} items for '{query}'")
+                    except Exception as exc:
+                        logger.warning(f"Crossref failed for '{query}': {exc}")
+                        raise exc
+                    return local_papers, "Crossref"
+                futures.append(pool.submit(_task_crossref))
+
+            # Task 3: OpenAlex
+            if call_crossref_openalex:
+                def _task_openalex():
+                    from urllib.parse import quote as _q
+                    local_papers: list[Paper] = []
+                    try:
+                        def _fetch():
+                            oa_query = _q(query, safe='')
+                            url = f"https://api.openalex.org/works?search={oa_query}&per_page={min(n, 50)}"
+                            req = urllib.request.Request(url, headers={
+                                "User-Agent": "mailto:cognitive-search-engine@reasonix.local",
+                                "Accept": "application/json",
+                            })
+                            with urllib.request.urlopen(req, timeout=self._http_timeout_per_call) as resp:
+                                return resp.read()
+                        body = self._http_retry(_fetch, label=f"OpenAlex({query[:40]})")
+                        data = json.loads(body)
+                        results = data.get("results", [])
+                        for item in results:
+                            paper = self._openalex_to_paper(item)
+                            if paper:
+                                local_papers.append(paper)
+                        logger.info(f"OpenAlex: {len(results)} results for '{query}'")
+                    except Exception as exc:
+                        logger.warning(f"OpenAlex failed for '{query}': {exc}")
+                        raise exc
+                    return local_papers, "OpenAlex"
+                futures.append(pool.submit(_task_openalex))
+
+            # Collect results
+            for fut in as_completed(futures):
+                try:
+                    result_papers, source = fut.result()
+                    papers.extend(result_papers)
+                except Exception as exc:
+                    errors.append(f"{exc}")
+
+        # Log errors once
+        for err in errors:
+            self._search_errors.append(str(err))
 
         return papers
 
