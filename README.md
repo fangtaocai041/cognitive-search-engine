@@ -7,12 +7,12 @@
 > **Meso-Cosmos Agent** — BDI + ReAct + Authority Scoring + ZN/EN Dynamic Graph + Lazy Loading
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-5.7.0-8b5cf6)](config/agent.yaml)
+[![Version](https://img.shields.io/badge/version-5.8.0-8b5cf6)](config/agent.yaml)
 [![Skills](https://img.shields.io/badge/skills-5-22c55e)](skills/)
-[![Auto-Retry](https://img.shields.io/badge/auto_retry-60s_window-22c55e)]()
-[![MCP Parallel](https://img.shields.io/badge/MCP_parallel-7_engines-f59e0b)]()
-[![Chinese Search](https://img.shields.io/badge/chinese_search-3_layer-ec4899)]()
-[![MCP](https://img.shields.io/badge/MCP-7-f59e0b)](config/mcp_servers.yaml)
+[![Auto-Retry](https://img.shields.io/badge/auto_retry-12s_window-22c55e)]()
+[![Engines](https://img.shields.io/badge/engines-21-f59e0b)]()
+[![Chinese Search](https://img.shields.io/badge/chinese_search-SerpAPI-ec4899)]()
+[![SerpAPI](https://img.shields.io/badge/SerpAPI-Baidu+Scholar+DDG-8b5cf6)](config/agent.yaml)
 [![Architecture](https://img.shields.io/badge/architecture-meso_cosmos-8b5cf6)](docs/ARCHITECTURE.md)
 [![Multi-LLM](https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6)]()
 [![BDI](https://img.shields.io/badge/BDI-ReAct-22c55e)]()
@@ -93,6 +93,7 @@ graph_route(query: str, health_aware: bool) → List[Dict{id, _graph_score, _ten
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v5.8.0** | 2026-07-11 | 🚀 21引擎全线升级 — SerpAPI Baidu/Scholar/DuckDuckGo 突破中文反爬 · Exa API 语义搜索 · Europe PMC NCBI 500故障转移 · BDI修复(中文种强制全管线, consecutive_zero保护, stalled放宽) · HTTP超时15→8s · 全流程112→25s |
 | **v5.7.0** | 2026-06-20 | 🧬 KB-First 两阶段搜索 — `search_with_kb_first()` + `continue_full_search()` + `KbFirstSearchResult` 跨项目聚合 · f项目知识库预查 · `kb_first()` 入口 |
 | **v5.6.0** | 2026-06-10 | 🔁 HTTP重连 + 🚀 MCP并行预热 + 🌐 中文三层搜索 + 🛑 停止机制重构 |
 | **v5.5.0** | 2026-06-09 | 🧬 Unified Search Protocol (自适应+附带过滤+CN/EN双通道) + 鲌类分类学修订(v2.2) + unified_search.py |
@@ -462,7 +463,7 @@ Chinese name    ─┘
 | Problem | Traditional | Cognitive Search Engine |
 |---------|------------|------------------------|
 | Species name typos | ❌ Misses "Ochetobibus" when searching "Ochetobius" | ✅ OCR variant sweep catches all (2 papers found: 2009 + 2026) |
-| Chinese DB blind spot | ❌ PubMed/Crossref don't index 知网/万方/维普 | ✅ Chinese-first search → web_search + 11 journal sites |
+| Chinese DB blind spot | ❌ PubMed/Crossref don't index 知网/万方/维普 | ✅ SerpAPI Baidu/Scholar/DuckDuckGo — 21 engines bypass Great Firewall |
 | Cold-start (new species) | ❌ Zero results → stuck | ✅ Hub-and-Spoke: multi-direction hub location |
 | Review paper blind trust | ❌ Cites ghosts/misattributions silently | ✅ Authority scoring 0-100 per paper, SCI/core-journal weighted |
 | Search amnesia | ❌ Same search repeated, same cost | ✅ Classified knowledge graph persists, lazy-load on demand |

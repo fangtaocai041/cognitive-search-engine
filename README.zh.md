@@ -5,14 +5,14 @@
 <div align="center">
   <h1>🕸️ 认知搜索引擎 v5</h1>
   <p><strong>中宇宙式 Agent</strong> — BDI + ReAct + 权威可信度评分 + ZN/EN 动态图谱 + 按需加载</p>
-  <p>7 模块 · 5 搜索引擎 · 5 层架构 · BDI 推理 · 中宇宙协调层</p>
+  <p>21 引擎 · 13 阶段 · 5 层架构 · BDI 推理 · 中宇宙协调层 · SerpAPI 中文搜索</p>
 </div>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-5.7.0-8b5cf6?style=flat-square" alt="Version"></a>
-  <a href="#"><img src="https://img.shields.io/badge/skills-5-22c55e?style=flat-square" alt="Skills"></a>
-  <a href="#"><img src="https://img.shields.io/badge/MCP-7-f59e0b?style=flat-square" alt="MCP"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-5.8.0-8b5cf6?style=flat-square" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/engines-21-f59e0b?style=flat-square" alt="Engines"></a>
+  <a href="#"><img src="https://img.shields.io/badge/SerpAPI-Baidu_Scholar_DDG-8b5cf6?style=flat-square" alt="SerpAPI"></a>
   <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/架构-meso_cosmos-8b5cf6?style=flat-square" alt="架构"></a>
   <a href="#"><img src="https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6?style=flat-square" alt="Multi-LLM"></a>
   <a href="#"><img src="https://img.shields.io/badge/BDI-ReAct-22c55e?style=flat-square" alt="BDI"></a>
@@ -496,6 +496,7 @@ cognitive-search-engine/
 
 | 版本 | 日期 | 主题 | 变更内容 |
 |:------|:-----|:------|:-------------|
+| **v5.8.0** | 2026-07-11 | 🚀 21引擎全线升级 | SerpAPI Baidu/Scholar/DuckDuckGo 突破中文反爬 · Exa API 语义搜索 · Europe PMC NCBI 500故障转移 · BDI修复(中文种强制全管线, consecutive_zero保护, stalled放宽) · HTTP超时15→8s · 全流程112→25s |
 | **v5.7.0** | 2026-06-20 | 🧬 KB-First 两阶段搜索 | `search_with_kb_first()` + `continue_full_search()` + `KbFirstSearchResult` 跨项目聚合 · f项目知识库预查 · `kb_first()` 入口 |
 | **v5.6.0** | 2026-06-10 | 🔁 生产加固 | HTTP重连 + 🚀 MCP并行预热 + 🌐 中文三层搜索 + 🛑 停止机制重构 |
 | **v5.5.0** | 2026-06-09 | 🧬 统一搜索协议 | 自适应+附带过滤+CN/EN双通道 + 鲌类分类学修订(v2.2) + unified_search.py |
