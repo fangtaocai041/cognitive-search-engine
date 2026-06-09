@@ -42,227 +42,41 @@ coordination:
       - { phase: 5, name: "EVOLVE", layer: "Feedback", action: "评估 → 触发跨项目进化" }
 
   # ===== S-T-V 三角 =====
-  # ===== 三角核心 (三项目分工) =====
-  # 注: 曾用名 S-T-V，但 porpoise-agent 不是通用 Transition 层，
-  # 而是江豚专属智能体。现按实际职能命名。
-  tri_core:
+  # ===== 三角闭环 (Triangle Core) =====
+  # 道生一 → 一生二 → 二生三 → 三生万物
+  # 一: 太极(命令入口)  二: 阴阳(S↔V对立)  三: 三角闭环(缺一不可)
+  # 三角 = fish(知识) + cognitive(验证) + eon-core(协调)
+  # 万物: P₁(porpoise) P₂(coilia) ... 从三角衍生，三角不依赖万物
+  triangle_core:
     fish_knowledge:
       project: "fish-ecology-assistant"
-      role: "多物种知识库 — 文献管理, 数据供给, 矛盾分析"
-      exports: ["stats-assistant","research-analyst","phd-proposal-writer","ima-smart-search"]
-    porpoise_specialist:
-      project: "porpoise-agent"
-      role: "江豚专属智能体 — 种群监测, 威胁评估, 野外调查"
-      exports: ["detect-clicks","estimate-abundance","assess-threats","search-literature"]
+      role: "三角 V0 — 多物种知识库: 文献管理, 数据供给, 矛盾分析"
+      layer: "State/Knowledge"
+      exports: ["stats-assistant", "research-analyst", "phd-proposal-writer", "ima-smart-search"]
     cognitive_engine:
       project: "cognitive-search-engine"
-      role: "21引擎认知搜索 — 图谱进化, 变体生成, 可信度验证"
-      exports: ["graph-search-engine","cognitive-species-search","self-evolve"]
-      engine_path: "D:/Reasonix/cognitive-search-engine"
+      role: "三角 V1 — 21引擎认知搜索: 图谱进化, 变体生成, 可信度验证"
+      layer: "Validation"
+      exports: ["graph-search-engine", "cognitive-species-search", "self-evolve"]
+      engine_path: "cognitive-search-engine"
       loader: "importlib (DirectLoader, 零 MCP 进程)"
-  shared:
-    philosophy: "dual-core (Panta Rhei + Systems Thinking)"
-    rule_ids: ["FB-1","FB-2","CP-1","CP-2","SM-1","SM-2","WF-1","WF-2","PT-1","PT-2","EH-1","EH-2","MO-1","MO-2","DS-1","DS-2","DS-3","DS-4"]
-    verification: { min_sources_core_claim: 3, max_iterations: 3 }
-    contradiction: { budget_multiplier: 2.5, transformation_threshold: 5 }
-    preflight: "read config/agent.yaml before all Skills"
+    coordinator:
+      project: "eon-core"
+      role: "三角协调器 — EventBus, DAG路由, 四顶点拓扑"
+      layer: "Coordination"
+      repo: "https://github.com/fangtaocai041/eon-core"
 
-  # ===== 存异: 项目特定 =====
-  project_specific:
-    fish:
-      runtime: "Reasonix Agent + Markdown Skills"
-      skill_dir: ".reasonix/skills"
-      skill_count: 25
-      mcp_count: 22
-      pipeline_type: "explicit_stages"
+  # ===== 衍生项目 (万物) =====
+  # 从三角闭环派生，依赖三角提供知识和搜索能力
+  derived_projects:
     porpoise:
-      runtime: "Python orchestrator + importlib"
-      skill_dir: "src/skills"
-      skill_count: 16
-      mcp_count: 16
-      pipeline_type: "orchestrator"
-    cognitive:
-      runtime: "Python importlib (被调用)"
-      skill_dir: "skills"
-      skill_count: 3
-      mcp_count: 0
-      pipeline_type: "rule_engine"
+      id: "P₁"
+      project: "porpoise-agent"
+      role: "江豚(Neophocaena phocaenoides)专属智能体 — 种群监测, 威胁评估, 野外调查"
+      depends_on: ["fish_knowledge", "cognitive_engine"]
+    coilia:
+      id: "P₂"
+      project: "coilia-agent"
+      role: "刀鲚(Coilia nasus)专属智能体 — 耳石微化学, 洄游生态, 资源评估"
+      depends_on: ["fish_knowledge", "cognitive_engine"]
 
-  # ===== 跨项目委托协议 =====
-  cross_delegation:
-    enabled: true
-    protocol: "DELEGATE to {project}: skill={name} context={...}"
-    fish_exports: ["stats-assistant","research-analyst","phd-proposal-writer","ima-smart-search"]
-    porpoise_exports: ["detect-clicks","estimate-abundance","assess-threats","search-literature"]
-    cognitive_exports: ["graph-search-engine","cognitive-species-search","parallel-search"]
-
-  # ===== 搜索引擎注册表 (v3.0 统一) =====
-  search_engine_registry:
-    scholar:
-      category: "academic"
-      mcp_server: "scholar"
-      tools: ["scholar_search_literature_graph","scholar_search_google_scholar_key_words"]
-      priority: 1
-      primary: true
-    article:
-      category: "academic"
-      mcp_server: "article"
-      tools: ["article_search_literature","article_get_article_details","article_get_references"]
-      priority: 2
-    scholarly:
-      category: "academic"
-      mcp_server: "scholarly"
-      tools: ["scholarly_search"]
-      priority: 3
-    baidu_scholar:
-      category: "chinese_academic"
-      mcp_server: "reasonix_builtin"
-      tools: ["web_search"]
-      strategy: "site:xueshu.baidu.com"
-      language: "zh"
-      priority: 4
-    cnki:
-      category: "chinese_academic"
-      mcp_server: "reasonix_builtin"
-      tools: ["web_search"]
-      native_provider: "cnki_web"          # v5.6: parallel_search HTTP provider
-      strategy: "site:cnki.net"
-      language: "zh"
-      priority: 5
-    wanfang:
-      category: "chinese_academic"
-      mcp_server: "reasonix_builtin"
-      tools: ["web_search"]
-      native_provider: "wanfang_web"       # v5.6: parallel_search HTTP provider
-      strategy: "site:wanfangdata.com.cn"
-      language: "zh"
-      priority: 6
-    cas:
-      category: "chinese_academic"
-      mcp_server: "reasonix_builtin"
-      tools: ["web_search"]
-      native_provider: "cas_web"           # v5.6: parallel_search HTTP provider
-      strategy: "site:cas.cn OR site:ihb.ac.cn"
-      language: "zh"
-      priority: 7
-    researchgate:
-      category: "preprint"
-      mcp_server: "reasonix_builtin"
-      tools: ["web_search"]
-      native_provider: "researchgate_web"  # v5.6 新增
-      strategy: "site:researchgate.net"
-      priority: 8
-    biorxiv:
-      category: "preprint"
-      mcp_server: "reasonix_builtin"
-      tools: ["web_search"]
-      native_provider: "biorxiv_search"    # v5.6 新增: bioRxiv Content Detail API
-      strategy: "api.biorxiv.org/details/biorxiv/"
-      priority: 8
-    ncbi:
-      category: "academic"
-      mcp_server: "ncbi"
-      tools: ["ncbi_ncbi_esearch","ncbi_ncbi_esummary","ncbi_ncbi_efetch"]
-      priority: 9
-    tavily:
-      category: "web"
-      requires_api_key: true
-      env_var: "TAVILY_API_KEY"
-      mcp_server: "tavily"
-      tools: ["tavily_search","tavily_extract"]
-      priority: 10
-    exa:
-      category: "web"
-      requires_api_key: true
-      env_var: "EXA_API_KEY"
-      mcp_server: "exa"
-      tools: ["exa_web_search"]
-      priority: 11
-    cognitive_search:
-      category: "cognitive"
-      requires_api_key: false
-      loader: "DirectLoader (importlib)"
-      engine_path: "D:\\Reasonix\\cognitive-search-engine\\"
-      tools: ["csearch_species","csearch_graph","csearch_add_paper"]
-      priority: 0
-      primary: false
-      note: "专用认知搜索 — 引擎更新自动生效，零 MCP 开销"
-    web_search:
-      category: "builtin"
-      mcp_server: "reasonix_builtin"
-      tools: ["web_search","web_fetch"]
-      priority: 12
-
-  # ===== 图谱数据源 =====
-  knowledge_graph:
-    primary: "D:\\Reasonix\\cognitive-search-engine\\config\\species_graph.yaml"
-    variants: "D:\\Reasonix\\fish-ecology-assistant\\config\\species_variants.yaml"
-    note: "species_variants.yaml 待合并入 species_graph.yaml。变体生成逻辑在 cognitive-search-engine/src/variant_generator.py"
-
-  # ===== 并行策略 (统一) =====
-  parallelism:
-    search_engines:
-      max_concurrent: 11
-      strategy: "fan_out"
-    domain_skills:
-      max_concurrent: 3
-      strategy: "independent"
-    cross_project:
-      max_concurrent: 2
-      strategy: "fan_out"
-
-  # ===== 激活顺序 (统一) =====
-  activation_order:
-    - { stage: 0, name: "PREFLIGHT", rule: null }
-    - { stage: 1, name: "Contradiction Analysis", rule: "CP-1,CP-2" }
-    - { stage: 2, name: "Cognitive Search", rule: "DS-1,DS-2" }
-    - { stage: 3, name: "Domain Execution", rule: null, parallel: true }
-    - { stage: 4, name: "Verification", rule: "FB-1,FB-2" }
-    - { stage: 5, name: "Graph Update", rule: "MO-2" }
-    - { stage: 6, name: "Review + Adapt", rule: "MO-1,MO-2,DS-1..4" }
-
-  # ===== 进化机制 (v3.2 升级：三项目均有自进化) =====
-  evolution:
-    cognitive_engine:
-      path: "D:\\Reasonix\\cognitive-search-engine\\"
-      loader: "importlib"
-      update_model: "auto"           # engine 代码更新 → 下次 import 自动生效
-      evolution_file: "cognitive-search-engine/config/evolution.yaml"
-      self_evolve_skill: "cognitive-search-engine/skills/self-evolve.md"
-    fish:
-      evolution_file: "fish-ecology-assistant/config/evolution.yaml"
-      self_evolve_skill: "fish-ecology-assistant/.reasonix/skills/self-evolve.md"
-      component_registry: "fish-ecology-assistant/config/component_registry.yaml"
-    porpoise:
-      evolution_file: "porpoise-agent/config/evolution.yaml"
-      self_evolve_skill: "porpoise-agent/src/skills/self-evolve/SKILL.md"
-      component_registry: "porpoise-agent/config/component_registry.yaml"
-    graph:
-      path: "D:\\Reasonix\\cognitive-search-engine\\config\\species_graph.yaml"
-      writeback: "auto"              # 搜索完成后自动回写图谱
-      shared_across: ["fish", "porpoise", "cognitive"]
-    rules:
-      spread: "manual"              # 规则跨项目同步需手动 commit
-      coordination: "this file (D:\\Reasonix\\coordination.yaml)"
-    cross_feedback:
-      enabled: true
-      direction: "bi-directional"
-      shared_metrics: ["verification_pass_rate", "contradiction_resolution_rate", "false_positive_rate"]
-      log_format: "JSONL (shared across all three projects)"
-
-  # ===== 搜索网关 (v4.1 新增) =====
-  # Cognitive Search Engine 是本工作区所有外部搜索的**唯一入口**。
-  # 任何搜索请求（物种/文献/概念/论文）必须路由到认知引擎，
-  # 禁止跳过引擎直接调用内置 skill 或 MCP 搜索引擎。
-  search_gateway:
-    enabled: true
-    exclusive: true                 # true = 唯一入口，不允许绕过
-    engine: "cognitive-search-engine"
-    loader: "DirectLoader (importlib)"
-    entry_points:
-      species: "MesoAgent.search(species_id) → 12阶段认知管线"
-      literature: "graph-search-engine → species_graph.yaml → PubMed/Crossref fallback"
-      concept: "cognitive-species-search → variant_generator → crossref"
-    fallback_policy: "builtin_skills_only_on_engine_error"  # 引擎挂了才用内置 skill 兜底
-    priority: 0                       # 高于所有 MCP 和内置搜索
-    mode: "exclusive"                 # 独占模式：任何外部搜索请求均触发引擎
