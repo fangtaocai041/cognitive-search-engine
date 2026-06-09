@@ -580,10 +580,103 @@ def search_streaming(
 
 
 def _call_mcp_tool(tool_name: str, query: str, limit: int) -> List[Dict]:
-    """调用 MCP 工具 — 框架层, 运行时激活"""
-    # 在 Reasonix 运行时中, MCP 工具直接可用
-    # 此处为离线框架定义
-    raise ImportError(f"{tool_name}: requires Reasonix MCP runtime")
+    """
+    _call_mcp_tool(tool_name, query, limit) → [papers]
+
+    调用实际的 MCP 搜索工具。在 Reasonix 运行时中可直接调用。
+
+    工具在 Reasonix 中作为 Python callable 注入，不通过标准 import 路径。
+    因此使用 globals().get() 或 try/except 尝试调用。
+
+    如果工具不可用 (MCP未运行), 触发 degraded。
+    """
+    import types
+
+    # 每个工具的函数签名定义
+    # 在 Reasonix 中，这些函数直接从全局作用域可用
+    _tool_map = {
+        "scholar_search_literature_graph": {
+            "fn_name": "scholar_search_literature_graph",
+            "call": lambda fn: fn(query=query, limit=limit),
+        },
+        "scholar_search_google_scholar_key_words": {
+            "fn_name": "scholar_search_google_scholar_key_words",
+            "call": lambda fn: fn(query=query, num_results=min(limit, 20)),
+        },
+        "ncbi_ncbi_esearch": {
+            "fn_name": "ncbi_ncbi_esearch",
+            "call": lambda fn: fn(query=query, maxResults=min(limit, 100)),
+        },
+        "article_search_literature": {
+            "fn_name": "article_search_literature",
+            "call": lambda fn: fn(keyword=query, max_results=limit),
+        },
+        "scholarly_research_search": {
+            "fn_name": "scholarly_research_search",
+            "call": lambda fn: fn(query=query, maxResults=limit),
+        },
+        "tavily_tavily_search": {
+            "fn_name": "tavily_tavily_search",
+            "call": lambda fn: fn(query=query, max_results=min(limit, 20)),
+        },
+        "exa_web_search_exa": {
+            "fn_name": "exa_web_search_exa",
+            "call": lambda fn: fn(query=query, numResults=min(limit, 20)),
+        },
+        "web_search": {
+            "fn_name": "web_search",
+            "call": lambda fn: fn(query=query, topK=min(limit, 10)),
+        },
+        "article_get_references": {
+            "fn_name": "article_get_references",
+            "call": lambda fn: fn(identifier=query, id_type="auto", max_results=limit),
+        },
+        "article_get_literature_relations": {
+            "fn_name": "article_get_literature_relations",
+            "call": lambda fn: fn(identifiers=[query], relation_types=["similar"], max_results=limit),
+        },
+    }
+
+    if tool_name not in _tool_map:
+        raise ImportError(f"{tool_name}: unknown tool")
+
+    info = _tool_map[tool_name]
+    fn_name = info["fn_name"]
+
+    # 尝试从全局作用域获取函数 (Reasonix 注入的 MCP 工具)
+    fn = globals().get(fn_name)
+
+    # 如果 globals 中没有, 尝试从 __builtins__ 获取
+    if fn is None:
+        try:
+            fn = __builtins__.get(fn_name) if isinstance(__builtins__, dict) else getattr(__builtins__, fn_name, None)
+        except (AttributeError, KeyError):
+            fn = None
+
+    # 如果仍然没有, 尝试导入 (某些 MCP 工具可能可 import)
+    if fn is None:
+        try:
+            import importlib
+            mod = importlib.import_module(fn_name)
+            fn = mod if callable(mod) else None
+        except (ImportError, ModuleNotFoundError):
+            fn = None
+
+    if fn is None:
+        raise ImportError(f"{tool_name}({fn_name}): MCP tool not available")
+
+    # 调用工具
+    try:
+        result = info["call"](fn)
+        # 标准化输出
+        if isinstance(result, list):
+            return result
+        elif isinstance(result, dict):
+            return result.get("results", result.get("papers", [result]))
+        else:
+            return [result]
+    except Exception as e:
+        raise ImportError(f"{tool_name}: call failed: {e}")
 
 
 def aggregate_results(engine_results: List[EngineResult]) -> Dict:
