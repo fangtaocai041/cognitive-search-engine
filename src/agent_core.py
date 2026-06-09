@@ -99,6 +99,9 @@ class CognitiveAgent:
         self._phase_specs: dict[str, PhaseSpec] = {}
         self._load_phases(rules_path)
 
+        # Remove graph_lookup from ReAct phases (already executed as Phase 0)
+        self._phase_specs.pop("graph_lookup", None)
+
         # Phase executor (set by RuleEngine after init)
         self._phase_executor: Optional[Callable] = None
 
@@ -255,7 +258,7 @@ class CognitiveAgent:
                 unique_new = []
                 for p in new_papers:
                     p_doi = (p.get("doi", "") if isinstance(p, dict)
-                             else getattr(p, "doi", "")).lower().strip()
+                             else getattr(p, "doi", "")).lower().strip().rstrip(".")
                     if p_doi and p_doi not in all_dois:
                         unique_new.append(p)
                         all_dois.add(p_doi)

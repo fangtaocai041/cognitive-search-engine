@@ -14,6 +14,13 @@ BDI → MDP mapping:
   B_t = {papers_found, tokens_used, ig_history, phase_active}
   D   = {min_papers: 8, min_precision: 0.85, max_tokens: 50000}
   I_t = π(B_t, D)  — policy selects next phase(s) from {active phases}
+
+import sys as _sys
+from pathlib import Path
+_SRC_ROOT = str(Path(__file__).resolve().parent)
+if _SRC_ROOT not in _sys.path:
+    _sys.path.insert(0, _SRC_ROOT)
+
   B_{t+1} = update(B_t, I_t, O_t)  — observe new papers, adjust belief
 
 ReAct integration:
@@ -349,7 +356,11 @@ class WorldModel:
             ) if b.precision > 0 else 1.0
 
         # Diminishing returns detection
-        if len(b.ig_history) >= 2 and b.ig_history[-1] < 0.005:
+        # Only stall if at least 2 non-graph-lookup phases returned low IG
+        # (graph_lookup always returns 0 for cold-start species)
+        non_graph_count = sum(1 for obs in self._observation_history
+                              if obs.get("phase") != "graph_lookup")
+        if non_graph_count >= 2 and b.ig_history[-1] < 0.005:
             b.stalled = True
 
         # Error tracking

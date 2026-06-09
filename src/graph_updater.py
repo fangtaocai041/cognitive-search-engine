@@ -17,6 +17,13 @@ v2.0 — ZN/EN-aware dynamic update:
 Usage:
   from graph_updater import load_species_graph, update_species_graph
 
+import sys as _sys
+from pathlib import Path
+_SRC_ROOT = str(Path(__file__).resolve().parent)
+if _SRC_ROOT not in _sys.path:
+    _sys.path.insert(0, _SRC_ROOT)
+
+
   papers = load_species_graph("Ochetobius_elongatus")
   update_species_graph(species_id, new_papers)
 """

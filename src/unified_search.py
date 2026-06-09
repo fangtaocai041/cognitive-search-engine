@@ -765,7 +765,9 @@ def check_taxonomy(species_name: str) -> List[str]:
     for s in species_list:
         s_name = s.get("name", "").lower()
         variants = [v.lower() for v in s.get("variants", [])]
-        all_names = [s_name] + variants
+        chinese = s.get("chinese", "").lower()
+        aliases = [a.lower() for a in s.get("aliases", [])]
+        all_names = [s_name] + variants + [chinese] + aliases
 
         if name_lower in all_names:
             # 返回所有变体 (保持原始大小写)
@@ -779,17 +781,241 @@ def check_taxonomy(species_name: str) -> List[str]:
     return [species_name]
 
 
+# ═══════════════════════════════════════════════════════
+# §8 协调搜索 — 单一入口点 (coordinated_search)
+# ═══════════════════════════════════════════════════════
+
+# 江汉大学课题组作者列表
+_JHU_AUTHORS: set = {
+    "fei xiong", "熊飞",
+    "hongyan liu", "刘红艳",
+    "ying wang", "王莹",
+    "fangtao cai", "蔡方陶",
+    "dongdong zhai", "翟东东",
+    "ziyue xu", "徐子悦",
+    "ming xia", "夏明",
+    "min zhou", "周敏",
+    "wen zheng", "郑雯",
+    "yuanyuan chen", "陈媛媛", "chen yuanyuan",
+    "xinbin duan", "段辛斌",
+    "huiwu tian", "田辉伍",
+}
+
+
+@dataclass
+class CoordinatedSearchResult:
+    """协调搜索的完整输出。"""
+    species_name: str               # 原始输入名
+    scientific_name: str            # 规范学名
+    chinese_name: str               # 中文名
+    conservation: str               # 保护等级
+    all_variants: List[str] = field(default_factory=list)
+    mode: str = ""                  # exhaustive | classified | review_anchored
+    total_papers: int = 0
+    papers: List[Dict] = field(default_factory=list)
+    categories: Dict[str, List[Dict]] = field(default_factory=dict)
+    jhu_papers: List[Dict] = field(default_factory=list)
+    incidental_count: int = 0
+    engine_stats: Dict = field(default_factory=dict)
+    timeline: List[Dict] = field(default_factory=list)
+    elapsed_ms: float = 0.0
+    error: str = ""
+
     def summary(self) -> str:
         lines = [
-            f"📊 {self.species} ({self.conservation})",
-            f"模式: {self.mode.value} | 总计: {self.total}篇",
+            f"📊 {self.scientific_name} ({self.chinese_name}) [{self.conservation}]",
+            f"模式: {self.mode} | 总计: {self.total_papers}篇",
+            f"变体: {', '.join(self.all_variants[:5])}",
         ]
+        if self.jhu_papers:
+            lines.append(f"🏠 江汉大学: {len(self.jhu_papers)}篇")
         if self.incidental_count:
-            lines.append(f"附带: {self.incidental_count}篇" +
-                         (" (已纳入)" if self.mode == SearchMode.EXHAUSTIVE else " (已过滤)"))
+            lines.append(f"📎 附带: {self.incidental_count}篇")
+        if self.engine_stats:
+            ok = self.engine_stats.get("ok", 0)
+            total = sum(self.engine_stats.values())
+            lines.append(f"🔍 引擎: {ok}/{total} OK ({self.elapsed_ms:.0f}ms)")
         lines.append("")
         for cat, papers in self.categories.items():
             if papers:
-                latest = max(p.get("year", 0) for p in papers)
-                lines.append(f"  {cat}: {len(papers)}篇 (最新: {latest})")
+                latest = max((p.get("year", 0) for p in papers), default=0)
+                jhu_in_cat = sum(1 for p in papers if p.get("_is_jhu"))
+                tag = f" 🏠x{jhu_in_cat}" if jhu_in_cat else ""
+                lines.append(f"  {cat}: {len(papers)}篇 (最新: {latest}){tag}")
+        if self.error:
+            lines.append(f"\n⚠️ {self.error}")
         return "\n".join(lines)
+
+
+def _load_species_info(species_name: str) -> dict:
+    """从 species_graph.yaml 加载物种元数据。"""
+    import yaml
+    from pathlib import Path
+    config = Path(__file__).resolve().parent.parent / "config" / "species_graph.yaml"
+    if not config.exists():
+        return {"conservation": "DD", "chinese": "", "genus": "", "family": ""}
+    with open(config) as f:
+        graph = yaml.safe_load(f)
+    name_lower = species_name.lower()
+    for s in graph.get("graph", {}).get("species", []):
+        s_name = s.get("name", "").lower()
+        variants = [v.lower() for v in s.get("variants", [])]
+        chinese = s.get("chinese", "").lower()
+        aliases = [a.lower() for a in s.get("aliases", [])]
+        if name_lower in [s_name] + variants + [chinese] + aliases:
+            return {
+                "conservation": s.get("conservation", "DD"),
+                "chinese": s.get("chinese", ""),
+                "genus": s.get("genus", ""),
+                "family": s.get("family", ""),
+                "note": s.get("note", ""),
+            }
+    return {"conservation": "DD", "chinese": "", "genus": "", "family": ""}
+
+
+def _is_jhu_paper(paper: Dict) -> bool:
+    """检查论文是否包含江汉大学课题组成员。"""
+    authors = paper.get("authors", [])
+    for a in authors:
+        name = ""
+        if isinstance(a, dict):
+            name = (a.get("name") or "").strip().lower()
+        elif isinstance(a, str):
+            name = a.strip().lower()
+        if name and name in _JHU_AUTHORS:
+            return True
+    # 同时检查 title/authors 字符串字段
+    text = (
+        (paper.get("title") or "") + " " +
+        (paper.get("authorString") or paper.get("authors_string") or "")
+    ).lower()
+    for author in _JHU_AUTHORS:
+        if author in text:
+            return True
+    return False
+
+
+def coordinated_search(
+    species_name: str,
+    group: str = "standard",
+    limit: int = 10,
+    on_result: callable = None,
+) -> CoordinatedSearchResult:
+    """
+    coordinated_search(species_name, group="standard") → CoordinatedSearchResult
+
+    单一入口点 — 整合所有搜索规则，在本会话内直接调用 MCP 工具。
+
+    管线:
+      1. check_taxonomy(name) → 所有有效学名+变体 (含中文名支持)
+      2. _load_species_info() → 保护等级/中文名/分类
+      3. estimate_mode() → 自适应搜索模式决策
+      4. search_streaming() → 多引擎并行搜索 (MCP in-session)
+      5. aggregate_results() → DOI去重 + 时间线
+      6. classify_paper() + cn_en_label() + _is_jhu_paper()
+      7. 江汉大学论文优先排序
+      8. 返回 CoordinatedSearchResult
+
+    用法:
+      result = coordinated_search("珠星三块鱼")  # 中文名 → 自动转 Pseudaspius hakonensis
+      result = coordinated_search("鳤")           # 中文名 → Ochetobius elongatus
+      print(result.summary())
+    """
+    import time
+    t0 = time.perf_counter()
+
+    # ── Step 1: 分类学变更检查 ──
+    try:
+        variants = check_taxonomy(species_name)
+    except Exception as e:
+        # 离线兜底: 直接用 YAML 解析
+        variants = [species_name]
+    if not variants:
+        variants = [species_name]
+
+    scientific_name = variants[0]  # 规范学名始终排第一
+
+    # ── Step 2: 物种元数据 ──
+    info = _load_species_info(scientific_name)
+    conservation = info.get("conservation", "DD")
+    chinese_name = info.get("chinese", "")
+
+    # ── Step 3: 自适应模式决策 ──
+    # 粗略估计文献量 (实际会在搜索后校准)
+    estimated_volume = 50  # 默认
+    decision = estimate_mode(scientific_name, conservation, estimated_volume)
+
+    # ── Step 4: 多引擎并行搜索 (本会话内) ──
+    all_queries = list(variants[:3])  # 最多3个学名变体
+    if chinese_name:
+        all_queries.append(chinese_name)
+
+    engine_results = search_streaming(
+        queries=all_queries,
+        group=group,
+        limit=limit,
+        on_result=on_result,
+    )
+
+    # ── Step 5: 合并 + 去重 ──
+    merged = aggregate_results(engine_results)
+    all_papers = merged.get("papers", [])
+    engine_stats = merged.get("stats", {})
+    timeline = merged.get("timeline", [])
+
+    # ── Step 6: 后处理 (分类 + CN/EN + JHU) ──
+    categories: Dict[str, List[Dict]] = {}
+    jhu_papers = []
+    incidental_count = 0
+
+    for p in all_papers:
+        # CN/EN 通道标注
+        channel, cred = cn_en_label(p)
+        p["_channel"] = channel
+        p["_credibility_bonus"] = cred
+
+        # 学科分类
+        cat = classify_paper(p).value
+        p["_category"] = cat
+
+        # 附带判定
+        is_inc, reason = is_incidental(p)
+        p["_is_incidental"] = is_inc
+        p["_incidental_reason"] = reason
+        if is_inc:
+            incidental_count += 1
+
+        # 江汉大学标记
+        p["_is_jhu"] = _is_jhu_paper(p)
+        if p["_is_jhu"]:
+            jhu_papers.append(p)
+
+        # 分类索引
+        if cat not in categories:
+            categories[cat] = []
+        categories[cat].append(p)
+
+    # ── Step 7: 排序 (JHU优先) ──
+    jhu_dois = {p.get("doi", "") for p in jhu_papers}
+    jhu_list = [p for p in all_papers if p.get("doi", "") in jhu_dois]
+    other_list = [p for p in all_papers if p.get("doi", "") not in jhu_dois]
+    sorted_papers = jhu_list + other_list
+
+    elapsed = (time.perf_counter() - t0) * 1000
+
+    return CoordinatedSearchResult(
+        species_name=species_name,
+        scientific_name=scientific_name,
+        chinese_name=chinese_name,
+        conservation=conservation,
+        all_variants=variants,
+        mode=decision.mode.value,
+        total_papers=len(sorted_papers),
+        papers=sorted_papers,
+        categories=categories,
+        jhu_papers=jhu_list,
+        incidental_count=incidental_count,
+        engine_stats=engine_stats,
+        timeline=timeline,
+        elapsed_ms=elapsed,
+    )

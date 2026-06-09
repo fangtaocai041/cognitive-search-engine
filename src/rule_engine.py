@@ -14,10 +14,20 @@ Usage:
 """
 
 import json
+import logging
+import urllib.request
 import re
 import statistics
 from dataclasses import dataclass, field
 from pathlib import Path
+import sys as _sys
+# Ensure engine root is on sys.path so 'from src.xxx' imports work
+_ENGINE_ROOT = str(Path(__file__).resolve().parent.parent)
+if _ENGINE_ROOT not in _sys.path:
+    _sys.path.insert(0, _ENGINE_ROOT)
+
+logger = logging.getLogger("rule_engine")
+
 from typing import Any, Optional
 from urllib.parse import quote_plus
 
@@ -76,7 +86,12 @@ class Paper:
 
     @property
     def doi_key(self) -> str:
-        return self.doi.lower().strip() if self.doi else self.title.lower().strip()[:80]
+        """Normalized DOI or title-based fallback key for dedup."""
+        if self.doi:
+            doi = self.doi.lower().strip().rstrip(".")
+            doi = doi.replace("https://doi.org/", "").replace("http://doi.org/", "")
+            return doi if doi else self.title.lower().strip()[:80]
+        return self.title.lower().strip()[:80]
 
 
 # ──── Phase Function Registry ────
@@ -103,11 +118,17 @@ class SearchRuleEngine:
       mode="mock"   → return deterministic test data (no network)
     """
 
-    def __init__(self, config_path: str = "config/search_rules.yaml",
-                 mode: str = "http", record_dir: str = "search_records",
+    def __init__(self, config_path=None,
+                 mode: str = "http", record_dir=None,
                  use_react: bool = True):
         if yaml is None:
             raise ImportError("PyYAML required: pip install pyyaml")
+        # Resolve paths relative to engine root
+        _engine_root = Path(__file__).resolve().parent.parent
+        if config_path is None:
+            config_path = str(_engine_root / "config" / "search_rules.yaml")
+        if record_dir is None:
+            record_dir = str(_engine_root / "search_records")
         with open(config_path, encoding="utf-8") as f:
             self.rules = yaml.safe_load(f)
         self.phases = self.rules["phases"]
@@ -127,6 +148,7 @@ class SearchRuleEngine:
         self._tokens_spent: int = 0
         self._consecutive_zero: int = 0
         self._ig_history: list[float] = []  # info gain per phase
+        self._search_errors: list[str] = []  # visible error log
 
         # D₃ World Model
         self._world_model = WorldModel() if WorldModel else None
@@ -563,20 +585,16 @@ class SearchRuleEngine:
     def _http_search(self, query: str, tools: list[str], n: int) -> list[Paper]:
         """HTTP-mode: call PubMed E-utilities, Crossref, OpenAlex directly."""
         papers = []
-        # PubMed via NCBI E-utilities
+        # PubMed via NCBI E-utilities (free, no API key)
         try:
-            import urllib.request
-            import urllib.parse
-            # ESearch
+            from urllib.parse import quote as _q
             esearch_url = (
                 f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?"
-                f"db=pubmed&term={quote_plus(query)}&retmax={n}&retmode=json"
+                f"db=pubmed&term={_q(query)}&retmax={n}&retmode=json"
             )
             with urllib.request.urlopen(esearch_url, timeout=15) as resp:
                 esearch_data = json.loads(resp.read())
             id_list = esearch_data.get("esearchresult", {}).get("idlist", [])
-
-            # EFetch if IDs found
             if id_list:
                 ids = ",".join(id_list[:n])
                 efetch_url = (
@@ -584,21 +602,48 @@ class SearchRuleEngine:
                     f"db=pubmed&id={ids}&retmode=xml"
                 )
                 papers.extend(self._parse_pubmed_xml(efetch_url))
-        except Exception:
-            pass
+            logger.info(f"PubMed: {len(id_list)} hits for '{query}'")
+        except Exception as exc:
+            logger.warning(f"PubMed failed for '{query}': {exc}")
+            self._search_errors.append(f"PubMed({query}): {exc}")
 
-        # Crossref
+        # Crossref (free, 50 req/s without key)
         try:
-            import urllib.request
-            cr_url = f"https://api.crossref.org/works?query={quote_plus(query)}&rows={n}"
+            from urllib.parse import quote as _q
+            cr_url = f"https://api.crossref.org/works?query={_q(query)}&rows={n}"
             with urllib.request.urlopen(cr_url, timeout=15) as resp:
                 cr_data = json.loads(resp.read())
-            for item in cr_data.get("message", {}).get("items", []):
+            items = cr_data.get("message", {}).get("items", [])
+            for item in items:
                 paper = self._crossref_to_paper(item)
                 if paper:
                     papers.append(paper)
-        except Exception:
-            pass
+            logger.info(f"Crossref: {len(items)} items for '{query}'")
+        except Exception as exc:
+            logger.warning(f"Crossref failed for '{query}': {exc}")
+            self._search_errors.append(f"Crossref({query}): {exc}")
+
+        # OpenAlex (free tier, no key, mailto for polite pool)
+        try:
+            from urllib.parse import quote as _q
+            oa_query = _q(query, safe='')
+            oa_url = f"https://api.openalex.org/works?search={oa_query}&per_page={min(n, 50)}"
+            req = urllib.request.Request(oa_url, headers={
+                "User-Agent": "mailto:cognitive-search-engine@reasonix.local",
+                "Accept": "application/json",
+            })
+            import urllib.request as _ur_req
+            with _ur_req.urlopen(req, timeout=15) as resp:
+                oa_data = json.loads(resp.read())
+            results = oa_data.get("results", [])
+            for item in results:
+                paper = self._openalex_to_paper(item)
+                if paper:
+                    papers.append(paper)
+            logger.info(f"OpenAlex: {len(results)} results for '{query}'")
+        except Exception as exc:
+            logger.warning(f"OpenAlex failed for '{query}': {exc}")
+            self._search_errors.append(f"OpenAlex({query}): {exc}")
 
         return papers
 
@@ -658,41 +703,44 @@ class SearchRuleEngine:
         try:
             from src.graph_updater import load_species_graph
             return load_species_graph(species_id)
-        except ImportError:
-            pass
+        except ImportError as exc:
+            logger.debug(f"graph_updater not available: {exc}")
 
-        # Fallback: direct YAML read — collect ALL matching papers
+        # Fallback: resolve path relative to engine root — collect ALL matching papers
         papers = []
         try:
-            graph_path = Path("config/species_graph.yaml")
+            _root = Path(__file__).resolve().parent.parent
+            graph_path = _root / "config" / "species_graph.yaml"
             if graph_path.exists():
                 with open(graph_path) as f:
                     graph = yaml.safe_load(f)
                 for p in graph.get("graph", {}).get("papers", []):
                     if species_id in p.get("species", []):
                         papers.append(p)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(f"Graph load failed: {exc}")
         return papers
 
     def _get_chinese_name(self, species_id: str) -> str:
         """Get Chinese name from species_graph.yaml."""
         try:
-            graph_path = Path("config/species_graph.yaml")
+            _root = Path(__file__).resolve().parent.parent
+            graph_path = _root / "config" / "species_graph.yaml"
             if graph_path.exists():
                 with open(graph_path) as f:
                     graph = yaml.safe_load(f)
                 for s in graph.get("graph", {}).get("species", []):
                     if s["id"] == species_id:
                         return s.get("chinese", "")
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(f"getName failed: {exc}")
         return ""
 
     def _get_variants(self, species_id: str) -> list[str]:
         """Get known spelling variants from graph."""
         try:
-            graph_path = Path("config/species_graph.yaml")
+            _root = Path(__file__).resolve().parent.parent
+            graph_path = _root / "config" / "species_graph.yaml"
             if graph_path.exists():
                 with open(graph_path) as f:
                     graph = yaml.safe_load(f)
@@ -706,7 +754,8 @@ class SearchRuleEngine:
     def _get_journals(self, species_id: str) -> list[str]:
         """Get target journals from graph."""
         try:
-            graph_path = Path("config/species_graph.yaml")
+            _root = Path(__file__).resolve().parent.parent
+            graph_path = _root / "config" / "species_graph.yaml"
             if graph_path.exists():
                 with open(graph_path) as f:
                     graph = yaml.safe_load(f)
@@ -730,22 +779,40 @@ class SearchRuleEngine:
                 existing_dois.add(p.doi_key)
 
     def _deduplicate(self, papers: list[Paper]) -> list[Paper]:
-        """Deduplicate by DOI (primary) and title similarity (secondary)."""
+        """Deduplicate by DOI (primary) and normalized title (secondary).
+
+        DOI normalization: strip trailing dots, lowercase.
+        Title normalization: strip trailing dots/HTML, squash whitespace,
+        first 80 chars after normalization.
+        """
         seen_dois: set[str] = set()
         seen_titles: set[str] = set()
         unique: list[Paper] = []
 
         for p in papers:
-            key = p.doi_key
-            title_key = (p.title or "").lower().strip()[:80]
+            # DOI key
+            raw_doi = (p.doi or "").lower().strip().rstrip(".")
+            key = raw_doi if raw_doi else ""
+            # Title key: normalize aggressively
+            raw_title = (p.title or "").lower().strip()
+            # Remove HTML entities and trailing punctuation
+            raw_title = raw_title.replace("&lt;i&gt;", "").replace("&lt;/i&gt;", "")
+            raw_title = raw_title.replace("<i>", "").replace("</i>", "")
+            raw_title = raw_title.rstrip(".").strip()
+            # Squash multiple spaces
+            while "  " in raw_title:
+                raw_title = raw_title.replace("  ", " ")
+            title_key = raw_title[:80]
 
-            if key and key not in seen_dois:
+            if key and key in seen_dois:
+                continue
+            if not key and title_key in seen_titles:
+                continue
+
+            if key:
                 seen_dois.add(key)
-                seen_titles.add(hash(title_key))
-                unique.append(p)
-            elif not key and hash(title_key) not in seen_titles:
-                seen_titles.add(hash(title_key))
-                unique.append(p)
+            seen_titles.add(title_key)
+            unique.append(p)
 
         return unique
 
@@ -790,7 +857,8 @@ class SearchRuleEngine:
     def _get_all_known_authors(self) -> list[str]:
         """Get all known authors from graph."""
         try:
-            graph_path = Path("config/species_graph.yaml")
+            _root = Path(__file__).resolve().parent.parent
+            graph_path = _root / "config" / "species_graph.yaml"
             if graph_path.exists():
                 with open(graph_path) as f:
                     graph = yaml.safe_load(f)
@@ -802,7 +870,8 @@ class SearchRuleEngine:
     def _get_all_known_journals(self) -> list[str]:
         """Get all known journals from graph."""
         try:
-            graph_path = Path("config/species_graph.yaml")
+            _root = Path(__file__).resolve().parent.parent
+            graph_path = _root / "config" / "species_graph.yaml"
             if graph_path.exists():
                 with open(graph_path) as f:
                     graph = yaml.safe_load(f)
@@ -863,7 +932,16 @@ class SearchRuleEngine:
         Wires the rule_engine's phase executor into the agent,
         so that Think→Act→Observe→Reflect uses the same handlers.
         """
-        from src.agent_core import CognitiveAgent
+        # Resolve import relative to engine file location
+        import importlib.util as _iu
+        _agent_path = Path(__file__).resolve().parent / "agent_core.py"
+        _spec = _iu.spec_from_file_location("cogsearch.agent", str(_agent_path))
+        if _spec and _spec.loader:
+            _mod = _iu.module_from_spec(_spec)
+            _spec.loader.exec_module(_mod)
+            CognitiveAgent = _mod.CognitiveAgent
+        else:
+            raise ImportError(f"agent_core.py not found at {_agent_path}")
 
         agent = self._get_agent()
 
@@ -936,13 +1014,17 @@ class SearchRuleEngine:
         """Lazy-init the CognitiveAgent with phase specs from search_rules."""
         if self._agent is None:
             from src.agent_core import CognitiveAgent
-            self._agent = CognitiveAgent(mode=self.mode)
+            _rules_path = str(Path(__file__).resolve().parent.parent / "config" / "search_rules.yaml")
+            self._agent = CognitiveAgent(mode=self.mode, rules_path=_rules_path)
         return self._agent
 
     # ── Helpers ──
 
-    def _dict_to_paper(self, d: dict) -> Paper:
+    def _dict_to_paper(self, d) -> Paper:
         """Convert a species_graph.yaml paper dict to a Paper object."""
+        # Normalize: Paper dataclass -> dict
+        if not isinstance(d, dict):
+            d = d.__dict__ if hasattr(d, "__dataclass_fields__") else {}
         return Paper(
             doi=d.get("doi", ""),
             title=d.get("title", ""),
@@ -963,35 +1045,63 @@ class SearchRuleEngine:
 
     def _matches_species_context(self, paper: Paper, ctx: dict,
                                   genus: str, species: str) -> bool:
-        """Returns True if paper is plausibly about the target species.
+        """Check if paper is plausibly about the target species.
 
-        Checks: title contains genus, OR title contains Chinese name,
-        OR title contains a species-level keyword from known variants.
-        This prevents false matches like 'Colydium elongatum' when
-        searching for Ochetobius elongatus.
+        Three-tier filter:
+          Tier 1 — Reject: unrelated taxa sharing the epithet
+          Tier 2 — Strong accept: genus+species in title or Chinese name
+          Tier 3 — Weak accept: species epithet + fish/biological context
         """
-        title_lower = (paper.title or "").lower()
+        title_raw = paper.title or ""
+        title_lower = title_raw.lower()
         genus_lower = genus.lower()
+        sp_lower = species.lower()
         chinese = ctx.get("chinese_name", "")
+        chinese_alt = ctx.get("chinese_alt", [])
+        if isinstance(chinese_alt, str):
+            chinese_alt = [chinese_alt]
 
-        # Genus match (strongest signal)
+        # ── Tier 1: Reject unrelated taxa that share the epithet ──
+        reject_taxa = [
+            "sulfolobus", "metallosphaera", "antrocephalus", "gryon",
+        ]
+        for rt in reject_taxa:
+            if rt in title_lower[:80]:
+                return False
+
+        # ── Tier 2: Strong accept ──
+        # Full binomial in title
+        binomial = f"{genus_lower} {sp_lower}"
+        if binomial in title_lower:
+            return True
+        # Genus match (strongest single signal)
         if genus_lower in title_lower:
             return True
         # Chinese name match
-        if chinese and chinese in (paper.title or ""):
+        if chinese and chinese in title_raw:
             return True
-        # Species-only match: require additional biological context
-        sp_lower = species.lower()
+        for cn in chinese_alt:
+            if cn and cn in title_raw:
+                return True
+
+        # ── Tier 3: Species epithet + biological context ──
         if sp_lower in title_lower:
-            bio_keywords = [
-                "fish", "cyprinid", "pisces", "freshwater",
+            bio_kw = [
+                "fish", "cyprinid", "dace", "redfin", "pisces",
+                "freshwater", "anadromous", "teleost", "cypriniformes",
                 "genetic", "genome", "morpholog", "phenotyp",
                 "conservation", "endangered", "population",
                 "mitochondrial", "dna", "sequence",
-                "river", "lake", "yangtze", "pearl river",
+                "river", "lake", "yangtze", "sea of japan",
+                "spawning", "migration", "otolith",
             ]
-            if any(kw in title_lower for kw in bio_keywords):
+            if any(kw in title_lower for kw in bio_kw):
                 return True
+            # Also check first 200 chars of abstract
+            abstract = (paper.abstract or "")[:200].lower()
+            if any(kw in abstract for kw in bio_kw):
+                return True
+
         return False
 
     def _augment_papers_from_graph(self, papers: list[Paper]) -> list[Paper]:
@@ -1002,7 +1112,8 @@ class SearchRuleEngine:
         """
         graph_papers = {}
         try:
-            graph_path = Path("config/species_graph.yaml")
+            _root = Path(__file__).resolve().parent.parent
+            graph_path = _root / "config" / "species_graph.yaml"
             if graph_path.exists():
                 with open(graph_path) as f:
                     graph = yaml.safe_load(f)
@@ -1152,6 +1263,46 @@ class SearchRuleEngine:
         except Exception:
             return None
 
+
+    def _openalex_to_paper(self, item: dict) -> Optional[Paper]:
+        """Convert OpenAlex API response item to Paper."""
+        try:
+            doi = item.get("doi", "") or ""
+            doi = doi.replace("https://doi.org/", "").strip()
+            title = item.get("title", "")
+            publication_date = item.get("publication_date", "")
+            year = int(publication_date[:4]) if publication_date else None
+            # Authors
+            authors = []
+            for a in item.get("authorships", []):
+                author_obj = a.get("author", {})
+                name = author_obj.get("display_name", "")
+                if name:
+                    authors.append(name)
+            # Journal/venue
+            journal = ""
+            primary_location = item.get("primary_location", {})
+            source = primary_location.get("source", {})
+            journal = source.get("display_name", "") if source else ""
+            if not journal:
+                host = item.get("host_venue", {})
+                journal = host.get("display_name", "") if host else ""
+            # Citations
+            citations = item.get("cited_by_count", 0) or 0
+            return Paper(
+                doi=doi,
+                title=title or "",
+                year=year,
+                journal=journal,
+                authors=authors,
+                citations=citations,
+                source="openalex",
+                trust="tentative",
+                trust_score=70,
+            )
+        except Exception:
+            return None
+
     def _parse_pubmed_xml(self, url: str) -> list[Paper]:
         """Parse PubMed EFetch XML response."""
         papers = []
@@ -1188,20 +1339,37 @@ class SearchRuleEngine:
                     # Year
                     year_el = article_data.find(".//Journal/JournalIssue/PubDate/Year")
                     year = int(year_el.text) if year_el is not None else None
-                    # DOI (from ArticleIdList)
+                    # DOI (from ArticleIdList) — handle namespaced XML
                     doi = ""
+                    # Try both namespaced and plain searches
                     id_list = article.findall(".//ArticleId")
+                    if not id_list:
+                        id_list = article.findall(".//{http://www.ncbi.nlm.nih.gov}ArticleId")
+                    if not id_list:
+                        id_list = article.findall(".//*[local-name()='ArticleId']")
                     for aid in id_list:
-                        if aid.get("IdType") == "doi":
+                        idtype = aid.get("IdType") or aid.get("{http://www.w3.org/1999/xlink}IdType")
+                        if idtype == "doi":
                             doi = aid.text or ""
+                            break
+                    # Fallback: ELocationID
+                    if not doi:
+                        eloc_list = article.findall(".//ELocationID")
+                        if not eloc_list:
+                            eloc_list = article.findall(".//*[local-name()='ELocationID']")
+                        for eloc in eloc_list:
+                            if (eloc.get("EIdType") or eloc.get("EidType", "")
+                                ) in ("doi", "DOI"):
+                                doi = eloc.text or ""
+                                break
                     papers.append(Paper(
                         doi=doi, title=title, year=year, journal=journal,
                         authors=authors, pmid=pmid, source="pubmed",
                     ))
                 except Exception:
                     continue
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(f"Graph load failed: {exc}")
         return papers
 
     def _save_record(self, species_id: str, result: dict):

@@ -6,6 +6,13 @@ Reads per-project evolution.yaml configs, evaluates trigger conditions,
 and writes back adapted parameters.
 
 Triggers (from THREE_PROJECTS_EVOLUTION.md §5.1):
+
+import sys as _sys
+from pathlib import Path
+_SRC_ROOT = str(Path(__file__).resolve().parent)
+if _SRC_ROOT not in _sys.path:
+    _sys.path.insert(0, _SRC_ROOT)
+
   T1: pipeline_failure     — single pipeline success rate < 60%
   T2: contradiction        — triangulation contradiction rate > 30%
   T3: emergence_noise      — new paper emergence rate > 20%

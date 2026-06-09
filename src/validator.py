@@ -2,6 +2,13 @@
 Validator — Independent verification engine for cognitive-search-engine.
 
 Extracted from rule_engine.py (Step 2 of architecture refactoring).
+
+import sys as _sys
+from pathlib import Path
+_SRC_ROOT = str(Path(__file__).resolve().parent)
+if _SRC_ROOT not in _sys.path:
+    _sys.path.insert(0, _SRC_ROOT)
+
 Provides:
   1. trust_score()           — 5-level trust scoring (from rule_engine._trust_score)
   2. credibility_score()     — Full authority scoring with SCI/CSCD/preprint detection

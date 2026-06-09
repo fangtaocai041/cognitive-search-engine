@@ -301,6 +301,9 @@ class GraphMemory:
     def add_paper(self, paper: dict, species_id: str) -> bool:
         """Add a single paper to the graph.  Returns True if new."""
         self.ensure_loaded()
+        # Normalize Paper dataclass to dict
+        if not isinstance(paper, dict):
+            paper = paper.__dict__ if hasattr(paper, "__dataclass_fields__") else dict(paper)
         doi = (paper.get("doi", "") or "").lower().strip()
         if not doi or doi in self._paper_index:
             return False

@@ -17,6 +17,13 @@ Post-Search Inference Engine — P3: 推理增强检索
 
 Usage:
     from src.inference_engine import InferenceEngine
+
+import sys as _sys
+from pathlib import Path
+_SRC_ROOT = str(Path(__file__).resolve().parent)
+if _SRC_ROOT not in _sys.path:
+    _sys.path.insert(0, _SRC_ROOT)
+
     ie = InferenceEngine()
     enriched = ie.infer(papers, species_id="Ochetobius_elongatus")
 """

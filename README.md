@@ -45,11 +45,11 @@
 
 ## 🗄️ v5.4: Living Database Catalog & Graph Router
 
-> **61 databases · 8 domains · 4 tiers · self-evolving weights · tendril health awareness**
+> **65 databases · 8 domains · 4 tiers · self-evolving weights · tendril health awareness**
 
 | Feature | Description | Module |
 |:--------|:------------|:-------|
-| **Database Catalog** | 61 databases across 8 domains, 4 tiers (general→specialized→institutional→raw data) | `config/database_catalog.yaml` |
+| **Database Catalog** | 65 databases across 8 domains, 4 tiers (general→specialized→institutional→raw data) | `config/database_catalog.yaml` |
 | **Intent Detection** | `detect_intent(query)` → {literature \| data \| thesis \| comprehensive} | `catalog_loader.py` |
 | **Graph Router** | `graph_route(query, health_aware=True)` — weighted topology + tendril health + complementarity | `catalog_loader.py` |
 | **Progressive Search** | Tier 1 first → expandable Tier 2/3/4 — SM-2 retreat when satisficed | `catalog_loader.py` |
@@ -416,7 +416,7 @@ cognitive-search-engine/
 │   ├── stv_protocol.yaml         ← Cross-project STV triangle protocol
 │   └── tools.json                ← JSON Schema: DeepSeek+Gemini+OpenAI tools
 │
-├── src/                          ← 15 modules (5-layer cognitive agent)
+├── src/                          ← 18 modules (5-layer cognitive agent)
 │   ├── adapter.py                ← 🔌 CognitiveSearchAdapter — DirectLoader entry
 │   ├── agent_core.py             ← 🧠 CognitiveAgent — BDI + ReAct loop
 │   ├── catalog_loader.py         ← 🗄️ DB catalog + graph router + emergence
@@ -429,6 +429,8 @@ cognitive-search-engine/
 │   ├── paper_health_check.py     ← 💓 Paper validity health checker
 │   ├── parallel_search.py        ← ⚡ Multi-query parallel executor
 │   ├── rule_engine.py            ← ⚙️  SearchRuleEngine — phases + execution
+│   ├── search_coordinator.py     ← 🔀 SearchCoordinator — multi-engine orchestration
+│   ├── unified_search.py         ← 🧬 UnifiedSearchProtocol — adaptive + CN/EN dual-channel
 │   ├── validator.py              ← ✅ Cross-project independence validator
 │   ├── variant_generator.py      ← 🔤 OCR variant auto-generation
 │   └── world_model.py            ← 🧬 BDI WorldModel — Belief/Desire/Intention
