@@ -21,6 +21,8 @@ Usage:
 
 import json
 import logging
+import os
+import re
 import subprocess
 import sys
 import threading
@@ -58,8 +60,11 @@ class McpClient:
     process on first call and reuses it (process stays alive for the session).
     """
 
-    def __init__(self, config_path: str = "config/mcp_servers.yaml",
+    def __init__(self, config_path: str = None,
                  prewarm: bool = True):
+        if config_path is None:
+            # 默认相对 mcp_client.py 所在路径
+            config_path = str(Path(__file__).resolve().parent.parent / "config" / "mcp_servers.yaml")
         self._config_path = Path(config_path)
         self._servers: dict[str, dict] = {}
         self._processes: dict[str, subprocess.Popen] = {}
@@ -67,7 +72,9 @@ class McpClient:
         self._healthy_servers: set[str] = set()   # 已通过健康检查的
         self._prewarm_done: bool = False
         self._logger = logging.getLogger("mcp_client")
+        self._env_cache: dict[str, str] = {}       # 从 .env 加载的密钥
         self._load_config()
+        self._load_dotenv()                         # 加载 .env 密钥
 
         # 后台预热: 不阻塞 __init__, 首次 call_tool 前自动完成
         if prewarm and self._servers:
@@ -146,6 +153,7 @@ class McpClient:
                     self._servers[name] = {
                         "command": server.get("command", "npx"),
                         "args": server.get("args", []),
+                        "env": server.get("env", {}),
                     }
         except Exception:
             pass
@@ -164,6 +172,66 @@ class McpClient:
             "tavily_tavily_search": "tavily",
             "exa_web_search_exa": "exa",
         }
+
+    def _load_dotenv(self, dotenv_path: str = None):
+        """加载 .env 文件到 _env_cache。
+
+        搜索路径优先级：
+          1. 显式传入 path
+          2. 引擎根目录 .env
+          3. 工作空间根目录 .env
+        """
+        candidates = []
+        if dotenv_path:
+            candidates.append(Path(dotenv_path))
+        # 引擎根: mcp_client.py 的上上层
+        candidates.append(Path(__file__).resolve().parent.parent / ".env")
+        # 工作空间根
+        candidates.append(Path(__file__).resolve().parent.parent.parent / ".env")
+
+        for path in candidates:
+            if path and path.exists():
+                try:
+                    with open(path, encoding="utf-8") as f:
+                        for line in f:
+                            line = line.strip()
+                            if not line or line.startswith("#") or "=" not in line:
+                                continue
+                            key, _, val = line.partition("=")
+                            key = key.strip()
+                            val = val.strip().strip("\"'").strip()
+                            if key:
+                                self._env_cache[key] = val
+                    self._logger.info(f"Loaded {len(self._env_cache)} env vars from {path}")
+                    return
+                except Exception as e:
+                    self._logger.warning(f"Failed to load {path}: {e}")
+        self._logger.info("No .env found, using system env only")
+
+    def _resolve_env(self, server_name: str) -> dict:
+        """解析 MCP 服务器需要的环境变量。
+
+        从 _env_cache (+ os.environ) 中读取
+        mcp_servers.yaml 中声明的 env 字段。
+        """
+        server = self._servers.get(server_name, {})
+        declared = server.get("env", {})
+        resolved = dict(os.environ)  # 继承父进程全部环境变量
+        for key, template in declared.items():
+            # 支持 ${VAR} 和 $VAR 两种语法
+            match = re.match(r"\$\{?(\w+)\}?", str(template))
+            if match:
+                var_name = match.group(1)
+                # 优先 .env_cache，其次 os.environ
+                val = self._env_cache.get(var_name)
+                if not val:
+                    val = os.environ.get(var_name)
+                if val:
+                    resolved[key] = val
+                    self._logger.info(f"MCP {server_name}: {key}={val[:12]}...")
+                else:
+                    self._logger.warning(f"MCP {server_name}: {var_name} not found in .env or os.environ (cache keys: {list(self._env_cache.keys())[:5]})")
+        return resolved
 
     def call_tool(self, tool_name: str, args: dict) -> list[dict]:
         """Call an MCP tool and return the parsed result list.
@@ -325,6 +393,7 @@ class McpClient:
             del self._processes[server_name]
 
         server = self._servers[server_name]
+        server_env = self._resolve_env(server_name)
         deadline = time.monotonic() + retry_max_s
         last_error = None
 
@@ -339,6 +408,7 @@ class McpClient:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=False,  # binary mode for JSON-RPC
+                    env=server_env,
                 )
                 self._processes[server_name] = proc
                 return proc

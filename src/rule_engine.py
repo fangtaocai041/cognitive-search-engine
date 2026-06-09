@@ -1085,13 +1085,16 @@ class SearchRuleEngine:
         Wires the rule_engine's phase executor into the agent,
         so that Think→Act→Observe→Reflect uses the same handlers.
         """
-        # importlib with correct module name 'src.agent_core'
-        # so 'from src.world_model' inside agent_core.py resolves correctly
+        # importlib with unique module name to avoid 'src' package conflicts
+        # (porpoise-agent/src/ and coilia-agent/src/ also have __init__.py)
         import importlib.util as _iu
+        import sys as _sys2
         _agent_path = Path(__file__).resolve().parent / "agent_core.py"
-        _spec = _iu.spec_from_file_location("src.agent_core", str(_agent_path))
+        _mod_name = f"cognitive.agent_core.{id(self)}"
+        _spec = _iu.spec_from_file_location(_mod_name, str(_agent_path))
         if _spec and _spec.loader:
             _mod = _iu.module_from_spec(_spec)
+            _sys2.modules[_mod_name] = _mod
             _spec.loader.exec_module(_mod)
             CognitiveAgent = _mod.CognitiveAgent
         else:
@@ -1167,12 +1170,15 @@ class SearchRuleEngine:
     def _get_agent(self):
         """Lazy-init the CognitiveAgent with phase specs from search_rules."""
         if self._agent is None:
-            # importlib with correct module name, same as _execute_react
+            # importlib with unique module name (same as _execute_react)
             import importlib.util as _iu
+            import sys as _sys2
             _agent_path = Path(__file__).resolve().parent / "agent_core.py"
-            _spec = _iu.spec_from_file_location("src.agent_core", str(_agent_path))
+            _mod_name = f"cognitive.agent_core.{id(self)}"
+            _spec = _iu.spec_from_file_location(_mod_name, str(_agent_path))
             if _spec and _spec.loader:
                 _mod = _iu.module_from_spec(_spec)
+                _sys2.modules[_mod_name] = _mod
                 _spec.loader.exec_module(_mod)
                 CognitiveAgent = _mod.CognitiveAgent
             else:

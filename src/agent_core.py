@@ -39,35 +39,42 @@ from typing import Any, Callable, Optional
 
 import sys as _sys
 from pathlib import Path
-# Add to sys.path so 'from src.xxx' imports work in all loading contexts
+# Force our src/ to be found first (avoid porpoise-agent/src/ conflict)
 _PROJ_ROOT = str(Path(__file__).resolve().parent.parent)
-if _PROJ_ROOT not in _sys.path:
-    _sys.path.insert(0, _PROJ_ROOT)
+if _PROJ_ROOT in _sys.path:
+    _sys.path.remove(_PROJ_ROOT)
+_sys.path.insert(0, _PROJ_ROOT)
 
 try:
     import yaml
 except ImportError:
     yaml = None
 
-# Conditional imports (same pattern as meso_agent.py)
-try:
-    from src.world_model import WorldModel, Belief, Desire, Intention
-except ImportError:
-    # Fallback: define stub types when loaded via importlib with altered sys.modules
-    from dataclasses import dataclass
-    @dataclass
-    class Belief: content: str = ""
-    @dataclass
-    class Desire: target: str = ""
-    @dataclass
-    class Intention: plan: list = None
-    class WorldModel: pass
+# Absolute path import — avoids 'src' package name collision with porpoise-agent/src/
+import importlib.util as _iu
+_wm_path = str(Path(__file__).resolve().parent / "world_model.py")
+_wm_spec = _iu.spec_from_file_location("cognitive.world_model", _wm_path)
+if _wm_spec and _wm_spec.loader:
+    _wm_mod = _iu.module_from_spec(_wm_spec)
+    _sys.modules["cognitive.world_model"] = _wm_mod
+    _wm_spec.loader.exec_module(_wm_mod)
+    WorldModel = _wm_mod.WorldModel
+    Belief = _wm_mod.Belief
+    Desire = _wm_mod.Desire
+    Intention = _wm_mod.Intention
+else:
+    raise ImportError(f"world_model.py not found at {_wm_path}")
 
-try:
-    from src.memory_layer import MemorySystem, PhaseTrace
-except ImportError:
-    class PhaseTrace: phase_id: str = ""
-    class MemorySystem: pass
+_ml_path = str(Path(__file__).resolve().parent / "memory_layer.py")
+_ml_spec = _iu.spec_from_file_location("cognitive.memory_layer", _ml_path)
+if _ml_spec and _ml_spec.loader:
+    _ml_mod = _iu.module_from_spec(_ml_spec)
+    _sys.modules["cognitive.memory_layer"] = _ml_mod
+    _ml_spec.loader.exec_module(_ml_mod)
+    MemorySystem = _ml_mod.MemorySystem
+    PhaseTrace = _ml_mod.PhaseTrace
+else:
+    raise ImportError(f"memory_layer.py not found at {_ml_path}")
 
 
 class DotDict(dict):
