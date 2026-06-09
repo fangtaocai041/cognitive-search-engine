@@ -427,14 +427,16 @@ class MesoAgent:
             }
             return result
 
-        # ── Contradiction 2: Chinese database gap ──
-        if is_chinese and volume < 100:
+        # ── Contradiction 2: Chinese database gap (v5.6: 不限 volume) ──
+        # 中文物种在西方数据库 (PubMed/Crossref) 中搜索量≠中文文献量
+        # 中国知网/万方/百度学术/CAS 的中文文献是独立的，无法被西方 DB 覆盖
+        if is_chinese:
             result["primary_contradiction"] = "CHINESE_GAP"
             result["contradiction_type"] = "non_antagonistic"
             result["budget_multiplier"] = 2.0
             result["strategy_override"] = {
                 "full_pipeline": True,
-                "chinese_priority": True,    # CNKI/万方/百度学术 first
+                "chinese_priority": True,    # CNKI/万方/百度学术/CAS first
                 "review_mining_first": True,  # mine Chinese reviews
             }
             return result
@@ -589,29 +591,29 @@ class MesoAgent:
 
         def _fetch_pubmed():
             nonlocal pubmed_count
-            # Try NCBI E-utilities first, fallback to Europe PMC
+            # v5.6: Europe PMC primary (fast, live), NCBI E-utilities as fallback
             try:
-                url = (
-                    "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?"
-                    f"db=pubmed&term={_url_quote(scientific_name)}&retmax=0&retmode=json"
+                epmc_url = (
+                    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?"
+                    f"query={_url_quote(scientific_name)}&resultType=lite&pageSize=1&format=json"
                 )
-                with _urlreq.urlopen(url, timeout=10) as resp:
-                    data = _json.loads(resp.read())
-                pubmed_count = int(data.get("esearchresult", {}).get("count", "0") or "0")
+                req = _urlreq.Request(epmc_url, headers={
+                    "User-Agent": "CognitiveSearchEngine/5.6",
+                    "Accept": "application/json",
+                })
+                with _urlreq.urlopen(req, timeout=5) as resp:
+                    epmc_data = _json.loads(resp.read())
+                pubmed_count = int(epmc_data.get("hitCount", 0) or 0)
             except Exception:
-                # v5.6: Europe PMC fallback for volume estimation
+                # NCBI fallback (often 500, skips fast)
                 try:
-                    epmc_url = (
-                        "https://www.ebi.ac.uk/europepmc/webservices/rest/search?"
-                        f"query={_url_quote(scientific_name)}&resultType=lite&pageSize=1&format=json"
+                    url = (
+                        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?"
+                        f"db=pubmed&term={_url_quote(scientific_name)}&retmax=0&retmode=json"
                     )
-                    req = _urlreq.Request(epmc_url, headers={
-                        "User-Agent": "CognitiveSearchEngine/5.6",
-                        "Accept": "application/json",
-                    })
-                    with _urlreq.urlopen(req, timeout=10) as resp:
-                        epmc_data = _json.loads(resp.read())
-                    pubmed_count = int(epmc_data.get("hitCount", 0) or 0)
+                    with _urlreq.urlopen(url, timeout=3) as resp:
+                        data = _json.loads(resp.read())
+                    pubmed_count = int(data.get("esearchresult", {}).get("count", "0") or "0")
                 except Exception:
                     pass
 
@@ -622,7 +624,7 @@ class MesoAgent:
                     "https://api.crossref.org/works?"
                     f"query={_url_quote(scientific_name)}&rows=0"
                 )
-                with _urlreq.urlopen(url, timeout=10) as resp:
+                with _urlreq.urlopen(url, timeout=5) as resp:
                     data = _json.loads(resp.read())
                 scholar_count = int(data.get("message", {}).get("total-results", 0) or 0)
             except Exception:

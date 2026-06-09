@@ -1,4 +1,4 @@
-# 🧬 Eon-Taiji 五项目进化全量图谱
+# 🧬 五项目进化全量图谱
 
 > **道→一→二→三→万物**: 五项目活系统协同进化
 > **三角形**: fish(S/V0) + cognitive(V/V1) + eon-core(Coordinator)

@@ -251,6 +251,54 @@ def search_pubmed(query: str, n: int = 20) -> list[dict]:
         return []
 
 
+@register_provider("europe_pmc")
+def search_europe_pmc(query: str, n: int = 20) -> list[dict]:
+    """Search Europe PMC REST API — PubMed + full-text, free, no key needed.
+
+    Europe PMC mirrors PubMed Central and indexes 40M+ articles.
+    Faster and more reliable than NCBI E-utilities for many regions.
+    API docs: https://europepmc.org/RestfulWebService
+
+    Returns list of paper dicts with doi/title/year/journal/authors/abstract/pmid.
+    """
+    try:
+        url = (
+            "https://www.ebi.ac.uk/europepmc/webservices/rest/search?"
+            f"query={urllib.parse.quote(query)}&resultType=core&pageSize={n}&format=json"
+        )
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "CognitiveSearchEngine/5.6 (europepmc)",
+            "Accept": "application/json",
+        })
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read())
+
+        papers = []
+        for item in data.get("resultList", {}).get("result", []):
+            doi = item.get("doi", "")
+            # Normalize DOI
+            if doi and doi.startswith("http"):
+                doi = doi.replace("https://doi.org/", "").replace("http://dx.doi.org/", "")
+            authors_raw = item.get("authorString", "")
+            authors = [a.strip() for a in authors_raw.split(",")] if authors_raw else []
+            papers.append({
+                "doi": doi,
+                "title": item.get("title", ""),
+                "year": int(item.get("pubYear")) if item.get("pubYear") else None,
+                "journal": item.get("journalTitle", ""),
+                "authors": authors,
+                "pmid": item.get("pmid", ""),
+                "pmcid": item.get("pmcid", ""),
+                "abstract": item.get("abstractText", "")[:800],
+                "source_url": item.get("source", ""),
+                "cited_by": int(item.get("citedByCount", 0) or 0),
+                "_source": "europe_pmc",
+            })
+        return papers
+    except Exception:
+        return []
+
+
 @register_provider("crossref")
 def search_crossref(query: str, n: int = 20) -> list[dict]:
     """Search Crossref REST API."""
@@ -487,22 +535,362 @@ def search_bing_web(query: str, n: int = 10) -> list[dict]:
         return []
 
 
+@register_provider("cnki_web")
+def search_cnki_web(query: str, n: int = 10) -> list[dict]:
+    """搜索中国知网 (CNKI) — 中文期刊/硕博论文检索。
+
+    策略: Bing site:cnki.net 限定，优先搜中文摘要页。
+    比通用 web_search 更精准，噪声更低。
+    """
+    cn_query = f"site:cnki.net {query}"
+    return search_bing_web(cn_query, n)
+
+
+@register_provider("wanfang_web")
+def search_wanfang_web(query: str, n: int = 10) -> list[dict]:
+    """搜索万方数据 (Wanfang Data) — 中文期刊/学位论文。
+
+    策略: Bing site:wanfangdata.com.cn 限定。
+    """
+    cn_query = f"site:wanfangdata.com.cn {query}"
+    return search_bing_web(cn_query, n)
+
+
+@register_provider("cas_web")
+def search_cas_web(query: str, n: int = 10) -> list[dict]:
+    """搜索中国科学院系统 (CAS) — 研究所知识库、学位论文。
+
+    策略: Bing site:cas.cn OR site:ihb.ac.cn (水生所) 限定。
+    覆盖中文期刊未收录的研究所内部文献。
+    """
+    cn_query = f"(site:cas.cn OR site:ihb.ac.cn) {query}"
+    return search_bing_web(cn_query, n)
+
+
+@register_provider("researchgate_web")
+def search_researchgate_web(query: str, n: int = 10) -> list[dict]:
+    """搜索 ResearchGate — 学者主页、预印本、全文PDF。
+
+    策略: Bing site:researchgate.net 限定。
+    """
+    cn_query = f"site:researchgate.net {query}"
+    return search_bing_web(cn_query, n)
+
+
+@register_provider("biorxiv_search")
+def search_biorxiv(query: str, n: int = 10) -> list[dict]:
+    """搜索 bioRxiv/medRxiv — 生物学/医学预印本。
+
+    使用 bioRxiv Content Detail API: https://api.biorxiv.org/details/biorxiv/
+    返回最近 180 天内的相关预印本。
+    """
+    try:
+        url = (
+            "https://api.biorxiv.org/details/biorxiv/"
+            f"{urllib.parse.quote_plus(query)}/0/{n}"
+        )
+        headers = {"User-Agent": "CognitiveSearchEngine/5.6"}
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        papers = []
+        for item in data.get("collection", [])[:n]:
+            papers.append({
+                "doi": item.get("doi", ""),
+                "title": item.get("title", ""),
+                "year": int(item.get("date", "2024")[:4]) if item.get("date") else None,
+                "journal": item.get("server", "bioRxiv"),
+                "authors": item.get("authors", "").split("; "),
+                "abstract": item.get("abstract", "")[:500],
+                "source_url": f"https://doi.org/{item.get('doi', '')}" if item.get("doi") else "",
+                "_source": "biorxiv",
+            })
+        return papers
+    except Exception:
+        return []
+
+
+@register_provider("exa_http")
+def search_exa_http(query: str, n: int = 10) -> list[dict]:
+    """搜索 Exa API — 语义学术搜索。
+
+    使用 Exa Search API (POST /search)，需要 EXA_API_KEY。
+    在 MCP 模式下走 MCP 通道；HTTP 模式走此 REST API 直调。
+
+    API docs: https://docs.exa.ai/reference/search
+    """
+    import os as _os
+    api_key = _os.environ.get("EXA_API_KEY", "")
+    if not api_key:
+        # Fallback: read from .env file
+        try:
+            _env_path = _os.path.join(_os.path.dirname(__file__), "..", ".env")
+            if _os.path.exists(_env_path):
+                with open(_env_path, encoding="utf-8") as _f:
+                    for _line in _f:
+                        _line = _line.strip()
+                        if _line.startswith("EXA_API_KEY="):
+                            api_key = _line.split("=", 1)[1].strip().strip("\"'")
+                            break
+        except Exception:
+            pass
+    if not api_key:
+        return []
+    try:
+        url = "https://api.exa.ai/search"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        data = json.dumps({
+            "query": query,
+            "numResults": n,
+            "type": "keyword",
+        }).encode()
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read())
+        papers = []
+        for item in result.get("results", [])[:n]:
+            papers.append({
+                "doi": "",
+                "title": item.get("title", ""),
+                "year": None,
+                "journal": "Exa Web",
+                "authors": [],
+                "source_url": item.get("url", ""),
+                "abstract": item.get("text", "")[:500] if item.get("text") else "",
+                "score": item.get("score", 0),
+                "_source": "exa_http",
+            })
+        return papers
+    except Exception:
+        return []
+
+
+@register_provider("serpapi_scholar")
+def search_serpapi_scholar(query: str, n: int = 10) -> list[dict]:
+    """搜索 Google Scholar + 百度 via SerpAPI — 绕过中文反爬。
+
+    SerpAPI 是付费 API，可合法爬取 Google Scholar、百度、Bing 等。
+    中文名 + 学名混合查询返回中文学术论文（经 Google Scholar 索引的）。
+
+    需要 SERPAPI_API_KEY 环境变量或 .env 文件配置。
+    API docs: https://serpapi.com/search-api
+    """
+    import os as _os, json as _json, urllib.parse as _uparse
+    api_key = _os.environ.get("SERPAPI_API_KEY", "")
+    if not api_key:
+        try:
+            _env_path = _os.path.join(_os.path.dirname(__file__), "..", ".env")
+            if _os.path.exists(_env_path):
+                with open(_env_path, encoding="utf-8") as _f:
+                    for _line in _f:
+                        _line = _line.strip()
+                        if _line.startswith("SERPAPI_API_KEY="):
+                            api_key = _line.split("=", 1)[1].strip().strip("\"'")
+                            break
+        except Exception:
+            pass
+    if not api_key:
+        return []
+
+    papers = []
+    # Try Google Scholar first (best for academic papers)
+    try:
+        url = (
+            "https://serpapi.com/search?"
+            f"engine=google_scholar&q={_uparse.quote(query)}&api_key={api_key}&num={n}"
+        )
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = _json.loads(resp.read())
+        for item in data.get("organic_results", [])[:n]:
+            pub_info = item.get("publication_info", {})
+            authors_raw = pub_info.get("authors", [])
+            authors = [a.get("name", "") for a in authors_raw] if authors_raw else []
+            summary = pub_info.get("summary", "")
+            # Parse year from summary
+            year = None
+            for s in summary.split():
+                if s.isdigit() and len(s) == 4 and 1900 <= int(s) <= 2026:
+                    year = int(s)
+                    break
+            doi = ""
+            for link in item.get("resources", []):
+                l = link.get("link", "")
+                if "doi.org" in l:
+                    doi = l.replace("https://doi.org/", "").replace("http://dx.doi.org/", "")
+                    break
+            papers.append({
+                "doi": doi,
+                "title": item.get("title", ""),
+                "title_zh": item.get("title", "") if any("\u4e00" <= c <= "\u9fff" for c in item.get("title", "")) else "",
+                "year": year,
+                "journal": summary,
+                "authors": authors,
+                "source_url": item.get("link", ""),
+                "cited_by": item.get("inline_links", {}).get("cited_by", {}).get("total", 0),
+                "_source": "serpapi_scholar",
+            })
+    except Exception:
+        pass
+
+    # If Google Scholar returned few results, fallback to Baidu search via SerpAPI
+    if len(papers) < 3 and False:  # v5.7: disabled — Baidu web results not academic
+        try:
+            url = (
+                "https://serpapi.com/search?"
+                f"engine=baidu&q={_uparse.quote(query)}&api_key={api_key}&num={n}"
+            )
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = _json.loads(resp.read())
+            for item in data.get("organic_results", [])[:n]:
+                papers.append({
+                    "doi": "",
+                    "title": item.get("title", ""),
+                    "year": None,
+                    "journal": "Baidu Web",
+                    "authors": [],
+                    "source_url": item.get("link", ""),
+                    "abstract": item.get("snippet", ""),
+                    "_source": "serpapi_baidu",
+                })
+        except Exception:
+            pass
+
+    return papers
+
+@register_provider("serpapi_baidu")
+def search_serpapi_baidu(query: str, n: int = 10) -> list[dict]:
+    """搜索百度 via SerpAPI — 替代直连爬虫 (403封锁)。
+
+    SerpAPI 的 Baidu 引擎 (engine=baidu) 返回真正的百度搜索结果，
+    涵盖百度学术、知网、万方、中科院等中文站点。
+    需要 SERPAPI_API_KEY。
+    """
+    import os as _os, json as _json, urllib.parse as _uparse
+    api_key = _os.environ.get("SERPAPI_API_KEY", "")
+    if not api_key:
+        try:
+            _env_path = _os.path.join(_os.path.dirname(__file__), "..", ".env")
+            if _os.path.exists(_env_path):
+                with open(_env_path, encoding="utf-8") as _f:
+                    for _line in _f:
+                        _line = _line.strip()
+                        if _line.startswith("SERPAPI_API_KEY="):
+                            api_key = _line.split("=", 1)[1].strip().strip('"\'')
+                            break
+        except Exception:
+            pass
+    if not api_key:
+        return []
+
+    papers = []
+    try:
+        url = (
+            "https://serpapi.com/search?"
+            f"engine=baidu&q={_uparse.quote(query)}&api_key={api_key}&num={n}"
+        )
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = _json.loads(resp.read())
+        for item in data.get("organic_results", [])[:n]:
+            title = item.get("title", "")
+            snippet = item.get("snippet", "")
+            papers.append({
+                "doi": "",
+                "title": title,
+                "title_zh": title if any("\u4e00" <= c <= "\u9fff" for c in title) else "",
+                "year": None,
+                "journal": "Baidu Web",
+                "authors": [],
+                "source_url": item.get("link", ""),
+                "abstract": snippet,
+                "_source": "serpapi_baidu",
+            })
+    except Exception:
+        pass
+    return papers
+
+
+@register_provider("serpapi_duckduckgo")
+def search_serpapi_duckduckgo(query: str, n: int = 10) -> list[dict]:
+    import os as _os, json as _json, urllib.parse as _uparse
+    api_key = _os.environ.get("SERPAPI_API_KEY", "")
+    if not api_key:
+        try:
+            _env_path = _os.path.join(_os.path.dirname(__file__), "..", ".env")
+            if _os.path.exists(_env_path):
+                with open(_env_path, encoding="utf-8") as _f:
+                    for _line in _f:
+                        _line = _line.strip()
+                        if _line.startswith("SERPAPI_API_KEY="):
+                            api_key = _line.split("=", 1)[1].strip().strip("\"'")
+                            break
+        except Exception:
+            pass
+    if not api_key:
+        return []
+    papers = []
+    try:
+        url = "https://serpapi.com/search?engine=duckduckgo&q=" + _uparse.quote(query) + "&api_key=" + api_key + "&num=" + str(n)
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = _json.loads(resp.read())
+        for item in data.get("organic_results", [])[:n]:
+            title = item.get("title", "")
+            papers.append({
+                "doi": "",
+                "title": title,
+                "title_zh": title if any("\u4e00" <= c <= "\u9fff" for c in title) else "",
+                "year": None,
+                "journal": "DuckDuckGo",
+                "authors": [],
+                "source_url": item.get("link", ""),
+                "abstract": item.get("snippet", ""),
+                "_source": "serpapi_duckduckgo",
+            })
+    except Exception:
+        pass
+    return papers
+
+
+
 # ──── MCP → HTTP Fallback Registry ────
 
 MCP_HTTP_FALLBACK = {
-    "scholar_search_literature_graph": search_openalex,
+    # Google Scholar MCP → SerpAPI Scholar (v5.7) → OpenAlex fallback
+    "scholar_search_literature_graph": search_serpapi_scholar,
     "scholar_search_google_scholar_key_words": search_openalex,
-    "ncbi_ncbi_esearch": search_pubmed,
-    "ncbi_ncbi_esummary": lambda q, n: search_pubmed(q, n),
-    "article_search_literature": lambda q, n: search_pubmed(q, n) + search_crossref(q, n),
+    "scholar_search_google_scholar_advanced": search_openalex,
+    # NCBI → Europe PMC fallback chain (v5.6: NCBI often 500s)
+    "ncbi_ncbi_esearch": lambda q, n: search_pubmed(q, n) or search_europe_pmc(q, n),
+    "ncbi_ncbi_esummary": lambda q, n: search_pubmed(q, n) or search_europe_pmc(q, n),
+    "article_search_literature": lambda q, n: (search_europe_pmc(q, n) + search_crossref(q, n)) or (search_pubmed(q, n) + search_crossref(q, n)),
+    # Europe PMC direct (v5.6)
+    "europe_pmc_search": search_europe_pmc,
     "article_get_article_details": lambda q, n: search_pubmed(q, n),
     "article_get_references": lambda q, n: search_openalex_references(q, n),
     "article_get_literature_relations": lambda q, n: search_openalex(q, n),
     "scholarly_research_search": search_openalex,
     "tavily_tavily_search": search_bing_web,
-    "exa_web_search_exa": search_bing_web,
-    "web_search": search_bing_web,
-    "chinese_search": lambda q, n: search_bing_web(q + " 论文", n) + search_crossref(q, n),
+    "tavily_tavily_research": search_bing_web,          # deep research → Bing fallback
+    "tavily_tavily_extract": search_bing_web,            # extract → Bing fallback
+    "exa_web_search_exa": search_exa_http,               # v5.7: Exa API with .env key
+    "exa_web_fetch_exa": search_exa_http,                 # fetch → Exa API fallback
+    "web_search": search_serpapi_duckduckgo,  # v5.7: SerpAPI DuckDuckGo
+    "chinese_search": lambda q, n: search_serpapi_duckduckgo(q + " 论文", n) or search_serpapi_scholar(q, n),  # v5.7: DuckDuckGo + Scholar
+    # Chinese academic engines (v5.6)
+    "cnki_web": search_serpapi_baidu,  # v5.7: SerpAPI Baidu 搜中文
+    "wanfang_web": search_serpapi_baidu,  # v5.7: SerpAPI Baidu 搜中文
+    "baidu_scholar": search_serpapi_baidu,  # v5.7: SerpAPI 代替 403 直连
+    "cas_web": search_serpapi_baidu,  # v5.7: SerpAPI Baidu 搜中文
+    "researchgate_web": search_researchgate_web,
+    "duckduckgo_search": search_serpapi_duckduckgo,
+    # Preprint engines (v5.6)
+    "biorxiv_search": search_biorxiv,
 }
 
 

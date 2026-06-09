@@ -134,10 +134,10 @@ class SearchRuleEngine:
         self._ig_history: list[float] = []  # info gain per phase
         self._search_errors: list[str] = []  # visible error log
 
-        # Timeout / retry config (可被 agent.yaml 覆盖)
-        self._http_timeout_per_call: int = 15       # 单次 HTTP 请求超时
-        self._http_retry_max_s: int = 60             # 总重试窗口 60s
-        self._http_retry_attempts: int = 5            # 最多重试 5 次
+        # Timeout / retry config (v5.6: 缩减 — NCBI 500 不应阻塞全景流程)
+        self._http_timeout_per_call: int = 8        # 单次 HTTP 请求超时 (15→8s)
+        self._http_retry_max_s: int = 12            # 总重试窗口 (60→12s)
+        self._http_retry_attempts: int = 2           # 最多重试 (5→2次)
         self._mcp_parallel_timeout_s: int = 180       # MCP 并行总超时 3min
         self._mcp_per_call_timeout_s: int = 30        # MCP 单次调用超时
 
@@ -339,16 +339,16 @@ class SearchRuleEngine:
 
     @register_phase("search_chinese_scholar")
     def _fn_search_chinese_scholar(self, phase: dict, ctx: dict) -> dict:
-        """Phase 1.5: Chinese-specific search — 三层发散.
+        """Phase 1.5: Chinese-specific search — v5.7 MCP 运行时双路径.
 
-        Layer 1: ↘ 百度学术 (web_search + site:xueshu.baidu.com)
-                 ↘ CNKI (web_search + site:cnki.net)
-                 ↘ 万方 (web_search + site:wanfangdata.com.cn)
-                 ↘ CAS (web_search + site:ihb.ac.cn)
-        Layer 2: ↘ 中文名 + 学名 → Crossref/OpenAlex（UTF-8 查询）
-        Layer 3: ↘ tavily_search / exa_web_search（AI 搜索，抗反爬）
-
-        先完成先统计，后完成的后合并，dedup_merge 阶段去重。
+        MCP 模式 (Reasonix runtime):
+          Layer 1: tavily_tavily_search (AI搜索，中文内容覆盖好)
+          Layer 2: web_search (Reasonix 内置，浏览器级反爬)
+          Layer 3: scholar_search_literature_graph (Google Scholar)
+        HTTP 模式 (独立 Python):
+          Layer 1: 中文原生引擎 (baidu_scholar/cnki_web/wanfang_web/cas_web)
+          Layer 2: 学术引擎 (OpenAlex/Europe PMC/Crossref)
+          Layer 3: Bing 语义搜索降级
         """
         chinese_name = ctx.get("chinese_name", "")
         genus = ctx.get("genus", "")
@@ -359,25 +359,37 @@ class SearchRuleEngine:
         papers = []
         seen_dois: set[str] = set()
 
-        # ── Layer 1: 4 中文源并行发散 ──
-        cn_sources = [
-            f"{chinese_name} site:xueshu.baidu.com",
-            f"{chinese_name} site:cnki.net",
-            f"{chinese_name} site:wanfangdata.com.cn",
-            f"{chinese_name} site:ihb.ac.cn OR site:cas.cn",
-        ]
-        for q in cn_sources:
-            try:
-                raw = self._call_search_tools(q, phase.get("tools", []), ctx)
-                for r in raw:
-                    if r.doi_key not in seen_dois:
-                        if self._matches_species_context(r, ctx, genus, species_ep):
-                            seen_dois.add(r.doi_key)
-                            papers.append(r)
-            except Exception:
-                continue
+        # ── MCP 模式: 使用 MCP 工具搜中文 (Tavily/Web/Scholar 都支持中文) ──
+        if self.mode == "mcp":
+            mcp_tools = ["tavily_tavily_search", "web_search", "scholar_search_literature_graph"]
+            for q in [chinese_name, f"{chinese_name} {genus} {species_ep}",
+                       f"{chinese_name} 研究 OR 论文 OR 综述"]:
+                try:
+                    raw = self._call_search_tools(q, mcp_tools, ctx, n=15)
+                    for r in raw:
+                        if r.doi_key not in seen_dois:
+                            if self._matches_species_context(r, ctx, genus, species_ep):
+                                seen_dois.add(r.doi_key)
+                                papers.append(r)
+                except Exception:
+                    continue
+            return {"new_papers": papers, "tokens_used": 1500}
 
-        # ── Layer 2: 中文名 + 学名 → Crossref/OpenAlex ──
+        # ── HTTP 模式: 使用 phase_tools ──
+        phase_tools = phase.get("tools", [])
+
+        # Layer 1: 中文原生引擎 + OpenAlex/Scholar 桥接
+        try:
+            raw = self._call_search_tools(chinese_name, phase_tools, ctx, n=15)
+            for r in raw:
+                if r.doi_key not in seen_dois:
+                    if self._matches_species_context(r, ctx, genus, species_ep):
+                        seen_dois.add(r.doi_key)
+                        papers.append(r)
+        except Exception:
+            pass
+
+        # Layer 2: 中文名 + 学名 → 学术引擎
         if len(papers) < 5:
             cn_en_queries = [
                 f"{chinese_name} {genus} {species_ep}",
@@ -385,7 +397,7 @@ class SearchRuleEngine:
             ]
             for q in cn_en_queries:
                 try:
-                    raw = self._call_search_tools(q, ["article_search_literature", "ncbi_ncbi_esearch"], ctx)
+                    raw = self._call_search_tools(q, phase_tools, ctx, n=10)
                     for r in raw:
                         if r.doi_key not in seen_dois:
                             if self._matches_species_context(r, ctx, genus, species_ep):
@@ -394,11 +406,11 @@ class SearchRuleEngine:
                 except Exception:
                     continue
 
-        # ── Layer 3: tavily / exa AI 搜索降级 ──
+        # Layer 3: 语义搜索降级
         if len(papers) < 3 and self.mode in ("mcp", "http"):
             try:
-                tavily_q = f"{chinese_name} {genus} 学术论文 研究"
-                raw = self._call_search_tools(tavily_q, ["tavily_tavily_search", "exa_web_search_exa"], ctx)
+                fallback_q = f"{chinese_name} {genus} 学术论文 研究"
+                raw = self._call_search_tools(fallback_q, phase_tools, ctx, n=10)
                 for r in raw:
                     if r.doi_key not in seen_dois:
                         if self._matches_species_context(r, ctx, genus, species_ep):
@@ -693,29 +705,45 @@ class SearchRuleEngine:
     _TOOLS_CROSSREF_OPENALEX = {
         "scholar_search_literature_graph", "article_search_literature",
         "scholar_search_google_scholar_key_words",
+        "scholarly_research_search",
     }
     _TOOLS_WEB_ONLY = {
         "web_search", "tavily_tavily_search", "tavily_tavily_extract",
         "exa_web_search_exa", "exa_web_fetch_exa",
     }
+    # v3.0: 中文原生引擎 — 通过 parallel_search HTTP provider 直调
+    _TOOLS_CHINESE_NATIVE = {
+        "baidu_scholar", "cnki_web", "wanfang_web", "cas_web", "chinese_sweep",
+        "chinese_search", "duckduckgo_search",
+    }
+    # v3.0: 预印本引擎 — bioRxiv API + ResearchGate Bing
+    _TOOLS_PREPRINT = {
+        "biorxiv_api", "biorxiv_search", "researchgate_web",
+    }
+    # v3.0: 所有非 MCP 原生引擎 (HTTP fallback 可用)
+    _TOOLS_NATIVE_HTTP = _TOOLS_PUBMED | _TOOLS_CROSSREF_OPENALEX | _TOOLS_CHINESE_NATIVE | _TOOLS_PREPRINT
 
     def _http_search(self, query: str, tools: list[str], n: int) -> list[Paper]:
-        """HTTP-mode: call PubMed E-utilities, Crossref, OpenAlex directly.
+        """HTTP-mode: call PubMed E-utilities, Crossref, OpenAlex, Chinese native, Preprint.
 
-        Respects the `tools` parameter — only calls APIs whose tools are
-        requested.  Web-only tools (web_search, tavily, exa) are not
-        available via raw HTTP and return empty immediately.
+        v3.0 扩展: 支持中文原生引擎 (baidu_scholar/cnki_web/wanfang_web/cas_web) 
+        和预印本引擎 (biorxiv_api/researchgate_web)，通过 parallel_search HTTP provider 直调。
+        Web-only 工具 (web_search, tavily, exa) 在纯 HTTP 模式下不可用。
         """
         # ── Tools routing: determine which APIs to call ──
         tool_set = {t.lower() for t in tools}
 
-        # Empty tools → backward-compatible: call all 3
+        # Empty tools → backward-compatible: call all
         if not tool_set:
             call_pubmed = True
             call_crossref_openalex = True
+            call_native = False
+            call_preprint = False
         else:
             call_pubmed = bool(tool_set & self._TOOLS_PUBMED)
             call_crossref_openalex = bool(tool_set & self._TOOLS_CROSSREF_OPENALEX)
+            call_native = bool(tool_set & self._TOOLS_CHINESE_NATIVE)
+            call_preprint = bool(tool_set & self._TOOLS_PREPRINT)
             # If ALL tools are web-only → nothing available in HTTP mode
             if tool_set and tool_set.issubset(self._TOOLS_WEB_ONLY):
                 logger.debug(f"HTTP mode has no web tools, skipping '{query[:40]}'")
@@ -727,14 +755,15 @@ class SearchRuleEngine:
         # ── Parallel execution ──
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
-        with ThreadPoolExecutor(max_workers=3) as pool:
+        with ThreadPoolExecutor(max_workers=5) as pool:  # v5.6: 3→5 (PubMed+Crossref+OpenAlex+Chinese+Preprint)
             futures = []
 
-            # Task 1: PubMed
+            # Task 1: PubMed (with Europe PMC fallback)
             if call_pubmed:
                 def _task_pubmed():
                     from urllib.parse import quote as _q
                     local_papers: list[Paper] = []
+                    source = "PubMed"
                     try:
                         def _fetch():
                             url = (
@@ -755,9 +784,29 @@ class SearchRuleEngine:
                             local_papers.extend(self._parse_pubmed_xml(efetch_url))
                         logger.info(f"PubMed: {len(id_list)} hits for '{query}'")
                     except Exception as exc:
-                        logger.warning(f"PubMed failed for '{query}': {exc}")
-                        raise exc
-                    return local_papers, "PubMed"
+                        logger.warning(f"PubMed NCBI failed for '{query}': {exc}")
+                        # v5.6: Europe PMC fallback — same data, different host, no API key
+                        try:
+                            from src.parallel_search import search_europe_pmc
+                            raw = search_europe_pmc(query, n)
+                            for item in raw:
+                                p = Paper(
+                                    doi=item.get("doi", ""),
+                                    title=item.get("title", ""),
+                                    year=item.get("year"),
+                                    journal=item.get("journal", ""),
+                                    authors=item.get("authors", []),
+                                    source="europe_pmc",
+                                    abstract=item.get("abstract", ""),
+                                )
+                                if p.doi_key:
+                                    local_papers.append(p)
+                            source = "Europe_PMC(fallback)"
+                            logger.info(f"Europe PMC fallback: {len(local_papers)} hits for '{query[:40]}'")
+                        except Exception as e2:
+                            logger.warning(f"Europe PMC also failed: {e2}")
+                            return local_papers, f"PubMed+EuropePMC(ERROR)"
+                    return local_papers, source
                 futures.append(pool.submit(_task_pubmed))
 
             # Task 2: Crossref
@@ -813,6 +862,94 @@ class SearchRuleEngine:
                     return local_papers, "OpenAlex"
                 futures.append(pool.submit(_task_openalex))
 
+            # Task 4: Chinese native engines (v3.0) — baidu_scholar/cnki_web/wanfang_web/cas_web
+            if call_native:
+                def _task_native():
+                    local_papers: list[Paper] = []
+                    engines_called: list[str] = []
+                    try:
+                        # Lazy-load parallel_search providers
+                        from src.parallel_search import SEARCH_PROVIDERS as _providers
+                        # Map tool names → provider names (strip _web suffix where needed)
+                        provider_map = {
+                            "baidu_scholar": "baidu_scholar",
+                            "cnki_web": "cnki_web",
+                            "wanfang_web": "wanfang_web",
+                            "cas_web": "cas_web",
+                            "chinese_sweep": "chinese_search",
+                            "chinese_search": "chinese_search",
+                        "duckduckgo_search": "serpapi_duckduckgo",
+                        }
+                        for tool_name in tool_set & self._TOOLS_CHINESE_NATIVE:
+                            prov_name = provider_map.get(tool_name, tool_name)
+                            provider_fn = _providers.get(prov_name)
+                            if provider_fn:
+                                try:
+                                    raw = provider_fn(query, n)
+                                    engines_called.append(tool_name)
+                                    for item in raw:
+                                        p = Paper(
+                                            doi=item.get("doi", ""),
+                                            title=item.get("title", ""),
+                                            year=item.get("year"),
+                                            journal=item.get("journal", ""),
+                                            authors=item.get("authors", []),
+                                            source=f"native_http:{tool_name}",
+                                            abstract=item.get("abstract", item.get("snippet", "")),
+                                        )
+                                        if p.doi_key:
+                                            local_papers.append(p)
+                                except Exception as pe:
+                                    logger.warning(f"Native engine {tool_name} failed: {pe}")
+                        logger.info(f"Chinese native ({','.join(engines_called)}): {len(local_papers)} papers for '{query[:40]}'")
+                    except ImportError:
+                        logger.debug("parallel_search providers not available, skipping Chinese native engines")
+                    except Exception as exc:
+                        logger.warning(f"Chinese native engines failed for '{query}': {exc}")
+                    return local_papers, f"native({','.join(engines_called) if engines_called else 'none'})"
+                futures.append(pool.submit(_task_native))
+
+            # Task 5: Preprint engines (v3.0) — biorxiv_api/researchgate_web
+            if call_preprint:
+                def _task_preprint():
+                    local_papers: list[Paper] = []
+                    engines_called: list[str] = []
+                    try:
+                        from src.parallel_search import SEARCH_PROVIDERS as _providers
+                        provider_map = {
+                            "biorxiv_api": "biorxiv_search",
+                            "biorxiv_search": "biorxiv_search",
+                            "researchgate_web": "researchgate_web",
+                        }
+                        for tool_name in tool_set & self._TOOLS_PREPRINT:
+                            prov_name = provider_map.get(tool_name, tool_name)
+                            provider_fn = _providers.get(prov_name)
+                            if provider_fn:
+                                try:
+                                    raw = provider_fn(query, n)
+                                    engines_called.append(tool_name)
+                                    for item in raw:
+                                        p = Paper(
+                                            doi=item.get("doi", ""),
+                                            title=item.get("title", ""),
+                                            year=item.get("year"),
+                                            journal=item.get("journal", item.get("server", "")),
+                                            authors=item.get("authors", []),
+                                            source=f"preprint:{tool_name}",
+                                            abstract=item.get("abstract", ""),
+                                        )
+                                        if p.doi_key:
+                                            local_papers.append(p)
+                                except Exception as pe:
+                                    logger.warning(f"Preprint engine {tool_name} failed: {pe}")
+                        logger.info(f"Preprint ({','.join(engines_called)}): {len(local_papers)} papers for '{query[:40]}'")
+                    except ImportError:
+                        logger.debug("parallel_search providers not available, skipping preprint engines")
+                    except Exception as exc:
+                        logger.warning(f"Preprint engines failed for '{query}': {exc}")
+                    return local_papers, f"preprint({','.join(engines_called) if engines_called else 'none'})"
+                futures.append(pool.submit(_task_preprint))
+
             # Collect results
             for fut in as_completed(futures):
                 try:
@@ -833,6 +970,38 @@ class SearchRuleEngine:
         并行启动所有工具，先完成先返回，后完成的后合并。
         B 引擎可在 A 引擎的结果上添加引用回溯。
         """
+        # v5.7: 优先使用全局 MCP 工具 (Reasonix 运行时注入)
+        mcp_fn = globals().get("tavily_tavily_search")
+        if callable(mcp_fn):
+            from dataclasses import fields as _dfields
+            papers = []
+            for tool_name in tools:
+                try:
+                    fn = globals().get(tool_name)
+                    if not callable(fn):
+                        continue
+                    result = fn(query, n)
+                    if isinstance(result, list):
+                        for item in result:
+                            if isinstance(item, dict):
+                                p = Paper(
+                                    doi=item.get("doi", ""),
+                                    title=item.get("title", item.get("name", "")),
+                                    year=item.get("year", item.get("pubYear")),
+                                    journal=item.get("journal", item.get("journalTitle", "")),
+                                    authors=item.get("authors", []),
+                                    source=f"mcp:{tool_name}",
+                                    abstract=item.get("abstract", item.get("snippet", "")),
+                                )
+                                if p.doi_key:
+                                    papers.append(p)
+                            elif hasattr(item, '__dataclass_fields__'):
+                                papers.append(item)
+                except Exception:
+                    continue
+            return papers
+
+        # Fallback: MCP client
         try:
             from src.mcp_client import McpClient
             client = McpClient()
@@ -852,14 +1021,7 @@ class SearchRuleEngine:
                     continue
             return papers
         except ImportError:
-            # Fallback: sequential MCP
-            papers = []
-            for tool_name in tools:
-                try:
-                    result = self._call_mcp_tool(tool_name, {"query": query, "max_results": n})
-                    papers.extend(self._mcp_result_to_papers(result, tool_name))
-                except Exception:
-                    continue
+            return []
             return papers
 
     def _call_mcp_tool(self, tool_name: str, args: dict) -> list[dict]:

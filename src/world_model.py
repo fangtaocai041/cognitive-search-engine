@@ -104,7 +104,7 @@ class Desire:
     Configurable via config/agent.yaml → search.energy + adaptive_params.
     """
     min_papers: int = 8                 # satisficing threshold (仅用于 stalled 检查)
-    max_papers: int = 200               # upper bound (stop expanding)
+    max_papers: int = 300               # upper bound (stop expanding, up from 200)
     max_tokens: int = 50000             # hard budget cap
     min_precision: float = 0.85         # minimum acceptable precision
     ig_prune_threshold: float = 0.005   # IG/token below this → prune phase
@@ -114,17 +114,15 @@ class Desire:
     def satisfied(self, belief: Belief) -> bool:
         """Check whether current Belief meets Desire goals.
 
-        v2.1 — 不再仅因 min_papers 停止。必须满足以下之一：
-          1. consecutive_zero >= 2 (diminishing returns)
-          2. budget exhausted (tokens >= max_tokens)
-          3. stalled AND hard upper bound reached (total >= max_papers)
-             (防 runaway: 200+ 篇的物种不会永远搜下去)
-          4. stalled AND already past min_papers (满足但不理想时仍继续)
+        v5.6 — consecutive_zero 仅在有足够阶段执行后才触发停止。
+        防止前 5 个阶段因图谱饱和产出 0 论文时过早结束，
+        导致 variant_search/preprint_search/journal_scan 等
+        使用外部引擎的阶段完全被跳过。
         """
-        # 永不因 min_papers 单独停止 — enrichment 阶段必须运行
         if belief.tokens_spent >= self.max_tokens:
             return True
-        if belief.consecutive_zero >= 2:
+        # 仅当至少 8 个阶段已执行才允许 consecutive_zero 触发停止
+        if belief.consecutive_zero >= 3 and len(belief.phases_executed) >= 8:
             return True
         if belief.total_papers_found >= self.max_papers:
             return True
@@ -285,9 +283,11 @@ class WorldModel:
             self._intention_history.append(intention)
             return intention
 
-        if belief.consecutive_zero >= 2:
+        # v5.6: 图谱饱和 ≠ 外部引擎无产出。仅当剩余相都已执行过一次以上才停。
+        # 防止 variant_search/preprint_search/journal_scan 等因图谱已有数据而被跳过。
+        if belief.consecutive_zero >= 2 and len(belief.phases_executed) >= 8:
             intention.should_stop = True
-            intention.stop_reason = "2 consecutive phases returned 0 new papers"
+            intention.stop_reason = f"{belief.consecutive_zero} consecutive zero + {len(belief.phases_executed)} phases done"
             self._intention_history.append(intention)
             return intention
 
@@ -371,11 +371,16 @@ class WorldModel:
             ) if b.precision > 0 else 1.0
 
         # Diminishing returns detection
-        # Only stall if at least 2 non-graph-lookup phases returned low IG
-        # (graph_lookup always returns 0 for cold-start species)
+        # v5.6: 放宽 stall 条件，确保新引擎有充分的执行机会。
+        #   - 至少 6 个非图谱阶段已执行（给 chinese/exact/variant/preprint/journal 留足空间）
+        #   - AND 连续 0 新论文阶段 >= 3
+        #   - AND IG 低于阈值
+        # 防止 variant_search、preprint_search、journal_scan 等因图谱已有数据而被跳过。
         non_graph_count = sum(1 for obs in self._observation_history
                               if obs.get("phase") != "graph_lookup")
-        if non_graph_count >= 2 and b.ig_history[-1] < 0.005:
+        if (non_graph_count >= 6
+                and b.consecutive_zero >= 3
+                and b.ig_history[-1] < 0.005):
             b.stalled = True
 
         # Error tracking
@@ -409,17 +414,19 @@ class WorldModel:
                 "confidence": 0.95,
             }
 
-        if belief.stalled:
+        # v5.6: stalled 只在至少 8 阶段后才触发，给新引擎充分机会
+        if belief.stalled and len(belief.phases_executed) >= 10:
             return {
                 "action": "stop_stalled",
-                "reason": "Diminishing returns detected",
+                "reason": f"Diminishing returns after {len(belief.phases_executed)} phases",
                 "confidence": 0.7,
             }
 
-        if belief.consecutive_zero >= 2:
+        # v5.6: 图谱饱和 ≠ 外部引擎无产出。扩大阈值防止早停。
+        if belief.consecutive_zero >= 3 and len(belief.phases_executed) >= 8:
             return {
                 "action": "stop_stalled",
-                "reason": f"{belief.consecutive_zero} consecutive zero-yield phases",
+                "reason": f"{belief.consecutive_zero} consecutive zero + {len(belief.phases_executed)} phases",
                 "confidence": 0.8,
             }
 

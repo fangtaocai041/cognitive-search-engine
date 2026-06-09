@@ -185,6 +185,85 @@
         },
         "required": ["query"]
       }
+    },
+    {
+      "name": "chinese_academic_search",
+      "description": "Search Chinese academic databases (Baidu Scholar, CNKI, Wanfang, CAS). 7-engine parallel fan-out for Chinese-language species literature. Free, no API key. Executed via parallel_search HTTP providers (importlib DirectLoader, zero MCP overhead).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Chinese species name or Chinese query string"
+          },
+          "engines": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["baidu_scholar", "cnki_web", "wanfang_web", "cas_web", "chinese_sweep"] },
+            "default": ["baidu_scholar", "cnki_web", "wanfang_web", "cas_web", "chinese_sweep"],
+            "description": "Which Chinese engines to query (default: all 5)"
+          },
+          "max_per_engine": {
+            "type": "integer",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 30
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "preprint_search",
+      "description": "Search bioRxiv/medRxiv (Content Detail API) + ResearchGate for cutting-edge preprints. Useful for recently-described species or fast-moving fields. Free, no API key.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Scientific name or keyword query"
+          },
+          "sources": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["biorxiv", "researchgate"] },
+            "default": ["biorxiv", "researchgate"],
+            "description": "Which preprint sources to query"
+          },
+          "max_results": {
+            "type": "integer",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 30
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "search_with_engine_group",
+      "description": "Search using a named engine group (quick/standard/full/chinese/preprint). Fan-out parallel execution via ThreadPoolExecutor. Returns merged deduplicated results with per-engine stats.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "queries": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of query strings (scientific name, Chinese name, variants)"
+          },
+          "group": {
+            "type": "string",
+            "enum": ["quick", "standard", "full", "chinese", "preprint"],
+            "default": "full",
+            "description": "Engine group: quick(3)/standard(5)/full(9)/chinese(7)/preprint(3)"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": ["queries"]
+      }
     }
   ]
 }

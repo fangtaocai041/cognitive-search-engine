@@ -1,5 +1,5 @@
-# Cognitive Search Engine — MCP Server Configuration [v2.0 升级]
-# 7 搜索引擎集成：NCBI + Scholar + Article + Scholarly + Tavily + Exa + Google Scholar
+# Cognitive Search Engine — MCP Server Configuration [v3.0 升级]
+# 19 搜索引擎 (7 MCP + 5 中文原生 + 2 预印本 + 2 语义 + 3 内置)
 # 同步自 fish-ecology-assistant/config/mcp_servers.yaml
 
 servers:
@@ -68,8 +68,46 @@ servers:
       - web_search
       - web_fetch
 
+  # ──── 中文原生引擎 (v3.0 — 无 MCP 进程, importlib 直调) ────
+  baidu_scholar:
+    name: Baidu Scholar (Native HTTP)
+    description: 百度学术 — 中文论文检索 (parallel_search.search_baidu_scholar)
+    category: chinese_academic
+    tools: []
+  cnki_web:
+    name: CNKI Web (Native HTTP)
+    description: 中国知网 — Bing site:cnki.net 限定 (parallel_search.search_cnki_web)
+    category: chinese_academic
+    tools: []
+  wanfang_web:
+    name: Wanfang Web (Native HTTP)
+    description: 万方数据 — Bing site:wanfangdata.com.cn (parallel_search.search_wanfang_web)
+    category: chinese_academic
+    tools: []
+  cas_web:
+    name: CAS Web (Native HTTP)
+    description: 中科院系统 — Bing site:cas.cn OR site:ihb.ac.cn (parallel_search.search_cas_web)
+    category: chinese_academic
+    tools: []
+
+  # ──── 预印本引擎 (v3.0 新增) ────
+  biorxiv:
+    name: bioRxiv API (Native HTTP)
+    description: bioRxiv/medRxiv 预印本 — Content Detail API (parallel_search.search_biorxiv)
+    category: preprint
+    tools: []
+  researchgate:
+    name: ResearchGate Web (Native HTTP)
+    description: ResearchGate — Bing site:researchgate.net (parallel_search.search_researchgate_web)
+    category: preprint
+    tools: []
+
 categories:
   academic: 4      # ncbi + scholar + article + scholarly
+  chinese_academic: 5  # baidu_scholar + cnki_web + wanfang_web + cas_web + chinese_sweep
+  preprint: 2      # biorxiv + researchgate
   web: 2           # tavily + exa
   builtin: 1       # web_search + web_fetch
-  total: 7
+  total_mcp: 7
+  total_native: 7
+  total: 14        # 7 MCP + 7 Native HTTP

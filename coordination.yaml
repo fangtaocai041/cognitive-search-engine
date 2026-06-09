@@ -14,10 +14,13 @@
 #    Skill:  D:\Reasonix\skills\meso-orchestrator.md
 
 coordination:
-  version: "4.0.0"
+  version: "4.2.1"
   root: "D:\\Reasonix"
-  last_sync: "2026-06-07"
+  last_sync: "2026-07-11"
   changelog:
+    - "v4.2.1 (2026-07-11): Europe PMC integration — NCBI 500 failover. +search_europe_pmc provider, rule_engine PubMed→Europe PMC auto-fallback, meso_agent volume estimation dual-source (NCBI + Europe PMC). 20 engines total."
+    - "v4.2.0 (2026-07-11): Search engine expansion 12→19 engines. +5 Chinese academic engines (baidu_scholar/cnki_web/wanfang_web/cas_web/chinese_sweep), +2 preprint engines (biorxiv_api/researchgate_web). ENGINE_GROUPS expanded: chinese 3→7, full 7→9, +preprint group. Native HTTP providers in parallel_search.py."
+    - "v4.1.0 (2026-07-11): Exclusive search gateway — cognitive-search-engine declared as the sole external search entry point for the entire workspace. +search_gateway section in coordination.yaml, +.reasonix/config.yaml, +agent.yaml gateway role."
     - "v3.2.0 (2026-06-07): Cross-project evolution engine propagation — +evolution.yaml (porpoise + fish), +component_registry.yaml (porpoise), +self-evolve skill (porpoise + fish). All three projects now have self-evolution capability."
     - "v4.0.0 (2026-06-07): Meso-Cosmos Agent — workspace-level coordination layer. +config/meso_agent.yaml, +skills/meso-orchestrator.md. Macro(BDI)→Meso(Route)→Micro(Execute) across all 3 S-T-V projects."
     - "v3.2.0 (2026-06-07): Cross-project evolution engine propagation — +evolution.yaml (porpoise + fish), +component_registry.yaml (porpoise), +self-evolve skill (porpoise + fish). All three projects now have self-evolution capability."
@@ -121,6 +124,7 @@ coordination:
       category: "chinese_academic"
       mcp_server: "reasonix_builtin"
       tools: ["web_search"]
+      native_provider: "cnki_web"          # v5.6: parallel_search HTTP provider
       strategy: "site:cnki.net"
       language: "zh"
       priority: 5
@@ -128,6 +132,7 @@ coordination:
       category: "chinese_academic"
       mcp_server: "reasonix_builtin"
       tools: ["web_search"]
+      native_provider: "wanfang_web"       # v5.6: parallel_search HTTP provider
       strategy: "site:wanfangdata.com.cn"
       language: "zh"
       priority: 6
@@ -135,28 +140,43 @@ coordination:
       category: "chinese_academic"
       mcp_server: "reasonix_builtin"
       tools: ["web_search"]
+      native_provider: "cas_web"           # v5.6: parallel_search HTTP provider
       strategy: "site:cas.cn OR site:ihb.ac.cn"
       language: "zh"
       priority: 7
+    researchgate:
+      category: "preprint"
+      mcp_server: "reasonix_builtin"
+      tools: ["web_search"]
+      native_provider: "researchgate_web"  # v5.6 新增
+      strategy: "site:researchgate.net"
+      priority: 8
+    biorxiv:
+      category: "preprint"
+      mcp_server: "reasonix_builtin"
+      tools: ["web_search"]
+      native_provider: "biorxiv_search"    # v5.6 新增: bioRxiv Content Detail API
+      strategy: "api.biorxiv.org/details/biorxiv/"
+      priority: 8
     ncbi:
       category: "academic"
       mcp_server: "ncbi"
       tools: ["ncbi_ncbi_esearch","ncbi_ncbi_esummary","ncbi_ncbi_efetch"]
-      priority: 8
+      priority: 9
     tavily:
       category: "web"
       requires_api_key: true
       env_var: "TAVILY_API_KEY"
       mcp_server: "tavily"
       tools: ["tavily_search","tavily_extract"]
-      priority: 9
+      priority: 10
     exa:
       category: "web"
       requires_api_key: true
       env_var: "EXA_API_KEY"
       mcp_server: "exa"
       tools: ["exa_web_search"]
-      priority: 10
+      priority: 11
     cognitive_search:
       category: "cognitive"
       requires_api_key: false
@@ -170,7 +190,7 @@ coordination:
       category: "builtin"
       mcp_server: "reasonix_builtin"
       tools: ["web_search","web_fetch"]
-      priority: 11
+      priority: 12
 
   # ===== 图谱数据源 =====
   knowledge_graph:
@@ -228,3 +248,20 @@ coordination:
       direction: "bi-directional"
       shared_metrics: ["verification_pass_rate", "contradiction_resolution_rate", "false_positive_rate"]
       log_format: "JSONL (shared across all three projects)"
+
+  # ===== 搜索网关 (v4.1 新增) =====
+  # Cognitive Search Engine 是本工作区所有外部搜索的**唯一入口**。
+  # 任何搜索请求（物种/文献/概念/论文）必须路由到认知引擎，
+  # 禁止跳过引擎直接调用内置 skill 或 MCP 搜索引擎。
+  search_gateway:
+    enabled: true
+    exclusive: true                 # true = 唯一入口，不允许绕过
+    engine: "cognitive-search-engine"
+    loader: "DirectLoader (importlib)"
+    entry_points:
+      species: "MesoAgent.search(species_id) → 12阶段认知管线"
+      literature: "graph-search-engine → species_graph.yaml → PubMed/Crossref fallback"
+      concept: "cognitive-species-search → variant_generator → crossref"
+    fallback_policy: "builtin_skills_only_on_engine_error"  # 引擎挂了才用内置 skill 兜底
+    priority: 0                       # 高于所有 MCP 和内置搜索
+    mode: "exclusive"                 # 独占模式：任何外部搜索请求均触发引擎

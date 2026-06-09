@@ -427,19 +427,30 @@ def build_search_plan(
 # §6 全量搜索引擎注册表 + 流式并行搜索
 # ═══════════════════════════════════════════════════════
 
-# 可用搜索引擎全量清单 (按优先级)
+# 可用搜索引擎全量清单 (按优先级) — v5.6 扩展
 ENGINE_REGISTRY = {
     # 学术搜索 (Priority 1-3)
     "scholar_graph":    {"tool": "scholar_search_literature_graph", "category": "academic", "priority": 1},
     "scholar_keywords": {"tool": "scholar_search_google_scholar_key_words", "category": "academic", "priority": 1},
     "scholar_advanced": {"tool": "scholar_search_google_scholar_advanced", "category": "academic", "priority": 2},
     "ncbi_esearch":     {"tool": "ncbi_ncbi_esearch", "category": "academic", "priority": 1},
+    "europe_pmc":       {"tool": "europe_pmc_search", "category": "academic", "priority": 1},  # v5.6: NCBI 500→Europe PMC failover
     "crossref_article": {"tool": "article_search_literature", "category": "academic", "priority": 2},
     "scholarly_multi":  {"tool": "scholarly_research_search", "category": "academic", "priority": 3},
+    # 中文搜索 (Priority 1.5 — 中文物种优先) ⭐ v5.6 新增
+    "baidu_scholar":    {"tool": "baidu_scholar", "category": "chinese_academic", "priority": 1},
+    "cnki_web":         {"tool": "cnki_web", "category": "chinese_academic", "priority": 1},
+    "wanfang_web":      {"tool": "wanfang_web", "category": "chinese_academic", "priority": 2},
+    "cas_web":          {"tool": "cas_web", "category": "chinese_academic", "priority": 2},
+    "chinese_sweep":    {"tool": "chinese_search", "category": "chinese_academic", "priority": 3},
+    "duckduckgo_search": {"tool": "duckduckgo_search", "category": "chinese_academic", "priority": 2},
     # 语义/深度搜索 (Priority 4-5)
     "tavily_search":    {"tool": "tavily_tavily_search", "category": "semantic", "priority": 4},
     "tavily_research":  {"tool": "tavily_tavily_research", "category": "semantic", "priority": 5},
     "exa_search":       {"tool": "exa_web_search_exa", "category": "semantic", "priority": 4},
+    # 预印本 (Priority 3.5) ⭐ v5.6 新增
+    "biorxiv_api":      {"tool": "biorxiv_search", "category": "preprint", "priority": 3},
+    "researchgate_web": {"tool": "researchgate_web", "category": "preprint", "priority": 3},
     # 内置搜索 (Priority 6)
     "web_search":       {"tool": "web_search", "category": "web", "priority": 6},
     # 引用/关系 (Priority 7)
@@ -447,14 +458,20 @@ ENGINE_REGISTRY = {
     "relations":        {"tool": "article_get_literature_relations", "category": "graph", "priority": 7},
 }
 
-# 默认搜索引擎组 (按场景)
+# 默认搜索引擎组 (按场景) — v5.6 扩组
 ENGINE_GROUPS = {
-    "quick":    ["scholar_graph", "ncbi_esearch", "web_search"],                    # 3引擎, ~10s
-    "standard": ["scholar_graph", "ncbi_esearch", "crossref_article", "web_search", "tavily_search"],  # 5引擎, ~20s
+    # 快速验证 (3引擎, ~10s)
+    "quick":    ["scholar_graph", "ncbi_esearch", "web_search"],
+    # 标准搜索 (5引擎, ~20s)
+    "standard": ["scholar_graph", "ncbi_esearch", "crossref_article", "web_search", "tavily_search"],
+    # 全量搜索 (9引擎, ~40s) ⭐ v5.6: +中文+预印本
     "full":     ["scholar_graph", "ncbi_esearch", "crossref_article", "scholarly_multi",
-                 "tavily_search", "exa_search", "web_search"],                      # 7引擎, ~30s
-    "chinese":  ["scholar_graph", "ncbi_esearch", "web_search"],                   # 含中文源
-    "quick":    ["scholar_graph", "ncbi_esearch", "web_search"],                    # 3步快速: 查→追→补
+                 "baidu_scholar", "tavily_search", "exa_search", "biorxiv_api", "web_search"],
+    # 中文优先 (7引擎, ~25s) ⭐ v5.6: 中文数据库全覆盖
+    "chinese":  ["baidu_scholar", "cnki_web", "wanfang_web", "cas_web",
+                 "scholar_graph", "ncbi_esearch", "chinese_sweep"],
+    # 预印本速递 (3引擎, ~15s) ⭐ v5.6 新增
+    "preprint": ["biorxiv_api", "researchgate_web", "scholar_graph"],
 }
 
 
@@ -492,110 +509,121 @@ def search_streaming(
     """
     search_streaming(queries, group="standard") → [EngineResult]
 
-    流式并行搜索: 先完成的引擎先返回, 后完成的后续合并。
-
-    特性:
-      - 异步流式: 每个引擎完成立即回调 on_result(event)
-      - 分时执行: 不等最慢的引擎, 先到先得
-      - 每组引擎独立30s超时+重试
-      - 支持预定义引擎组: quick/standard/full/chinese
-
-    用法:
-      def on_result(event: StreamEvent):
-          print(f"[{event.engine}] {event.status} {event.paper_count}篇 {event.elapsed_ms:.0f}ms")
-
-      results = search_streaming(["Pseudaspius hakonensis"], group="full", on_result=on_result)
+    v5.6 双路径架构: 每个引擎 MCP → HTTP 自动降级。
+    - MCP 可用 → 优先 MCP 调用 (Tavily/Exa/Scholar/Article/Scholarly/NCBI)
+    - MCP 不可用/失败 → 自动 HTTP fallback (Europe PMC/Crossref/OpenAlex/Bing/Chinese native)
+    - 中文/预印本原生引擎 → 始终走 HTTP (零 MCP 开销)
+    
+    流式并行: 先完成的引擎先返回 on_result(event)。
+    支持预定义引擎组: quick/standard/full/chinese/preprint
     """
     import concurrent.futures
     import time
 
-    # 3-minute grace period for MCP server initialization
     if engines is None:
         engines = ENGINE_GROUPS.get(group, ENGINE_GROUPS["standard"])
 
     results: List[EngineResult] = []
-    _http_fallback: List[Dict] = []
 
-    # Poll _mcp_available() every 5s, up to 180s
+    # ── Detect MCP availability ──
     _mcp_ok = _mcp_available()
     if not _mcp_ok:
-        # Poll briefly for MCP, then fall back to HTTP
         _mcp_start = time.monotonic()
         while time.monotonic() - _mcp_start < 2.0:
             time.sleep(0.5)
             if _mcp_available():
                 _mcp_ok = True
                 break
-    if not _mcp_ok:
-        # HTTP fallback via parallel_search.MCP_HTTP_FALLBACK
-        try:
-            from src.parallel_search import MCP_HTTP_FALLBACK as _hfb
-            for eid in engines:
-                info = ENGINE_REGISTRY.get(eid, {"tool": eid})
-                tn = info.get("tool", eid)
-                for q in queries:
-                    if tn in _hfb:
-                        tt = time.perf_counter()
-                        try:
-                            fr = _hfb[tn](q, limit)
-                            results.append(EngineResult(engine=eid, query=q,
-                                tool=tn, status="ok", results=fr,
-                                elapsed_ms=(time.perf_counter()-tt)*1000))
-                        except Exception as ex:
-                            results.append(EngineResult(engine=eid, query=q,
-                                tool=tn, status="error", error=str(ex)[:200]))
-                    else:
-                        results.append(EngineResult(engine=eid, query=q,
-                            tool=tn, status="degraded",
-                            error=f"{tn}: no HTTP fallback"))
-        except ImportError:
-            for eid in engines:
-                for q in queries:
-                    results.append(EngineResult(engine=eid, query=q,
-                        status="degraded",
-                        error="MCP not available + parallel_search not found"))
-        return results, _http_fallback
 
-    completed = 0
-    total = len(engines) * len(queries)
+    # ── Lazy-load HTTP fallback registry ──
+    try:
+        from src.parallel_search import MCP_HTTP_FALLBACK as _hfb
+    except ImportError:
+        _hfb = {}
 
-    def _search_one(engine_id: str, query: str) -> EngineResult:
+    # ── Native HTTP engines (always HTTP, never MCP) ──
+    _NATIVE_HTTP_TOOLS = {
+        "baidu_scholar", "cnki_web", "wanfang_web", "cas_web",
+        "chinese_search", "chinese_sweep",
+        "biorxiv_search", "researchgate_web", "europe_pmc_search",
+        "web_search",
+    }
+
+    def _search_one_dual(engine_id: str, query: str) -> EngineResult:
+        """Per-engine dual-path: MCP first → HTTP fallback."""
         t0 = time.perf_counter()
         info = ENGINE_REGISTRY.get(engine_id, {"tool": engine_id, "category": "unknown", "priority": 9})
-        result = EngineResult(engine=engine_id, query=query, tool=info["tool"])
-        last_error = ""
+        tool = info.get("tool", engine_id)
+        result = EngineResult(engine=engine_id, query=query, tool=tool)
 
-        for attempt in range(max_retries):
-            try:
-                # 尝试调用对应的 MCP 工具
-                # 当前为框架层 → MCP 服务运行时自动激活
-                result.results = _call_mcp_tool(info["tool"], query, limit)
-                result.status = "ok"
-                break
-            except ImportError:
+        # ── Determine path ──
+        is_native_http = tool in _NATIVE_HTTP_TOOLS
+        http_fn = _hfb.get(tool) if _hfb else None
+
+        # ── Path A: Native HTTP engines → straight to HTTP ──
+        if is_native_http:
+            if http_fn:
+                try:
+                    result.results = http_fn(query, limit)
+                    result.status = "ok"
+                except Exception as e:
+                    result.status = "error"
+                    result.error = str(e)[:200]
+            else:
                 result.status = "degraded"
-                result.error = f"{info['tool']}: MCP not available"
-                break
+                result.error = f"{tool}: native HTTP provider not found"
+            result.elapsed_ms = (time.perf_counter() - t0) * 1000
+            return result
+
+        # ── Path B: MCP-capable engines → try MCP first ──
+        if _mcp_ok:
+            for attempt in range(max_retries):
+                try:
+                    result.results = _call_mcp_tool(tool, query, limit)
+                    result.status = "ok"
+                    result.elapsed_ms = (time.perf_counter() - t0) * 1000
+                    return result
+                except ImportError:
+                    # MCP tool not injected → fall through to HTTP
+                    break
+                except Exception as e:
+                    result.retries = attempt + 1
+                    if attempt < max_retries - 1:
+                        wait = min(1.0 * (2 ** attempt), 8)
+                        time.sleep(wait)
+                        continue
+                    # MCP exhausted → fall through to HTTP
+                    break
+
+        # ── Path C: HTTP fallback (MCP not available or exhausted) ──
+        if http_fn:
+            try:
+                result.results = http_fn(query, limit)
+                result.status = "ok(fallback)"
+                result.tool = f"{tool}→HTTP"
             except Exception as e:
-                last_error = str(e)
-                result.retries = attempt + 1
-                if attempt < max_retries - 1:
-                    wait = min(retry_delay_s * (2 ** attempt), 10)  # 指数退避, 上限10s
-                    time.sleep(wait)
-                continue
+                result.status = "error"
+                result.error = str(e)[:200]
         else:
-            result.status = "error"
-            result.error = last_error[:200]
+            if not _mcp_ok:
+                result.status = "degraded"
+                result.error = f"{tool}: MCP unavailable + no HTTP fallback"
+            else:
+                result.status = "error"
+                result.error = f"{tool}: MCP failed + no HTTP fallback"
 
         result.elapsed_ms = (time.perf_counter() - t0) * 1000
         return result
 
-    # 并行启动所有引擎 — 先完成先返回
-    with concurrent.futures.ThreadPoolExecutor(max_workers=total) as ex:
+    # ── Parallel fan-out: all engines × all queries ──
+    total = len(engines) * len(queries)
+    completed = 0
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(total, 12)) as ex:
         futures = {}
         for engine_id in engines:
             for query in queries:
-                future = ex.submit(_search_one, engine_id, query)
+                future = ex.submit(_search_one_dual, engine_id, query)
                 futures[future] = (engine_id, query)
 
         for future in concurrent.futures.as_completed(futures):
@@ -604,8 +632,6 @@ def search_streaming(
                 result = future.result(timeout=per_engine_timeout_s)
                 results.append(result)
                 completed += 1
-
-                # 流式回调: 立即通知
                 if on_result:
                     on_result(StreamEvent(
                         engine=result.engine,
@@ -621,19 +647,7 @@ def search_streaming(
                 ))
                 completed += 1
 
-    # Fallback: SearchRuleEngine HTTP if all MCP engines degraded
-    if all(r.status in ("degraded", "error") for r in results):
-        try:
-            from src.rule_engine import SearchRuleEngine as _SRE
-            sr = _SRE(mode="http")
-            sp_id = (queries[0] if queries else "").replace(" ", "_")
-            res = sr.execute(sp_id)
-            for p in res.get("papers", []):
-                p.setdefault("source", "http_fallback")
-                _http_fallback.append(p)
-        except Exception:
-            pass
-    return results, _http_fallback
+    return results, []  # v5.6: _http_fallback deprecated — each engine handles its own fallback
 
 
 def _mcp_available() -> bool:
