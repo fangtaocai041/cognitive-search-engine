@@ -319,6 +319,55 @@ def search_openalex(query: str, n: int = 20) -> list[dict]:
         return []
 
 
+@register_provider("openalex_references")
+def search_openalex_references(doi: str, n: int = 20) -> list[dict]:
+    """通过 OpenAlex API 获取一篇论文的参考文献。
+
+    输入: DOI or identifier (如 "10.3390/ani16091369")
+    输出: 引用该论文的其他论文列表 (引用回溯)
+    """
+    try:
+        import json as _json
+        from urllib.request import urlopen, Request
+        from urllib.parse import quote
+
+        doi_clean = doi.replace("https://doi.org/", "").replace("http://dx.doi.org/", "")
+        url = f"https://api.openalex.org/works/doi:{quote(doi_clean)}?select=referenced_works"
+        req = Request(url, headers={"User-Agent": "Reasonix/1.0"})
+        with urlopen(req, timeout=15) as resp:
+            data = _json.loads(resp.read())
+
+        ref_ids = data.get("referenced_works", [])[:n]
+        if not ref_ids:
+            return []
+
+        papers = []
+        for wid in ref_ids:
+            try:
+                wurl = f"https://api.openalex.org/works/{wid}"
+                with urlopen(Request(wurl, headers={"User-Agent": "Reasonix/1.0"}), timeout=10) as wresp:
+                    wdata = _json.loads(wresp.read())
+                doi_val = (wdata.get("doi") or "").replace("https://doi.org/", "")
+                authors = [
+                    a.get("author", {}).get("display_name", "")
+                    for a in wdata.get("authorships", [])
+                ]
+                papers.append({
+                    "doi": doi_val,
+                    "title": wdata.get("title", ""),
+                    "year": wdata.get("publication_year"),
+                    "journal": (wdata.get("primary_location") or {})
+                               .get("source", {}).get("display_name", ""),
+                    "authors": authors,
+                    "_source_api": "openalex_references",
+                })
+            except Exception:
+                continue
+        return papers
+    except Exception:
+        return []
+
+
 # ═══════════════════════════════════════════════════════
 # 中文搜索提供者 (v2.0 - 填补 PubMed/Crossref 盲区)
 # ═══════════════════════════════════════════════════════
@@ -447,8 +496,8 @@ MCP_HTTP_FALLBACK = {
     "ncbi_ncbi_esummary": lambda q, n: search_pubmed(q, n),
     "article_search_literature": lambda q, n: search_pubmed(q, n) + search_crossref(q, n),
     "article_get_article_details": lambda q, n: search_pubmed(q, n),
-    "article_get_references": lambda q, n: search_crossref(q, n),
-    "article_get_literature_relations": lambda q, n: search_crossref(q, n),
+    "article_get_references": lambda q, n: search_openalex_references(q, n),
+    "article_get_literature_relations": lambda q, n: search_openalex(q, n),
     "scholarly_research_search": search_openalex,
     "tavily_tavily_search": search_bing_web,
     "exa_web_search_exa": search_bing_web,

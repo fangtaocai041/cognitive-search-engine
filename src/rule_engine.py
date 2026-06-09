@@ -15,7 +15,9 @@ Usage:
 
 import json
 import logging
+import time
 import urllib.request
+import urllib.error
 import re
 import statistics
 from dataclasses import dataclass, field
@@ -150,6 +152,13 @@ class SearchRuleEngine:
         self._ig_history: list[float] = []  # info gain per phase
         self._search_errors: list[str] = []  # visible error log
 
+        # Timeout / retry config (可被 agent.yaml 覆盖)
+        self._http_timeout_per_call: int = 15       # 单次 HTTP 请求超时
+        self._http_retry_max_s: int = 60             # 总重试窗口 60s
+        self._http_retry_attempts: int = 5            # 最多重试 5 次
+        self._mcp_parallel_timeout_s: int = 180       # MCP 并行总超时 3min
+        self._mcp_per_call_timeout_s: int = 30        # MCP 单次调用超时
+
         # D₃ World Model
         self._world_model = WorldModel() if WorldModel else None
 
@@ -185,15 +194,18 @@ class SearchRuleEngine:
                 species_id, graph_known_count=len(graph_papers)
             )
 
-        # Initialize context
+        # Initialize context (includes engine state for stop conditions)
         ctx = {
             "species_id": species_id,
             "genus": genus,
             "species": species,
             "chinese_name": self._get_chinese_name(species_id),
             "all_papers": self._all_papers,
+            "all_dois": self._all_dois,
             "graph_papers": graph_papers,
             "total_tokens": 0,
+            "consecutive_zero_new": 0,
+            "ig_history": [],
         }
 
         phases_executed = []
@@ -222,12 +234,14 @@ class SearchRuleEngine:
             else:
                 self._consecutive_zero += 1
 
+            # Sync ctx with latest engine state (for stop condition eval)
             paper_counts.append(len(self._all_papers))
             ctx["all_papers"] = self._all_papers
-
-            # Track info gain
+            ctx["all_dois"] = self._all_dois
+            ctx["consecutive_zero_new"] = self._consecutive_zero
             ig = len(new_papers) / max(budget / 1000, 1)
             self._ig_history.append(ig)
+            ctx["ig_history"] = self._ig_history
 
         # Dedup & merge (final pass)
         merged = self._deduplicate(self._all_papers)
@@ -335,6 +349,79 @@ class SearchRuleEngine:
                         continue
                 papers.append(r)
 
+        return {"new_papers": papers, "tokens_used": phase.get("budget", 500)}
+
+    @register_phase("search_chinese_scholar")
+    def _fn_search_chinese_scholar(self, phase: dict, ctx: dict) -> dict:
+        """Phase 1.5: Chinese-specific search — 三层发散.
+
+        Layer 1: ↘ 百度学术 (web_search + site:xueshu.baidu.com)
+                 ↘ CNKI (web_search + site:cnki.net)
+                 ↘ 万方 (web_search + site:wanfangdata.com.cn)
+                 ↘ CAS (web_search + site:ihb.ac.cn)
+        Layer 2: ↘ 中文名 + 学名 → Crossref/OpenAlex（UTF-8 查询）
+        Layer 3: ↘ tavily_search / exa_web_search（AI 搜索，抗反爬）
+
+        先完成先统计，后完成的后合并，dedup_merge 阶段去重。
+        """
+        chinese_name = ctx.get("chinese_name", "")
+        genus = ctx.get("genus", "")
+        species_ep = ctx.get("species", "")
+        if not chinese_name:
+            return {"new_papers": [], "tokens_used": 0}
+
+        papers = []
+        seen_dois: set[str] = set()
+
+        # ── Layer 1: 4 中文源并行发散 ──
+        cn_sources = [
+            f"{chinese_name} site:xueshu.baidu.com",
+            f"{chinese_name} site:cnki.net",
+            f"{chinese_name} site:wanfangdata.com.cn",
+            f"{chinese_name} site:ihb.ac.cn OR site:cas.cn",
+        ]
+        for q in cn_sources:
+            try:
+                raw = self._call_search_tools(q, phase.get("tools", []), ctx)
+                for r in raw:
+                    if r.doi_key not in seen_dois:
+                        if self._matches_species_context(r, ctx, genus, species_ep):
+                            seen_dois.add(r.doi_key)
+                            papers.append(r)
+            except Exception:
+                continue
+
+        # ── Layer 2: 中文名 + 学名 → Crossref/OpenAlex ──
+        if len(papers) < 5:
+            cn_en_queries = [
+                f"{chinese_name} {genus} {species_ep}",
+                f"{chinese_name} 鱼类 OR 鱼",
+            ]
+            for q in cn_en_queries:
+                try:
+                    raw = self._call_search_tools(q, ["article_search_literature", "ncbi_ncbi_esearch"], ctx)
+                    for r in raw:
+                        if r.doi_key not in seen_dois:
+                            if self._matches_species_context(r, ctx, genus, species_ep):
+                                seen_dois.add(r.doi_key)
+                                papers.append(r)
+                except Exception:
+                    continue
+
+        # ── Layer 3: tavily / exa AI 搜索降级 ──
+        if len(papers) < 3 and self.mode in ("mcp", "http"):
+            try:
+                tavily_q = f"{chinese_name} {genus} 学术论文 研究"
+                raw = self._call_search_tools(tavily_q, ["tavily_tavily_search", "exa_web_search_exa"], ctx)
+                for r in raw:
+                    if r.doi_key not in seen_dois:
+                        if self._matches_species_context(r, ctx, genus, species_ep):
+                            seen_dois.add(r.doi_key)
+                            papers.append(r)
+            except Exception:
+                pass
+
+        logger.info(f"Chinese search '{chinese_name}': {len(papers)} papers from {len(seen_dois)} unique DOIs")
         return {"new_papers": papers, "tokens_used": phase.get("budget", 500)}
 
     @register_phase("search_by_authors")
@@ -567,6 +654,39 @@ class SearchRuleEngine:
         deduped = self._deduplicate(papers)
         return {"new_papers": deduped, "tokens_used": 0}
 
+    # ── 重连/重试工具 ──
+
+    def _http_retry(self, url_fn, label="http"):
+        """带指数退避的 HTTP 重试包装器。
+
+        Args:
+            url_fn: 返回 (response_body: bytes) 的可调用对象
+            label: 日志标签
+
+        Returns:
+            response_body: bytes
+
+        Raises:
+            urllib.error.URLError: 重试全部耗尽后抛出
+        """
+        deadline = time.monotonic() + self._http_retry_max_s
+        last_error = None
+        for attempt in range(self._http_retry_attempts):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            try:
+                return url_fn()
+            except (urllib.error.URLError, urllib.error.HTTPError,
+                    TimeoutError, OSError) as e:
+                last_error = e
+                wait = min(2 ** attempt, remaining / 2, 15)  # 退避 ≤15s
+                if wait > 0.5 and attempt < self._http_retry_attempts - 1:
+                    logger.info(f"Retry {label} attempt {attempt+1}/{self._http_retry_attempts} "
+                                f"after {wait:.1f}s ({type(e).__name__})")
+                    time.sleep(wait)
+        raise last_error or RuntimeError(f"{label}: retry exhausted")
+
     # ── Tool Calling ──
 
     def _call_search_tools(self, query: str, tools: list[str],
@@ -585,15 +705,19 @@ class SearchRuleEngine:
     def _http_search(self, query: str, tools: list[str], n: int) -> list[Paper]:
         """HTTP-mode: call PubMed E-utilities, Crossref, OpenAlex directly."""
         papers = []
-        # PubMed via NCBI E-utilities (free, no API key)
+
+        # ── PubMed via NCBI E-utilities (带重试) ──
         try:
             from urllib.parse import quote as _q
-            esearch_url = (
-                f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?"
-                f"db=pubmed&term={_q(query)}&retmax={n}&retmode=json"
-            )
-            with urllib.request.urlopen(esearch_url, timeout=15) as resp:
-                esearch_data = json.loads(resp.read())
+            def _fetch_pubmed():
+                esearch_url = (
+                    f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?"
+                    f"db=pubmed&term={_q(query)}&retmax={n}&retmode=json"
+                )
+                with urllib.request.urlopen(esearch_url, timeout=self._http_timeout_per_call) as resp:
+                    return resp.read()
+            esearch_body = self._http_retry(_fetch_pubmed, label=f"PubMed esearch({query[:40]})")
+            esearch_data = json.loads(esearch_body)
             id_list = esearch_data.get("esearchresult", {}).get("idlist", [])
             if id_list:
                 ids = ",".join(id_list[:n])
@@ -604,15 +728,18 @@ class SearchRuleEngine:
                 papers.extend(self._parse_pubmed_xml(efetch_url))
             logger.info(f"PubMed: {len(id_list)} hits for '{query}'")
         except Exception as exc:
-            logger.warning(f"PubMed failed for '{query}': {exc}")
+            logger.warning(f"PubMed failed for '{query}' after retry: {exc}")
             self._search_errors.append(f"PubMed({query}): {exc}")
 
-        # Crossref (free, 50 req/s without key)
+        # ── Crossref (带重试) ──
         try:
             from urllib.parse import quote as _q
-            cr_url = f"https://api.crossref.org/works?query={_q(query)}&rows={n}"
-            with urllib.request.urlopen(cr_url, timeout=15) as resp:
-                cr_data = json.loads(resp.read())
+            def _fetch_crossref():
+                cr_url = f"https://api.crossref.org/works?query={_q(query)}&rows={n}"
+                with urllib.request.urlopen(cr_url, timeout=self._http_timeout_per_call) as resp:
+                    return resp.read()
+            cr_body = self._http_retry(_fetch_crossref, label=f"Crossref({query[:40]})")
+            cr_data = json.loads(cr_body)
             items = cr_data.get("message", {}).get("items", [])
             for item in items:
                 paper = self._crossref_to_paper(item)
@@ -620,21 +747,24 @@ class SearchRuleEngine:
                     papers.append(paper)
             logger.info(f"Crossref: {len(items)} items for '{query}'")
         except Exception as exc:
-            logger.warning(f"Crossref failed for '{query}': {exc}")
+            logger.warning(f"Crossref failed for '{query}' after retry: {exc}")
             self._search_errors.append(f"Crossref({query}): {exc}")
 
-        # OpenAlex (free tier, no key, mailto for polite pool)
+        # ── OpenAlex (带重试) ──
         try:
             from urllib.parse import quote as _q
-            oa_query = _q(query, safe='')
-            oa_url = f"https://api.openalex.org/works?search={oa_query}&per_page={min(n, 50)}"
-            req = urllib.request.Request(oa_url, headers={
-                "User-Agent": "mailto:cognitive-search-engine@reasonix.local",
-                "Accept": "application/json",
-            })
-            import urllib.request as _ur_req
-            with _ur_req.urlopen(req, timeout=15) as resp:
-                oa_data = json.loads(resp.read())
+            def _fetch_openalex():
+                oa_query = _q(query, safe='')
+                oa_url = f"https://api.openalex.org/works?search={oa_query}&per_page={min(n, 50)}"
+                req = urllib.request.Request(oa_url, headers={
+                    "User-Agent": "mailto:cognitive-search-engine@reasonix.local",
+                    "Accept": "application/json",
+                })
+                import urllib.request as _ur_req
+                with _ur_req.urlopen(req, timeout=self._http_timeout_per_call) as resp:
+                    return resp.read()
+            oa_body = self._http_retry(_fetch_openalex, label=f"OpenAlex({query[:40]})")
+            oa_data = json.loads(oa_body)
             results = oa_data.get("results", [])
             for item in results:
                 paper = self._openalex_to_paper(item)
@@ -642,23 +772,45 @@ class SearchRuleEngine:
                     papers.append(paper)
             logger.info(f"OpenAlex: {len(results)} results for '{query}'")
         except Exception as exc:
-            logger.warning(f"OpenAlex failed for '{query}': {exc}")
+            logger.warning(f"OpenAlex failed for '{query}' after retry: {exc}")
             self._search_errors.append(f"OpenAlex({query}): {exc}")
 
         return papers
 
     def _mcp_search(self, query: str, tools: list[str], n: int) -> list[Paper]:
-        """MCP-mode: call external MCP servers via stdio JSON-RPC."""
-        # MCP stdio protocol: JSON-RPC 2.0 over stdin/stdout
-        # Requires MCP servers installed and configured in mcp_servers.yaml
-        papers = []
-        for tool_name in tools:
-            try:
-                result = self._call_mcp_tool(tool_name, {"query": query, "max_results": n})
-                papers.extend(self._mcp_result_to_papers(result, tool_name))
-            except Exception:
-                continue
-        return papers
+        """MCP-mode: call external MCP servers via stdio JSON-RPC.
+
+        并行启动所有工具，先完成先返回，后完成的后合并。
+        B 引擎可在 A 引擎的结果上添加引用回溯。
+        """
+        try:
+            from src.mcp_client import McpClient
+            client = McpClient()
+            tool_calls = [
+                (t, {"query": query, "max_results": n})
+                for t in tools
+            ]
+            parallel_results = client.call_tools_parallel(
+                tool_calls,
+                timeout_s=self._mcp_parallel_timeout_s,
+            )
+            papers = []
+            for tool_name, result_list in parallel_results:
+                try:
+                    papers.extend(self._mcp_result_to_papers(result_list, tool_name))
+                except Exception:
+                    continue
+            return papers
+        except ImportError:
+            # Fallback: sequential MCP
+            papers = []
+            for tool_name in tools:
+                try:
+                    result = self._call_mcp_tool(tool_name, {"query": query, "max_results": n})
+                    papers.extend(self._mcp_result_to_papers(result, tool_name))
+                except Exception:
+                    continue
+            return papers
 
     def _call_mcp_tool(self, tool_name: str, args: dict) -> list[dict]:
         """Call a single MCP tool. Requires external MCP server process."""
@@ -901,21 +1053,22 @@ class SearchRuleEngine:
         return False
 
     def _stop_reason(self) -> str:
-        if self._consecutive_zero >= 2:
-            return "2 consecutive phases returned 0 new papers"
-        satisficed = len(self._all_papers) >= 8
-        if satisficed:
-            return f"Satisficed at {len(self._all_papers)} papers (≥8)"
-        return f"All phases exhausted ({len(self._all_papers)} papers)"
+        if self._consecutive_zero >= 3:
+            return f"3 consecutive phases returned 0 new papers (diminishing returns)"
+        if self._tokens_spent >= 50000:
+            return f"Token budget exhausted ({self._tokens_spent} tokens)"
+        return f"All phases exhausted ({len(self._all_papers)} papers, {self._tokens_spent} tokens)"
 
     def _builtins(self) -> dict:
+        # Read satisfice_threshold from search_rules.yaml adaptive_params
+        _sat_val = self.adaptive_params.get("satisfice_threshold", {}).get("value", 50)
         return {
             "len": len, "any": any, "max": max, "min": min,
             "filter": filter, "sum": sum,
             "config": DotDict({
                 "search": {
                     "energy": {
-                        "min_papers_satisfice": 8,
+                        "min_papers_satisfice": _sat_val,
                         "max_total_tokens": 50000,
                     }
                 }
@@ -932,10 +1085,11 @@ class SearchRuleEngine:
         Wires the rule_engine's phase executor into the agent,
         so that Think→Act→Observe→Reflect uses the same handlers.
         """
-        # Resolve import relative to engine file location
+        # importlib with correct module name 'src.agent_core'
+        # so 'from src.world_model' inside agent_core.py resolves correctly
         import importlib.util as _iu
         _agent_path = Path(__file__).resolve().parent / "agent_core.py"
-        _spec = _iu.spec_from_file_location("cogsearch.agent", str(_agent_path))
+        _spec = _iu.spec_from_file_location("src.agent_core", str(_agent_path))
         if _spec and _spec.loader:
             _mod = _iu.module_from_spec(_spec)
             _spec.loader.exec_module(_mod)
@@ -1013,7 +1167,16 @@ class SearchRuleEngine:
     def _get_agent(self):
         """Lazy-init the CognitiveAgent with phase specs from search_rules."""
         if self._agent is None:
-            from src.agent_core import CognitiveAgent
+            # importlib with correct module name, same as _execute_react
+            import importlib.util as _iu
+            _agent_path = Path(__file__).resolve().parent / "agent_core.py"
+            _spec = _iu.spec_from_file_location("src.agent_core", str(_agent_path))
+            if _spec and _spec.loader:
+                _mod = _iu.module_from_spec(_spec)
+                _spec.loader.exec_module(_mod)
+                CognitiveAgent = _mod.CognitiveAgent
+            else:
+                raise ImportError(f"agent_core.py not found at {_agent_path}")
             _rules_path = str(Path(__file__).resolve().parent.parent / "config" / "search_rules.yaml")
             self._agent = CognitiveAgent(mode=self.mode, rules_path=_rules_path)
         return self._agent

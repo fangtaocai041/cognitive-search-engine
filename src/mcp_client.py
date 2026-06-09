@@ -20,9 +20,11 @@ Usage:
 """
 
 import json
+import logging
 import subprocess
 import sys
 import threading
+import time
 from pathlib import Path
 from typing import Any, Optional
 
@@ -56,12 +58,81 @@ class McpClient:
     process on first call and reuses it (process stays alive for the session).
     """
 
-    def __init__(self, config_path: str = "config/mcp_servers.yaml"):
+    def __init__(self, config_path: str = "config/mcp_servers.yaml",
+                 prewarm: bool = True):
         self._config_path = Path(config_path)
         self._servers: dict[str, dict] = {}
         self._processes: dict[str, subprocess.Popen] = {}
         self._tool_to_server: dict[str, str] = {}
+        self._healthy_servers: set[str] = set()   # 已通过健康检查的
+        self._prewarm_done: bool = False
+        self._logger = logging.getLogger("mcp_client")
         self._load_config()
+
+        # 后台预热: 不阻塞 __init__, 首次 call_tool 前自动完成
+        if prewarm and self._servers:
+            t = threading.Thread(target=self._prewarm_background, daemon=True)
+            t.start()
+
+    def _prewarm_background(self):
+        """后台线程: 并行启动所有 MCP 服务器 + 健康探测。"""
+        self._logger.info(f"Prewarming {len(self._servers)} MCP servers...")
+        import concurrent.futures
+
+        def _start_one(name: str):
+            proc = self._get_or_start_process(name, retry_max_s=30)
+            if proc and self._health_check(name, timeout_s=10):
+                self._healthy_servers.add(name)
+                return True
+            return False
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(self._servers)) as ex:
+            futs = {ex.submit(_start_one, name): name for name in self._servers}
+            for fut in concurrent.futures.as_completed(futs, timeout=60):
+                name = futs[fut]
+                try:
+                    ok = fut.result()
+                    self._logger.info(f"MCP {name}: {'✅ healthy' if ok else '❌ unhealthy'}")
+                except Exception as e:
+                    self._logger.warning(f"MCP {name}: ❌ {e}")
+
+        self._prewarm_done = True
+        healthy = len(self._healthy_servers)
+        self._logger.info(f"MCP prewarm complete: {healthy}/{len(self._servers)} healthy")
+
+    def _health_check(self, server_name: str, timeout_s: int = 10) -> bool:
+        """JSON-RPC 健康探测: 发送 tools/list 等待响应。
+
+        Returns:
+            True if server responds within timeout_s
+        """
+        proc = self._processes.get(server_name)
+        if not proc or proc.poll() is not None:
+            return False
+        try:
+            request = _rpc_request("tools/list", {})
+            payload = (json.dumps(request) + "\n").encode("utf-8")
+            proc.stdin.write(payload)
+            proc.stdin.flush()
+
+            line: Optional[bytes] = None
+            def _read():
+                nonlocal line
+                try:
+                    line = proc.stdout.readline()
+                except Exception:
+                    pass
+            reader = threading.Thread(target=_read, daemon=True)
+            reader.start()
+            reader.join(timeout=timeout_s)
+            if reader.is_alive():
+                return False
+            if not line:
+                return False
+            resp = json.loads(line.decode("utf-8"))
+            return "result" in resp
+        except Exception:
+            return False
 
     def _load_config(self):
         """Parse mcp_servers.yaml and build tool→server mapping."""
@@ -192,28 +263,96 @@ class McpClient:
                 return server
         return None
 
-    def _get_or_start_process(self, server_name: str) -> subprocess.Popen | None:
+    def call_tools_parallel(self, tool_calls: list[tuple[str, dict]],
+                            timeout_s: int = 180,
+                            on_result: callable = None) -> list[tuple[str, list[dict]]]:
+        """并行调用多个 MCP 工具，先完成先返回。
+
+        Args:
+            tool_calls: [(tool_name, args), ...] 列表
+            timeout_s: 总超时 (默认 180s = 3min)
+            on_result: 可选回调, 每完成一个调用即调用 on_result(tool_name, results)
+
+        Returns:
+            [(tool_name, results), ...] — 按完成顺序排列
+        """
+        import concurrent.futures
+        import time
+
+        results: list[tuple[str, list[dict]]] = []
+        deadline = time.monotonic() + timeout_s
+
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=min(len(tool_calls), 7)
+        ) as executor:
+            future_map = {
+                executor.submit(self.call_tool, name, args): name
+                for name, args in tool_calls
+            }
+
+            for future in concurrent.futures.as_completed(future_map, timeout=timeout_s):
+                name = future_map[future]
+                try:
+                    remaining = deadline - time.monotonic()
+                    per_timeout = min(remaining, 30)
+                    if per_timeout <= 0:
+                        per_timeout = 5
+                    call_results = future.result(timeout=per_timeout)
+                    results.append((name, call_results))
+                    if on_result:
+                        on_result(name, call_results)
+                except concurrent.futures.TimeoutError:
+                    results.append((name, [{"note": f"timeout > {timeout_s}s", "source": "mcp_timeout"}]))
+                    if on_result:
+                        on_result(name, [])
+                except Exception as e:
+                    results.append((name, [{"note": f"error: {e}", "source": "mcp_error"}]))
+                    if on_result:
+                        on_result(name, [])
+
+        return results
+
+    def _get_or_start_process(self, server_name: str,
+                              retry_max_s: int = 60) -> subprocess.Popen | None:
         """Return the running process for a server, starting it if needed."""
         if server_name in self._processes:
             proc = self._processes[server_name]
             if proc.poll() is None:  # still running
                 return proc
-            # Restart if dead
+            # Restart if dead (带重试)
+            logger = logging.getLogger("mcp_client")
+            logger.info(f"MCP {server_name} process died, restarting...")
             del self._processes[server_name]
 
         server = self._servers[server_name]
-        try:
-            proc = subprocess.Popen(
-                [server["command"]] + server["args"],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=False,  # binary mode for JSON-RPC
-            )
-            self._processes[server_name] = proc
-            return proc
-        except (FileNotFoundError, OSError):
-            return None
+        deadline = time.monotonic() + retry_max_s
+        last_error = None
+
+        for attempt in range(5):  # 最多 5 次重试
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            try:
+                proc = subprocess.Popen(
+                    [server["command"]] + server["args"],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=False,  # binary mode for JSON-RPC
+                )
+                self._processes[server_name] = proc
+                return proc
+            except (FileNotFoundError, OSError) as e:
+                last_error = e
+                wait = min(2 ** attempt, remaining / 2, 10)
+                if wait > 0.5:
+                    import time as _time
+                    _time.sleep(wait)
+                continue
+
+        logger = logging.getLogger("mcp_client")
+        logger.warning(f"MCP {server_name} failed after retry: {last_error}")
+        return None
 
     @staticmethod
     def _mock_response(tool_name: str, args: dict) -> list[dict]:
@@ -244,3 +383,41 @@ def call_mcp_tool(tool_name: str, args: dict) -> list[dict]:
     if _client is None:
         _client = McpClient()
     return _client.call_tool(tool_name, args)
+
+
+def call_mcp_tools_parallel(tool_calls: list[tuple[str, dict]],
+                            timeout_s: int = 180) -> list[tuple[str, list[dict]]]:
+    """并行调用多个 MCP 工具（模块级便捷函数）。
+
+    Args:
+        tool_calls: [(tool_name, args), ...]
+        timeout_s: 总超时 (默认 180s)
+
+    Returns:
+        [(tool_name, results), ...] — 按完成顺序
+    """
+    global _client
+    if _client is None:
+        _client = McpClient()
+    return _client.call_tools_parallel(tool_calls, timeout_s=timeout_s)
+
+
+def prewarm_mcp(timeout_s: int = 60) -> int:
+    """预热所有 MCP 服务器（阻塞直到全部启动或超时）。
+
+    Args:
+        timeout_s: 总超时
+
+    Returns:
+        健康检查通过的服务器数量
+    """
+    global _client
+    if _client is None:
+        _client = McpClient(prewarm=False)
+    # 手动触发预热，等待完成
+    deadline = time.monotonic() + timeout_s
+    _client._prewarm_background()
+    remaining = deadline - time.monotonic()
+    if remaining > 0:
+        time.sleep(min(remaining, 5))
+    return len(_client._healthy_servers)

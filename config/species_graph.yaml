@@ -12,6 +12,20 @@ graph:
     - 鳤条鱼
     family: Xenocyprididae
     conservation: CR
+    taxonomy:
+      current: Xenocyprididae
+      revised_from: Cyprinidae (鲤科)
+      note: 鳤属原归鲤科雅罗鱼亚科(Leuciscinae)，分子系统学支持归入鲴科(Xenocyprididae)
+      source: NCBI Taxonomy / Catalog of Fishes
+      evidence:
+        - year: 2017
+          author: Chen et al.
+          journal: Molecular Phylogenetics and Evolution
+          doi: "10.1016/j.ympev.2016.12.004"
+        - year: 2025
+          author: Fricke et al.
+          journal: Catalog of Fishes (online)
+          url: "https://www.calacademy.org/scientists/projects/catalog-of-fishes"
     variants:
     - Ochetobibus elongatus
     - Ochetobus elongatus

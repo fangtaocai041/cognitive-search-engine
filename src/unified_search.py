@@ -454,6 +454,7 @@ ENGINE_GROUPS = {
     "full":     ["scholar_graph", "ncbi_esearch", "crossref_article", "scholarly_multi",
                  "tavily_search", "exa_search", "web_search"],                      # 7引擎, ~30s
     "chinese":  ["scholar_graph", "ncbi_esearch", "web_search"],                   # 含中文源
+    "quick":    ["scholar_graph", "ncbi_esearch", "web_search"],                    # 3步快速: 查→追→补
 }
 
 
@@ -801,6 +802,291 @@ class SearchReport:
     categories: Dict[str, List[Dict]]
     variants_used: List[str]
 
+
+# ═══════════════════════════════════════════════════════
+# §6b 引用回溯 — 对高可信度论文展开引用链 (Step 3)
+# ═══════════════════════════════════════════════════════
+
+def citation_traversal(
+    papers: List[Dict],
+    species_name: str,
+    max_per_paper: int = 10,
+    max_total_calls: int = 20,
+    min_credibility: int = 60,
+) -> List[Dict]:
+    """
+    citation_traversal(papers, species_name) → [new_papers]
+
+    对已搜索到的高可信度论文展开引用链，提取目标物种相关论文。
+
+    逻辑:
+      1. 过滤: 仅处理 credibility ≥ min_credibility 且有 DOI 的论文
+      2. 遍历: 调用 article_get_references 获取每篇论文的参考文献
+      3. 筛选: 只保留标题或摘要中包含目标物种名的论文
+      4. 去重: 排除已在 papers 中的 DOI
+
+    Args:
+        papers: 已完成搜索的论文列表
+        species_name: 目标物种学名 (如 "Tribolodon hakonensis")
+        max_per_paper: 每篇论文最多获取的参考文献数
+        max_total_calls: 最多发起的引用检索调用数
+        min_credibility: 触发引用回溯的最小可信度阈值
+
+    Returns:
+        新发现的论文列表 (不含已在 papers 中的论文)
+    """
+    import re
+    import time
+    from urllib.request import urlopen, Request
+    from urllib.parse import quote
+    import json
+
+    existing_dois = {
+        p.get("doi", "").lower().strip()
+        for p in papers if p.get("doi")
+    }
+    existing_titles = {
+        (p.get("title", "") or "").lower().strip()[:80]
+        for p in papers
+    }
+
+    # 提取物种核心名: Tribolodon hakonensis → 属名+种名
+    name_lower = species_name.lower().strip()
+    genus = name_lower.split()[0] if " " in name_lower else name_lower
+
+    new_papers: List[Dict] = []
+    calls_made = 0
+
+    # 筛选候选论文: 有DOI + 可信度达标
+    candidates = [
+        p for p in papers
+        if p.get("doi") and calls_made < max_total_calls
+    ]
+
+    for paper in candidates:
+        if calls_made >= max_total_calls:
+            break
+
+        doi = paper.get("doi", "").strip()
+        if not doi:
+            continue
+
+        calls_made += 1
+
+        # 尝试用 MCP article_get_references 获取引用
+        refs = _fetch_references_mcp(doi, max_per_paper)
+
+        # MCP 不可用 → HTTP fallback via OpenAlex
+        if refs is None:
+            refs = _fetch_references_http(doi, max_per_paper)
+
+        if not refs:
+            continue
+
+        for ref in refs:
+            # 检查是否目标物种论文
+            ref_title = (ref.get("title") or "").lower().strip()
+            if not ref_title:
+                continue
+
+            # 物种名匹配: 属名 或 学名全称 在标题中
+            is_about_species = (
+                name_lower in ref_title or
+                genus in ref_title
+            )
+            if not is_about_species:
+                continue
+
+            # 去重: DOI
+            ref_doi = (ref.get("doi") or "").lower().strip()
+            if ref_doi and ref_doi in existing_dois:
+                continue
+
+            # 去重: 标题
+            ref_title_key = ref_title[:80]
+            if ref_title_key in existing_titles:
+                continue
+
+            # 标记来源
+            ref["_source"] = "citation_traversal"
+            ref["_source_paper"] = paper.get("title", "")
+            ref["_source_doi"] = doi
+            ref["_citation_depth"] = 1
+
+            # 添加到新论文
+            new_papers.append(ref)
+            if ref_doi:
+                existing_dois.add(ref_doi)
+            existing_titles.add(ref_title_key)
+
+    return new_papers
+
+
+def _fetch_references_mcp(doi: str, max_results: int) -> Optional[List[Dict]]:
+    """通过 MCP article_get_references 获取参考文献。
+
+    Returns:
+        List[Dict] 成功时; None 如果 MCP 不可用
+    """
+    try:
+        return _call_mcp_tool(
+            "article_get_references",
+            doi,
+            max_results,
+        )
+    except (ImportError, Exception):
+        return None
+
+
+def _fetch_references_http(doi: str, max_results: int) -> List[Dict]:
+    """HTTP fallback: 通过 OpenAlex API 获取参考文献。"""
+    try:
+        import json
+        from urllib.request import urlopen, Request
+        from urllib.parse import quote
+
+        # OpenAlex: 获取论文的 referenced_works
+        doi_clean = doi.replace("https://doi.org/", "").replace("http://dx.doi.org/", "")
+        url = f"https://api.openalex.org/works/doi:{quote(doi_clean)}?select=referenced_works"
+        req = Request(url, headers={"User-Agent": "Reasonix/1.0"})
+        with urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read())
+
+        ref_work_ids = data.get("referenced_works", [])[:max_results]
+        if not ref_work_ids:
+            return []
+
+        # 批量获取引用论文的元数据
+        papers = []
+        for wid in ref_work_ids:
+            try:
+                wurl = f"https://api.openalex.org/works/{wid}"
+                with urlopen(Request(wurl, headers={"User-Agent": "Reasonix/1.0"}), timeout=10) as wresp:
+                    wdata = json.loads(wresp.read())
+                doi_val = (wdata.get("doi") or "").replace("https://doi.org/", "")
+                authors = [
+                    a.get("author", {}).get("display_name", "")
+                    for a in wdata.get("authorships", [])
+                ]
+                papers.append({
+                    "doi": doi_val,
+                    "title": wdata.get("title", ""),
+                    "year": wdata.get("publication_year"),
+                    "journal": (wdata.get("primary_location") or {})
+                               .get("source", {}).get("display_name", ""),
+                    "authors": authors,
+                    "_source_api": "openalex_references",
+                })
+            except Exception:
+                continue
+        return papers
+    except Exception:
+        return []
+
+
+# ═══════════════════════════════════════════════════════
+# §6c 变体安全网 — OCR 变体搜索补漏 (Step 4)
+# ═══════════════════════════════════════════════════════
+
+def variant_safety_net(
+    scientific_name: str,
+    existing_papers: List[Dict],
+    max_variants: int = 5,
+    max_per_variant: int = 5,
+) -> List[Dict]:
+    """
+    variant_safety_net(scientific_name, existing_papers) → [new_papers]
+
+    自动生成 OCR 拼写变体并对每个变体执行轻量搜索，填补
+    因出版物中物种名拼写错误导致的搜索遗漏。
+
+    逻辑:
+      1. 调用 variant_generator.generate_variants() 生成变体
+      2. 排除已在检查 taxonomy 时覆盖的变体
+      3. 对每个变体执行轻量搜索 (max_results=5)
+      4. 与已有论文去重后返回新发现的论文
+
+    Args:
+        scientific_name: 规范学名 (如 "Tribolodon hakonensis")
+        existing_papers: 已搜索到的论文列表 (用于去重)
+        max_variants: 最多尝试的变体数
+        max_per_variant: 每个变体最多返回的结果数
+
+    Returns:
+        新发现的论文列表
+    """
+    import time
+
+    # Step 1: 生成 OCR 变体
+    parts = scientific_name.strip().split()
+    if len(parts) < 2:
+        return []
+
+    genus, species = parts[0], parts[1]
+
+    try:
+        from src.variant_generator import generate_variants
+        variants = generate_variants(genus, species, max_variants=max_variants)
+    except ImportError:
+        return []
+
+    if not variants:
+        return []
+
+    # Step 2: 已有论文 DOI 集合
+    existing_dois = {
+        p.get("doi", "").lower().strip()
+        for p in existing_papers if p.get("doi")
+    }
+    existing_titles = {
+        (p.get("title", "") or "").lower().strip()[:80]
+        for p in existing_papers
+    }
+
+    new_papers: List[Dict] = []
+
+    # Step 3: 对每个变体执行搜索
+    for variant in variants:
+        try:
+            # 优先使用 scholar_graph MCP
+            try:
+                results = _call_mcp_tool("scholar_search_literature_graph", variant, max_per_variant)
+            except ImportError:
+                # MCP 不可用 → HTTP fallback
+                from src.parallel_search import MCP_HTTP_FALLBACK
+                fn = MCP_HTTP_FALLBACK.get("scholar_search_literature_graph")
+                if fn:
+                    results = fn(variant, max_per_variant)
+                else:
+                    results = []
+
+            if not results:
+                continue
+
+            for paper in results:
+                # 去重
+                doi = (paper.get("doi") or "").lower().strip()
+                if doi and doi in existing_dois:
+                    continue
+                title = (paper.get("title") or "").lower().strip()[:80]
+                if not title or title in existing_titles:
+                    continue
+
+                paper["_source"] = "variant_safety_net"
+                paper["_variant"] = variant
+                paper["_variant_note"] = f"⚠️ OCR变体: {variant}"
+
+                new_papers.append(paper)
+                if doi:
+                    existing_dois.add(doi)
+                existing_titles.add(title)
+
+        except Exception:
+            continue
+
+    return new_papers
+
+
 # ═══════════════════════════════════════════════════════
 # §7 分类学变更检查 (⚠️ 防止属名变更遗漏)
 # ═══════════════════════════════════════════════════════
@@ -849,6 +1135,140 @@ def check_taxonomy(species_name: str) -> List[str]:
     return [species_name]
 
 
+def detect_taxonomy_discrepancy(species_name: str) -> Optional[Dict]:
+    """
+    detect_taxonomy_discrepancy(name) → Optional[Dict]
+
+    检测 c项目(species_graph.yaml) 与 f项目(fish_species_kb.yaml)
+    之间的分类学信息不一致。
+
+    返回:
+      {
+        field: "family",
+        c_project_value: "Xenocyprididae",
+        f_project_value: "鲤科",
+        note: "鳤属…移出，归入鲴科",
+        evidence: [{year, author, journal, doi/url}]
+      }
+      or None if consistent or species not found in both.
+    """
+    import yaml
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent
+
+    # 加载 c项目 species_graph.yaml
+    c_path = root / "config" / "species_graph.yaml"
+    if not c_path.exists():
+        return None
+    with open(c_path, encoding="utf-8") as f:
+        c_data = yaml.safe_load(f)
+
+    # 加载 f项目 fish_species_kb.yaml
+    f_path = root.parent / "fish-ecology-assistant" / "config" / "fish_species_kb.yaml"
+    if not f_path.exists():
+        return None
+    with open(f_path, encoding="utf-8") as f:
+        f_data = yaml.safe_load(f)
+
+    name_lower = species_name.lower().replace(" ", "_")
+
+    # 从 c项目找条目
+    c_species = None
+    for s in c_data.get("graph", {}).get("species", []):
+        sid = s.get("id", "").lower()
+        if name_lower in sid or name_lower in s.get("name", "").lower():
+            c_species = s
+            break
+    if not c_species:
+        return None
+
+    # 从 f项目找条目 (by id or scientific name)
+    f_species = None
+    for s in f_data.get("species", []):
+        sid = s.get("id", "").lower()
+        s_sci = s.get("scientific", "").lower().replace(" ", "_")
+        if name_lower in sid or name_lower in s_sci:
+            f_species = s
+            break
+    if not f_species:
+        return None
+
+    # 比较 family
+    c_family = c_species.get("family", "")
+    f_family = f_species.get("family", "")
+    if not c_family or not f_family:
+        return None
+
+    # 标准化比较 (中文 vs 拉丁)
+    family_consistent = (
+        c_family.lower() == f_family.lower() or
+        _family_same(c_family, f_family)
+    )
+
+    if family_consistent:
+        return None
+
+    # 有不一致 → 构建警告
+    warning = {
+        "field": "family",
+        "c_project_value": c_family,
+        "f_project_value": f_family,
+        "note": f"分类不一致: c项目记录'{c_family}', f项目记录'{f_family}'",
+        "evidence": [],
+    }
+
+    # 从 c项目 taxonomy 字段提取证据
+    c_tax = c_species.get("taxonomy", {})
+    if c_tax:
+        warning["note"] = c_tax.get("note", warning["note"])
+        warning["source"] = c_tax.get("source", "")
+        warning["evidence"] = c_tax.get("evidence", [])
+
+    # 从 f项目 taxonomy_log 补充证据
+    f_log = f_species.get("taxonomy_log", [])
+    if f_log and not warning["evidence"]:
+        log_entry = f_log[0]
+        warning["evidence"] = log_entry.get("evidence", [])
+
+    return warning
+
+
+def _family_same(c_family: str, f_family: str) -> bool:
+    """检查两个科名是否指向同一分类。"""
+    import re
+    # 规范名: 无论中文还是拉丁，都映射到统一规范名
+    FAMILY_CANONICAL = {
+        # 鲤科
+        "cyprinidae": "cyprinidae", "鲤科": "cyprinidae",
+        # 鲴科
+        "xenocyprididae": "xenocyprididae", "鲴科": "xenocyprididae",
+        # 鳀科
+        "engraulidae": "engraulidae", "鳀科": "engraulidae",
+        # 鲿科
+        "bagridae": "bagridae", "鲿科": "bagridae",
+        # 鳜科
+        "sinipercidae": "sinipercidae", "鳜科": "sinipercidae",
+        # 鲇科
+        "siluridae": "siluridae", "鲇科": "siluridae",
+        # 鼠海豚科
+        "phocoenidae": "phocoenidae", "鼠海豚科": "phocoenidae",
+        # 鲟科
+        "acipenseridae": "acipenseridae", "鲟科": "acipenseridae",
+    }
+    # 去括号注释: "Xenocyprididae (鲴科)" → "xenocyprididae"
+    _strip = lambda s: re.sub(r'\s*\(.*?\)\s*', '', s).lower().strip()
+    c = _strip(c_family)
+    f = _strip(f_family)
+    if c == f:
+        return True
+    ca = FAMILY_CANONICAL.get(c)
+    fb = FAMILY_CANONICAL.get(f)
+    if ca and fb and ca == fb:
+        return True
+    return False
+
+
 # ═══════════════════════════════════════════════════════
 # §8 协调搜索 — 单一入口点 (coordinated_search)
 # ═══════════════════════════════════════════════════════
@@ -886,8 +1306,13 @@ class CoordinatedSearchResult:
     incidental_count: int = 0
     engine_stats: Dict = field(default_factory=dict)
     timeline: List[Dict] = field(default_factory=list)
+    citation_traversal_papers: int = 0
+    citation_traversal_new: List[Dict] = field(default_factory=list)
+    variant_net_papers: int = 0
+    variant_net_new: List[Dict] = field(default_factory=list)
     elapsed_ms: float = 0.0
     error: str = ""
+    taxonomy_warning: Optional[Dict] = None
 
     def summary(self) -> str:
         lines = [
@@ -895,8 +1320,17 @@ class CoordinatedSearchResult:
             f"模式: {self.mode} | 总计: {self.total_papers}篇",
             f"变体: {', '.join(self.all_variants[:5])}",
         ]
+        if self.taxonomy_warning:
+            tw = self.taxonomy_warning
+            lines.append(f"🔬 分类学警告: {tw['note']}")
+            for ev in tw.get('evidence', []):
+                lines.append(f"   📄 {ev.get('author','?')} ({ev.get('year','?')}) {ev.get('journal','?')}")
         if self.jhu_papers:
             lines.append(f"🏠 江汉大学: {len(self.jhu_papers)}篇")
+        if self.citation_traversal_papers:
+            lines.append(f"🔗 引用回溯: +{self.citation_traversal_papers}篇")
+        if self.variant_net_papers:
+            lines.append(f"⚠️ OCR变体补漏: +{self.variant_net_papers}篇")
         if self.incidental_count:
             lines.append(f"📎 附带: {self.incidental_count}篇")
         if self.engine_stats:
@@ -974,15 +1408,16 @@ def coordinated_search(
 
     单一入口点 — 整合所有搜索规则，在本会话内直接调用 MCP 工具。
 
-    管线:
+    管线 (7步):
       1. check_taxonomy(name) → 所有有效学名+变体 (含中文名支持)
       2. _load_species_info() → 保护等级/中文名/分类
       3. estimate_mode() → 自适应搜索模式决策
       4. search_streaming() → 多引擎并行搜索 (MCP in-session)
       5. aggregate_results() → DOI去重 + 时间线
+         ├─ Step 3: citation_traversal() → 引用回溯 (EXHAUSTIVE/CLASSIFIED)
+         └─ Step 4: variant_safety_net() → OCR变体补漏 (EXHAUSTIVE)
       6. classify_paper() + cn_en_label() + _is_jhu_paper()
-      7. 江汉大学论文优先排序
-      8. 返回 CoordinatedSearchResult
+      7. 江汉大学论文优先排序 → 返回 CoordinatedSearchResult
 
     用法:
       result = coordinated_search("珠星三块鱼")  # 中文名 → 自动转 Pseudaspius hakonensis
@@ -1008,6 +1443,14 @@ def coordinated_search(
     conservation = info.get("conservation", "DD")
     chinese_name = info.get("chinese", "")
 
+    # ── Step 2.5: 分类学不一致检测 ──
+    # 比较 c项目 species_graph.yaml 与 f项目 fish_species_kb.yaml
+    taxonomy_warning = None
+    try:
+        taxonomy_warning = detect_taxonomy_discrepancy(scientific_name)
+    except Exception:
+        pass  # 检测失败不中断搜索
+
     # ── Step 3: 自适应模式决策 ──
     # 粗略估计文献量 (实际会在搜索后校准)
     estimated_volume = 50  # 默认
@@ -1030,6 +1473,74 @@ def coordinated_search(
     all_papers = merged.get("papers", [])
     engine_stats = merged.get("stats", {})
     timeline = merged.get("timeline", [])
+
+    # ── Step 3: 引用回溯 (Citation Traversal) ──
+    # 对高可信度论文展开引用链, 仅在 EXHAUSTIVE/CLASSIFIED 模式下激活
+    citation_new: List[Dict] = []
+    enable_citation = decision.mode in (SearchMode.EXHAUSTIVE, SearchMode.CLASSIFIED)
+    if enable_citation and all_papers:
+        try:
+            citation_new = citation_traversal(
+                papers=all_papers,
+                species_name=scientific_name,
+                max_per_paper=10,
+                max_total_calls=15,
+            )
+        except Exception:
+            pass
+        for p in citation_new:
+            p["_search_step"] = "citation_traversal"
+            all_papers.append(p)
+            timeline.append({
+                "engine": "citation_traversal",
+                "query": scientific_name[:60],
+                "status": "ok",
+                "papers": 1,
+                "ms": 0,
+            })
+
+    # ── Step 4: 变体安全网 (Variant Safety Net) ──
+    # 自动生成 OCR 变体并搜索补漏, 仅在 EXHAUSTIVE 模式下激活
+    variant_new: List[Dict] = []
+    enable_variant = decision.mode == SearchMode.EXHAUSTIVE
+    if enable_variant:
+        try:
+            variant_new = variant_safety_net(
+                scientific_name=scientific_name,
+                existing_papers=all_papers,
+                max_variants=5,
+                max_per_variant=5,
+            )
+        except Exception:
+            pass
+        for p in variant_new:
+            p["_search_step"] = "variant_safety_net"
+            all_papers.append(p)
+            timeline.append({
+                "engine": "variant_safety_net",
+                "query": p.get("_variant", scientific_name)[:60],
+                "status": "ok",
+                "papers": 1,
+                "ms": 0,
+            })
+
+    # ── Step 5b: 重新去重 (含新论文) ──
+    seen_doi = set()
+    seen_title = set()
+    remerged = []
+    for p in all_papers:
+        doi = (p.get("doi") or "").lower().strip()
+        title = (p.get("title") or "").lower().strip()[:80]
+        if doi and doi in seen_doi:
+            continue
+        if title and title in seen_title:
+            continue
+        if doi:
+            seen_doi.add(doi)
+        if title:
+            seen_title.add(title)
+        remerged.append(p)
+    all_papers = remerged
 
     # ── Step 6: 后处理 (分类 + CN/EN + JHU) ──
     categories: Dict[str, List[Dict]] = {}
@@ -1083,7 +1594,12 @@ def coordinated_search(
         categories=categories,
         jhu_papers=jhu_list,
         incidental_count=incidental_count,
+        citation_traversal_papers=len(citation_new),
+        citation_traversal_new=citation_new,
+        variant_net_papers=len(variant_new),
+        variant_net_new=variant_new,
         engine_stats=engine_stats,
         timeline=timeline,
         elapsed_ms=elapsed,
+        taxonomy_warning=taxonomy_warning,
     )

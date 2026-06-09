@@ -7,8 +7,11 @@
 > **Meso-Cosmos Agent** — BDI + ReAct + Authority Scoring + ZN/EN Dynamic Graph + Lazy Loading
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-5.5.0-8b5cf6)](config/agent.yaml)
+[![Version](https://img.shields.io/badge/version-5.6.0-8b5cf6)](config/agent.yaml)
 [![Skills](https://img.shields.io/badge/skills-5-22c55e)](skills/)
+[![Auto-Retry](https://img.shields.io/badge/auto_retry-60s_window-22c55e)]()
+[![MCP Parallel](https://img.shields.io/badge/MCP_parallel-7_engines-f59e0b)]()
+[![Chinese Search](https://img.shields.io/badge/chinese_search-3_layer-ec4899)]()
 [![MCP](https://img.shields.io/badge/MCP-7-f59e0b)](config/mcp_servers.yaml)
 [![Architecture](https://img.shields.io/badge/architecture-meso_cosmos-8b5cf6)](docs/ARCHITECTURE.md)
 [![Multi-LLM](https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6)]()
@@ -89,6 +92,7 @@ graph_route(query: str, health_aware: bool) → List[Dict{id, _graph_score, _ten
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v5.6.0** | 2026-06-10 | 🔁 HTTP重连 + 🚀 MCP并行预热 + 🌐 中文三层搜索 + 🛑 停止机制重构 |
 | **v5.5.0** | 2026-06-09 | 🧬 Unified Search Protocol (自适应+附带过滤+CN/EN双通道) + 鲌类分类学修订(v2.2) + unified_search.py |
 | **v5.4.0** | 2026-06-09 | 🗄️ Living DB Catalog (61 DBs, 8 domains, 4 tiers) + Graph Router + Progressive Search + Emergence Engine |
 | **v5.3.0** | 2026-06-08 | 🆕 inference_engine + ☯️ TAO architecture (木) + 🔥 WUXING dynamics |
@@ -98,9 +102,93 @@ graph_route(query: str, health_aware: bool) → List[Dict{id, _graph_score, _ten
 | **v5.1** | 2026-06-07 | Hub-and-Spoke search + authority credibility scoring |
 | **v5.0** | 2026-06-07 | BDI + ReAct cognitive architecture |
 
-> **Latest**: v5.5.0 · 2026-06-09
+> **Latest**: v5.6.0 · 2026-06-10
 
 > **Core Strength**: From "string matching" to "signified reconstruction" — multiple signifier paths (exact, OCR variant, author network, citation graph, Chinese name) converge on the same signified (the species itself).
+
+## 🔁 v5.6.0: Production Hardening — Retry, Parallel MCP, Chinese Search
+
+> **三化升级**：服务端不稳定不再是瓶颈。MCP 预热、HTTP 重连、中文三层发散确保每次搜索可靠覆盖。
+
+### What's New
+
+| Feature | Description | Module |
+|:--------|:------------|:-------|
+| **HTTP Auto-Retry** | PubMed/Crossref/OpenAlex 指数退避重试，60s 窗口，5 次尝试 | `src/rule_engine.py` |
+| **MCP Parallel** | 7 搜索引擎并行启动，as_completed 先完成先返回，3min 超时 | `src/mcp_client.py` |
+| **MCP Prewarm** | `__init__` 后台并行预热 + JSON-RPC `tools/list` 健康探测 | `src/mcp_client.py` |
+| **Chinese 3-Layer Search** | Layer1 四中文源 → Layer2 Crossref/OpenAlex → Layer3 tavily 降级 | `src/rule_engine.py` |
+| **Language Routing** | 每个 phase 标记 `language: en/zh/both`，分离中英文通道 | `config/search_rules.yaml` |
+| **Stop Mechanism Fix** | `Desire.satisfied()` 不再因 `min_papers=8` 截断，diminishing returns 驱动 | `src/world_model.py` |
+
+### HTTP Retry
+
+```
+每 API 调用:
+  for attempt in 1..5:
+      try: urlopen(timeout=15)
+      except (URLError, TimeoutError, HTTPError):
+          wait = min(2^attempt, 15)  # 指数退避
+          retry
+  raise → 记录错误，不影响其他源
+```
+
+文件：`rule_engine.py:586-612` · 配置：`agent.yaml → timeout.http_retry_max_s: 60`
+
+### MCP Parallel + Prewarm
+
+```
+McpClient.__init__():
+  Thread: prewarm_background()  # 不阻塞构造
+    for server in [scholar, article, scholarly, tavily, exa]:
+      Parallel: _get_or_start_process(name)
+                _health_check(name)  # JSON-RPC tools/list
+      → 标记 healthy/unhealthy
+
+call_tools_parallel(tool_calls):
+  ThreadPoolExecutor(max_workers=7)
+  as_completed → 先完成先合并
+```
+
+文件：`mcp_client.py:68-138` · 总超时：`mcp_parallel_timeout_s: 180`
+
+### Chinese 3-Layer Search
+
+| Layer | Source | Query |
+|:-----:|--------|-------|
+| 1 | 百度学术/CNKI/万方/CAS | `web_search + site:` |
+| 2 | Crossref/OpenAlex | `中文名 + 学名` UTF-8 |
+| 3 | Tavily/Exa AI | `中文名 + 学术论文` |
+
+先完成先统计，后完成的后合并，`dedup_merge` 阶段去重。
+
+### Pipeline Evolution
+
+```
+v5.5 (之前)          v5.6 (之后)
+─────────           ─────────
+exact_search        graph_lookup
+  ↓ (min=8 截断)    chinese_exact_search  ← 新增
+  STOP               exact_search
+                     author_crossref
+                     review_mining
+                       ↓ (diminishing returns)
+                     STOP
+```
+
+### Config Reference
+
+```yaml
+# agent.yaml — timeout
+timeout:
+  http_retry_max_s: 60             # HTTP 重试总窗口
+  http_retry_attempts: 5            # 最多重试 5 次
+  http_per_call_timeout_s: 15       # 单次请求超时
+  mcp_parallel_timeout_s: 180       # MCP 并行总超时 (3min)
+  mcp_per_call_timeout_s: 30        # MCP 单次调用超时
+  mcp_parallel_max_workers: 7       # 最大并行连接数
+```
+: From "string matching" to "signified reconstruction" — multiple signifier paths (exact, OCR variant, author network, citation graph, Chinese name) converge on the same signified (the species itself).
 
 ## 🔗 Linked Projects
 

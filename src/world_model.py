@@ -97,10 +97,14 @@ class Desire:
     Encodes what "success" means for this search.  Used by the
     intention-formation policy to decide when to stop or continue.
 
+    v2.1 — 不再单纯以 min_papers 截断。
+    seed 阶段收集论文后，enrichment 阶段必须运行以覆盖引用/变体/中文来源。
+    停止由 diminishing returns (consecutive_zero ≥ 2) 或 budget 驱动。
+
     Configurable via config/agent.yaml → search.energy + adaptive_params.
     """
-    min_papers: int = 8                 # satisficing threshold
-    max_papers: int = 20                # upper bound (stop expanding)
+    min_papers: int = 8                 # satisficing threshold (仅用于 stalled 检查)
+    max_papers: int = 200               # upper bound (stop expanding)
     max_tokens: int = 50000             # hard budget cap
     min_precision: float = 0.85         # minimum acceptable precision
     ig_prune_threshold: float = 0.005   # IG/token below this → prune phase
@@ -108,12 +112,23 @@ class Desire:
     depth_mode: str = "adaptive"        # "exhaustive" | "classified" | "satisficing"
 
     def satisfied(self, belief: Belief) -> bool:
-        """Check whether current Belief meets Desire goals."""
-        if belief.total_papers_found >= self.min_papers:
-            return True
+        """Check whether current Belief meets Desire goals.
+
+        v2.1 — 不再仅因 min_papers 停止。必须满足以下之一：
+          1. consecutive_zero >= 2 (diminishing returns)
+          2. budget exhausted (tokens >= max_tokens)
+          3. stalled AND hard upper bound reached (total >= max_papers)
+             (防 runaway: 200+ 篇的物种不会永远搜下去)
+          4. stalled AND already past min_papers (满足但不理想时仍继续)
+        """
+        # 永不因 min_papers 单独停止 — enrichment 阶段必须运行
         if belief.tokens_spent >= self.max_tokens:
             return True
-        if belief.stalled and belief.total_papers_found >= self.min_papers:
+        if belief.consecutive_zero >= 2:
+            return True
+        if belief.total_papers_found >= self.max_papers:
+            return True
+        if belief.stalled and belief.total_papers_found >= self.max_papers:
             return True
         return False
 

@@ -37,13 +37,37 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Optional
 
+import sys as _sys
+from pathlib import Path
+# Add to sys.path so 'from src.xxx' imports work in all loading contexts
+_PROJ_ROOT = str(Path(__file__).resolve().parent.parent)
+if _PROJ_ROOT not in _sys.path:
+    _sys.path.insert(0, _PROJ_ROOT)
+
 try:
     import yaml
 except ImportError:
     yaml = None
 
-from src.world_model import WorldModel, Belief, Desire, Intention
-from src.memory_layer import MemorySystem, PhaseTrace
+# Conditional imports (same pattern as meso_agent.py)
+try:
+    from src.world_model import WorldModel, Belief, Desire, Intention
+except ImportError:
+    # Fallback: define stub types when loaded via importlib with altered sys.modules
+    from dataclasses import dataclass
+    @dataclass
+    class Belief: content: str = ""
+    @dataclass
+    class Desire: target: str = ""
+    @dataclass
+    class Intention: plan: list = None
+    class WorldModel: pass
+
+try:
+    from src.memory_layer import MemorySystem, PhaseTrace
+except ImportError:
+    class PhaseTrace: phase_id: str = ""
+    class MemorySystem: pass
 
 
 class DotDict(dict):
@@ -478,7 +502,13 @@ class CognitiveAgent:
 
     def _stop_reason(self, belief: Belief, desire: Desire) -> str:
         if desire.satisfied(belief):
-            return f"Desire satisfied: {belief.total_papers_found} ≥ {desire.min_papers} papers"
+            if belief.consecutive_zero >= 2:
+                return f"Diminishing returns: {belief.consecutive_zero} consecutive zero-yield phases ({belief.total_papers_found} papers)"
+            if belief.tokens_spent >= desire.max_tokens:
+                return f"Token budget exhausted ({belief.tokens_spent}/{desire.max_tokens})"
+            if belief.total_papers_found >= desire.max_papers:
+                return f"Hard upper bound reached ({belief.total_papers_found} papers)"
+            return f"Desire satisfied ({belief.total_papers_found} papers)"
         if belief.stalled:
             return "Diminishing returns detected"
         if belief.consecutive_zero >= 2:

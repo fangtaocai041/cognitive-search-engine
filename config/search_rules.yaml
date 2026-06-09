@@ -2,6 +2,7 @@ version: 2.0.0
 phases:
   graph_lookup:
     function: load_known_papers
+    language: both
     inputs:
       species_id: $species_id
     source: config/species_graph.yaml
@@ -11,6 +12,7 @@ phases:
     stop_condition: len(output) >= config.search.energy.min_papers_satisfice
   exact_search:
     function: search_scholar_article
+    language: en    # 英文源：PubMed/Crossref/OpenAlex
     inputs:
       query: $genus $species
     tools:
@@ -20,9 +22,21 @@ phases:
     output: list[Paper]
     budget: 500
     priority: 2
-    stop_condition: len(all_papers) >= config.search.energy.min_papers_satisfice
+    # NO stop_condition — seed phase, fill budget fully
+  chinese_exact_search:
+    function: search_chinese_scholar
+    language: zh    # 中文源：百度学术/CNKI/万方
+    inputs:
+      query: $chinese_name
+    tools:
+    - web_search
+    output: list[Paper]
+    budget: 500
+    priority: 1.5   # 略早于英文 exact_search
+    activation: bool(chinese_name)   # 仅当有中文名时触发
   author_crossref:
     function: search_by_authors
+    language: both
     inputs:
       authors: $graph.authors[species_id]
       min_year: $min_year
@@ -32,10 +46,10 @@ phases:
     output: list[Paper]
     budget: 1500
     priority: 2
-    activation: len(all_papers) < config.search.energy.min_papers_satisfice
-    stop_condition: len(all_papers) >= config.search.energy.min_papers_satisfice
+    # NO activation guard — always cross-reference known authors
   review_mining:
     function: mine_review_references
+    language: both
     inputs:
       papers: $all_papers
     tools:
@@ -60,6 +74,7 @@ phases:
       trust_threshold_tentative: 50
   citation_traversal:
     function: traverse_citation_graph
+    language: both
     inputs:
       papers: $all_papers_with_doi
       max_depth: 3
@@ -73,6 +88,7 @@ phases:
     stop_condition: len(all_papers) >= config.search.energy.min_papers_satisfice
   variant_search:
     function: search_variants
+    language: both
     inputs:
       genus: $genus
       species: $species
@@ -86,7 +102,7 @@ phases:
     output: list[Paper]
     budget: 2000
     priority: 6
-    activation: len(all_papers) < 10
+    # NO activation guard — always search OCR/spelling variants
   phonetic_search:
     function: search_phonetic
     inputs:
@@ -102,6 +118,7 @@ phases:
     activation: len(genus) > 6 AND len(all_papers) < 10
   journal_scan:
     function: scan_target_journals
+    language: zh
     inputs:
       journals: $graph.journals[species_id]
       keyword: $chinese_name
@@ -112,7 +129,7 @@ phases:
     output: list[Paper]
     budget: 1200
     priority: 8
-    activation: len(all_papers) < config.search.energy.min_papers_satisfice
+    # NO activation guard — always scan known journals
   llm_expansion:
     function: llm_query_expansion
     inputs:
@@ -147,14 +164,20 @@ phases:
         keep: prefer_zh
 stop_conditions:
   global:
-  - condition: len(all_papers) >= config.search.energy.min_papers_satisfice
-    action: STOP_ALL
-  - condition: consecutive_zero_new >= 2
+  # ── 不再使用 satisfice 截断 —— 所有阶段必须跑完 ──
+  # seed 阶段 (graph_lookup, exact_search): 填满 budget
+  # enrich 阶段 (review_mining, citation_traversal, variant_search,
+  #             author_crossref, journal_scan, reference_verification): 增加不同维度
+  # last_resort 阶段: 仅当文献量低时触发
+  # final 阶段: 总是运行
+  #
+  # 停止由 diminishing returns 驱动:
+  - condition: consecutive_zero_new >= 3
     action: STOP_ALL
   - condition: total_tokens >= config.search.energy.max_total_tokens
     action: STOP_ALL
-  - condition: IG_per_token < 0.005 FOR 2 CONSECUTIVE phases
-    action: SKIP_REMAINING
+  - condition: len(ig_history) >= 2 AND ig_history[-1] < 0.003 AND ig_history[-2] < 0.003
+    action: STOP_ALL
 adaptive_params:
   satisfice_threshold:
     value: 8
