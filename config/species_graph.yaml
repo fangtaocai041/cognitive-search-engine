@@ -1,5 +1,5 @@
 graph:
-  version: 2.0.0
+  version: 2.1.0
   species:
   - id: Ochetobius_elongatus
     name: Ochetobius elongatus
@@ -59,6 +59,39 @@ graph:
     - Luciobrama macrocephala
     - Luciobrama microcephalus
     - Luciobrama macrocephalu
+  - id: Coilia_nasus
+    name: Coilia nasus
+    chinese: 刀鲚
+    aliases:
+    - 刀鱼
+    - 长江刀鱼
+    - 长颌鲚
+    family: Engraulidae
+    conservation: EN
+    research_group: 淡水渔业研究中心 刘凯研究员
+    domains:
+    - 洄游生态
+    - 耳石微化学
+    - 资源评估
+    variants:
+    - Coilia nasus
+    - Coilia ectenes
+    - Coilia mystus
+  - id: Acipenser_sinensis
+    name: Acipenser sinensis
+    chinese: 中华鲟
+    aliases:
+    - 鲟鱼
+    - 长江鱼王
+    family: Acipenseridae
+    conservation: CR
+    domains:
+    - 洄游
+    - 产卵
+    - 保护
+    variants:
+    - Acipenser sinensis
+    - Acipenser sinense
   authors:
   - name: Cai Fangtao
     chinese: 蔡方陶
