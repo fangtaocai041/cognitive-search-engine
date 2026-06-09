@@ -19,6 +19,7 @@
 """
 
 from __future__ import annotations
+import os
 
 from dataclasses import dataclass, field
 from enum import Enum
@@ -507,13 +508,55 @@ def search_streaming(
     import concurrent.futures
     import time
 
+    # 3-minute grace period for MCP server initialization
     if engines is None:
         engines = ENGINE_GROUPS.get(group, ENGINE_GROUPS["standard"])
 
     results: List[EngineResult] = []
+    _http_fallback: List[Dict] = []
+
+    # Poll _mcp_available() every 5s, up to 180s
+    _mcp_ok = _mcp_available()
+    if not _mcp_ok:
+        # Poll briefly for MCP, then fall back to HTTP
+        _mcp_start = time.monotonic()
+        while time.monotonic() - _mcp_start < 2.0:
+            time.sleep(0.5)
+            if _mcp_available():
+                _mcp_ok = True
+                break
+    if not _mcp_ok:
+        # HTTP fallback via parallel_search.MCP_HTTP_FALLBACK
+        try:
+            from src.parallel_search import MCP_HTTP_FALLBACK as _hfb
+            for eid in engines:
+                info = ENGINE_REGISTRY.get(eid, {"tool": eid})
+                tn = info.get("tool", eid)
+                for q in queries:
+                    if tn in _hfb:
+                        tt = time.perf_counter()
+                        try:
+                            fr = _hfb[tn](q, limit)
+                            results.append(EngineResult(engine=eid, query=q,
+                                tool=tn, status="ok", results=fr,
+                                elapsed_ms=(time.perf_counter()-tt)*1000))
+                        except Exception as ex:
+                            results.append(EngineResult(engine=eid, query=q,
+                                tool=tn, status="error", error=str(ex)[:200]))
+                    else:
+                        results.append(EngineResult(engine=eid, query=q,
+                            tool=tn, status="degraded",
+                            error=f"{tn}: no HTTP fallback"))
+        except ImportError:
+            for eid in engines:
+                for q in queries:
+                    results.append(EngineResult(engine=eid, query=q,
+                        status="degraded",
+                        error="MCP not available + parallel_search not found"))
+        return results, _http_fallback
+
     completed = 0
     total = len(engines) * len(queries)
-    _http_fallback: List[Dict] = []  # SearchRuleEngine HTTP results
 
     def _search_one(engine_id: str, query: str) -> EngineResult:
         t0 = time.perf_counter()
@@ -590,6 +633,11 @@ def search_streaming(
         except Exception:
             pass
     return results, _http_fallback
+
+
+def _mcp_available() -> bool:
+    """Check if MCP tools are injected (Reasonix runtime)."""
+    return callable(globals().get("scholar_search_literature_graph"))
 
 
 def _call_mcp_tool(tool_name: str, query: str, limit: int) -> List[Dict]:
@@ -676,6 +724,13 @@ def _call_mcp_tool(tool_name: str, query: str, limit: int) -> List[Dict]:
             fn = None
 
     if fn is None:
+        # HTTP fallback: try parallel_search.MCP_HTTP_FALLBACK
+        try:
+            from src.parallel_search import MCP_HTTP_FALLBACK as _hfb
+            if tool_name in _hfb:
+                return _hfb[tool_name](query, limit)
+        except Exception:
+            pass
         raise ImportError(f"{tool_name}({fn_name}): MCP tool not available")
 
     # 调用工具
