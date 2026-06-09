@@ -319,6 +319,144 @@ def search_openalex(query: str, n: int = 20) -> list[dict]:
         return []
 
 
+# ═══════════════════════════════════════════════════════
+# 中文搜索提供者 (v2.0 - 填补 PubMed/Crossref 盲区)
+# ═══════════════════════════════════════════════════════
+
+@register_provider("baidu_scholar")
+def search_baidu_scholar(query: str, n: int = 20) -> list[dict]:
+    """搜索百度学术 (Baidu Scholar) — 中文论文检索。
+
+    ⚠️ 百度有反爬 CAPTCHA，此函数可能返回空列表。
+    改用 search_bing_web() + search_crossref() 代替。
+
+    HTTP GET → Baidu Scholar → 正则解析 HTML
+    """
+    try:
+        url = (
+            "https://xueshu.baidu.com/s?"
+            f"wd={{urllib.parse.quote(query)}}&pn=0&tn=SE_baiduxueshu_c1g0"
+            f"&ie=utf-8&sc_hit=1"
+        )
+        headers = {{
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0.0.0 Safari/537.36"
+            ),
+        }}
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+
+        if "安全验证" in html or "captcha" in html.lower():
+            return []  # CAPTCHA blocked
+
+        papers = []
+        blocks = re.findall(
+            r'<div\s+class="result"[^>]*>(.*?)</div>\s*</div>',
+            html, re.DOTALL
+        )
+        for block in blocks[:n]:
+            try:
+                title_match = re.search(
+                    r'<h3[^>]*><a[^>]*href="([^"]*)"[^>]*>(.*?)</a>',
+                    block, re.DOTALL
+                )
+                if not title_match:
+                    continue
+                title = re.sub(r'<[^>]+>', '', title_match.group(2)).strip()
+                info_text = re.sub(r'<[^>]+>', ' ', block)
+                info_text = re.sub(r'\s+', ' ', info_text)
+                year_match = re.search(r'(19\d{{2}}|20\d{{2}})', info_text)
+                year = int(year_match.group(1)) if year_match else None
+                papers.append({{
+                    "doi": "",
+                    "title": title,
+                    "year": year,
+                    "journal": "",
+                    "authors": [],
+                    "_source": "baidu_scholar",
+                }})
+            except Exception:
+                continue
+        return papers
+    except Exception:
+        return []
+
+
+@register_provider("bing_web")
+def search_bing_web(query: str, n: int = 10) -> list[dict]:
+    """搜索 Bing Web — 通用网页搜索 (中文优先)。"""
+    try:
+        url = (
+            "https://www.bing.com/search?"
+            f"q={{urllib.parse.quote(query)}}&count={{n}}"
+        )
+        headers = {{
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36"
+            ),
+            "Accept-Language": "zh-CN,zh;q=0.9",
+        }}
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+
+        papers = []
+        blocks = re.findall(
+            r'<li\s+class="b_algo"[^>]*>(.*?)</li>',
+            html, re.DOTALL
+        )
+        for block in blocks[:n]:
+            try:
+                title_match = re.search(
+                    r'<h2><a[^>]*href="([^"]*)"[^>]*>(.*?)</a>',
+                    block, re.DOTALL
+                )
+                if not title_match:
+                    continue
+                link = title_match.group(1)
+                title = re.sub(r'<[^>]+>', '', title_match.group(2)).strip()
+                snippet_match = re.search(r'<p[^>]*>(.*?)</p>', block, re.DOTALL)
+                snippet = re.sub(r'<[^>]+>|\s+', ' ', snippet_match.group(1)).strip() if snippet_match else ""
+                papers.append({{
+                    "doi": "",
+                    "title": title,
+                    "year": None,
+                    "journal": "Bing Web",
+                    "authors": [],
+                    "source_url": link,
+                    "abstract": snippet[:300],
+                    "_source": "bing_web",
+                }})
+            except Exception:
+                continue
+        return papers
+    except Exception:
+        return []
+
+
+# ──── MCP → HTTP Fallback Registry ────
+
+MCP_HTTP_FALLBACK = {
+    "scholar_search_literature_graph": search_openalex,
+    "scholar_search_google_scholar_key_words": search_openalex,
+    "ncbi_ncbi_esearch": search_pubmed,
+    "ncbi_ncbi_esummary": lambda q, n: search_pubmed(q, n),
+    "article_search_literature": lambda q, n: search_pubmed(q, n) + search_crossref(q, n),
+    "article_get_article_details": lambda q, n: search_pubmed(q, n),
+    "article_get_references": lambda q, n: search_crossref(q, n),
+    "article_get_literature_relations": lambda q, n: search_crossref(q, n),
+    "scholarly_research_search": search_openalex,
+    "tavily_tavily_search": search_bing_web,
+    "exa_web_search_exa": search_bing_web,
+    "web_search": search_bing_web,
+    "chinese_search": lambda q, n: search_bing_web(q + " 论文", n) + search_crossref(q, n),
+}
+
+
 # ──── Utility ────
 
 def build_search_queries(genus: str, species: str,
