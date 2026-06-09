@@ -7,7 +7,7 @@ sys.path.insert(0, engine_root)
 
 os.chdir(engine_root)
 
-from src.search_coordinator import search
+from src.unified_search import coordinated_search as search
 
 result = search("珠星三块鱼", group="full", limit=20)
 

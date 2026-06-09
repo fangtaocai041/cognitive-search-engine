@@ -278,6 +278,32 @@ def classify_paper(paper: Dict[str, Any]) -> PaperCategory:
 
 
 # ═══════════════════════════════════════════════════════
+# §3.5 江汉大学课题组 + 中文期刊白名单 (从 search_coordinator 合并)
+# ═══════════════════════════════════════════════════════
+
+# 江汉大学课题组 — 论文优先级标记
+JHU_AUTHORS = {
+    "fei xiong", "熊飞", "hongyan liu", "刘红艳",
+    "ying wang", "王莹", "fangtao cai", "蔡方陶",
+    "dongdong zhai", "翟东东", "ziyue xu", "徐子悦",
+    "ming xia", "夏明", "min zhou", "周敏",
+    "wen zheng", "郑雯", "yuanyuan chen", "陈媛媛",
+    "xinbin duan", "段辛斌", "huiwu tian", "田辉伍",
+}
+
+# 中文期刊白名单
+CN_JOURNALS = {
+    "水生生物学报", "acta hydrobiologica sinica",
+    "生物多样性", "biodiversity science",
+    "中国水产科学", "journal of fishery sciences of china",
+    "水产学报", "journal of fisheries of china",
+    "湖泊科学", "journal of lake sciences",
+    "南方水产科学", "south china fisheries science",
+    "生态学报", "acta ecologica sinica",
+    "生态科学", "ecological science",
+}
+
+# ═══════════════════════════════════════════════════════
 # §4 CN/EN 通道标注
 # ═══════════════════════════════════════════════════════
 
@@ -427,8 +453,31 @@ def build_search_plan(
 # §6 全量搜索引擎注册表 + 流式并行搜索
 # ═══════════════════════════════════════════════════════
 
-# 可用搜索引擎全量清单 (按优先级) — v5.6 扩展
-ENGINE_REGISTRY = {
+# ═══════════════════════════════════════════════════════
+# v5.8: 从 config/engine_registry.yaml 加载引擎配置
+# ═══════════════════════════════════════════════════════
+
+def _load_engine_registry(path: str = "config/engine_registry.yaml") -> tuple[dict, dict]:
+    """从 YAML 加载 ENGINE_REGISTRY + ENGINE_GROUPS。"""
+    try:
+        import yaml as _yaml
+        from pathlib import Path
+        _p = Path(path)
+        if not _p.exists():
+            _p = Path(__file__).resolve().parent.parent / path
+        with open(_p, encoding="utf-8") as _f:
+            _data = _yaml.safe_load(_f)
+        _reg = _data.get("registry", {})
+        _grp = _data.get("groups", {})
+        return _reg, _grp
+    except Exception:
+        return {}, {}
+
+ENGINE_REGISTRY, ENGINE_GROUPS = _load_engine_registry()
+
+# 兜底: YAML 加载失败时用内置默认值
+if not ENGINE_REGISTRY:
+    ENGINE_REGISTRY = {
     # 学术搜索 (Priority 1-3)
     "scholar_graph":    {"tool": "scholar_search_literature_graph", "category": "academic", "priority": 1},
     "scholar_keywords": {"tool": "scholar_search_google_scholar_key_words", "category": "academic", "priority": 1},
@@ -474,292 +523,15 @@ ENGINE_GROUPS = {
     "preprint": ["biorxiv_api", "researchgate_web", "scholar_graph"],
 }
 
+# ── 从 search_streaming 模块导入 ──
+from src.search_streaming import (
+    EngineResult,
+    StreamEvent,
+    search_streaming,
+    _mcp_available,
+    _call_mcp_tool,
+)
 
-@dataclass
-class EngineResult:
-    engine: str
-    query: str
-    tool: str = ""
-    status: str = "pending"
-    results: List[Dict] = field(default_factory=list)
-    error: str = ""
-    retries: int = 0
-    elapsed_ms: float = 0.0
-
-
-@dataclass
-class StreamEvent:
-    """流式结果 — 引擎完成后立即输出"""
-    engine: str
-    status: str
-    paper_count: int
-    elapsed_ms: float
-    is_last: bool = False
-
-
-def search_streaming(
-    queries: List[str],
-    engines: List[str] = None,
-    group: str = "standard",
-    limit: int = 10,
-    max_retries: int = 3,
-    per_engine_timeout_s: float = 30.0,
-    on_result: callable = None,  # 回调: (StreamEvent) → None
-) -> List[EngineResult]:
-    """
-    search_streaming(queries, group="standard") → [EngineResult]
-
-    v5.6 双路径架构: 每个引擎 MCP → HTTP 自动降级。
-    - MCP 可用 → 优先 MCP 调用 (Tavily/Exa/Scholar/Article/Scholarly/NCBI)
-    - MCP 不可用/失败 → 自动 HTTP fallback (Europe PMC/Crossref/OpenAlex/Bing/Chinese native)
-    - 中文/预印本原生引擎 → 始终走 HTTP (零 MCP 开销)
-    
-    流式并行: 先完成的引擎先返回 on_result(event)。
-    支持预定义引擎组: quick/standard/full/chinese/preprint
-    """
-    import concurrent.futures
-    import time
-
-    if engines is None:
-        engines = ENGINE_GROUPS.get(group, ENGINE_GROUPS["standard"])
-
-    results: List[EngineResult] = []
-
-    # ── Detect MCP availability ──
-    _mcp_ok = _mcp_available()
-    if not _mcp_ok:
-        _mcp_start = time.monotonic()
-        while time.monotonic() - _mcp_start < 2.0:
-            time.sleep(0.5)
-            if _mcp_available():
-                _mcp_ok = True
-                break
-
-    # ── Lazy-load HTTP fallback registry ──
-    try:
-        from src.parallel_search import MCP_HTTP_FALLBACK as _hfb
-    except ImportError:
-        _hfb = {}
-
-    # ── Native HTTP engines (always HTTP, never MCP) ──
-    _NATIVE_HTTP_TOOLS = {
-        "baidu_scholar", "cnki_web", "wanfang_web", "cas_web",
-        "chinese_search", "chinese_sweep",
-        "biorxiv_search", "researchgate_web", "europe_pmc_search",
-        "web_search",
-    }
-
-    def _search_one_dual(engine_id: str, query: str) -> EngineResult:
-        """Per-engine dual-path: MCP first → HTTP fallback."""
-        t0 = time.perf_counter()
-        info = ENGINE_REGISTRY.get(engine_id, {"tool": engine_id, "category": "unknown", "priority": 9})
-        tool = info.get("tool", engine_id)
-        result = EngineResult(engine=engine_id, query=query, tool=tool)
-
-        # ── Determine path ──
-        is_native_http = tool in _NATIVE_HTTP_TOOLS
-        http_fn = _hfb.get(tool) if _hfb else None
-
-        # ── Path A: Native HTTP engines → straight to HTTP ──
-        if is_native_http:
-            if http_fn:
-                try:
-                    result.results = http_fn(query, limit)
-                    result.status = "ok"
-                except Exception as e:
-                    result.status = "error"
-                    result.error = str(e)[:200]
-            else:
-                result.status = "degraded"
-                result.error = f"{tool}: native HTTP provider not found"
-            result.elapsed_ms = (time.perf_counter() - t0) * 1000
-            return result
-
-        # ── Path B: MCP-capable engines → try MCP first ──
-        if _mcp_ok:
-            for attempt in range(max_retries):
-                try:
-                    result.results = _call_mcp_tool(tool, query, limit)
-                    result.status = "ok"
-                    result.elapsed_ms = (time.perf_counter() - t0) * 1000
-                    return result
-                except ImportError:
-                    # MCP tool not injected → fall through to HTTP
-                    break
-                except Exception as e:
-                    result.retries = attempt + 1
-                    if attempt < max_retries - 1:
-                        wait = min(1.0 * (2 ** attempt), 8)
-                        time.sleep(wait)
-                        continue
-                    # MCP exhausted → fall through to HTTP
-                    break
-
-        # ── Path C: HTTP fallback (MCP not available or exhausted) ──
-        if http_fn:
-            try:
-                result.results = http_fn(query, limit)
-                result.status = "ok(fallback)"
-                result.tool = f"{tool}→HTTP"
-            except Exception as e:
-                result.status = "error"
-                result.error = str(e)[:200]
-        else:
-            if not _mcp_ok:
-                result.status = "degraded"
-                result.error = f"{tool}: MCP unavailable + no HTTP fallback"
-            else:
-                result.status = "error"
-                result.error = f"{tool}: MCP failed + no HTTP fallback"
-
-        result.elapsed_ms = (time.perf_counter() - t0) * 1000
-        return result
-
-    # ── Parallel fan-out: all engines × all queries ──
-    total = len(engines) * len(queries)
-    completed = 0
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=min(total, 12)) as ex:
-        futures = {}
-        for engine_id in engines:
-            for query in queries:
-                future = ex.submit(_search_one_dual, engine_id, query)
-                futures[future] = (engine_id, query)
-
-        for future in concurrent.futures.as_completed(futures):
-            engine_id, query = futures[future]
-            try:
-                result = future.result(timeout=per_engine_timeout_s)
-                results.append(result)
-                completed += 1
-                if on_result:
-                    on_result(StreamEvent(
-                        engine=result.engine,
-                        status=result.status,
-                        paper_count=len(result.results),
-                        elapsed_ms=result.elapsed_ms,
-                        is_last=(completed == total),
-                    ))
-            except concurrent.futures.TimeoutError:
-                results.append(EngineResult(
-                    engine=engine_id, query=query,
-                    status="error", error=f"timeout ({per_engine_timeout_s}s)"
-                ))
-                completed += 1
-
-    return results, []  # v5.6: _http_fallback deprecated — each engine handles its own fallback
-
-
-def _mcp_available() -> bool:
-    """Check if MCP tools are injected (Reasonix runtime)."""
-    return callable(globals().get("scholar_search_literature_graph"))
-
-
-def _call_mcp_tool(tool_name: str, query: str, limit: int) -> List[Dict]:
-    """
-    _call_mcp_tool(tool_name, query, limit) → [papers]
-
-    调用实际的 MCP 搜索工具。在 Reasonix 运行时中可直接调用。
-
-    工具在 Reasonix 中作为 Python callable 注入，不通过标准 import 路径。
-    因此使用 globals().get() 或 try/except 尝试调用。
-
-    如果工具不可用 (MCP未运行), 触发 degraded。
-    """
-    import types
-
-    # 每个工具的函数签名定义
-    # 在 Reasonix 中，这些函数直接从全局作用域可用
-    _tool_map = {
-        "scholar_search_literature_graph": {
-            "fn_name": "scholar_search_literature_graph",
-            "call": lambda fn: fn(query=query, limit=limit),
-        },
-        "scholar_search_google_scholar_key_words": {
-            "fn_name": "scholar_search_google_scholar_key_words",
-            "call": lambda fn: fn(query=query, num_results=min(limit, 20)),
-        },
-        "ncbi_ncbi_esearch": {
-            "fn_name": "ncbi_ncbi_esearch",
-            "call": lambda fn: fn(query=query, maxResults=min(limit, 100)),
-        },
-        "article_search_literature": {
-            "fn_name": "article_search_literature",
-            "call": lambda fn: fn(keyword=query, max_results=limit),
-        },
-        "scholarly_research_search": {
-            "fn_name": "scholarly_research_search",
-            "call": lambda fn: fn(query=query, maxResults=limit),
-        },
-        "tavily_tavily_search": {
-            "fn_name": "tavily_tavily_search",
-            "call": lambda fn: fn(query=query, max_results=min(limit, 20)),
-        },
-        "exa_web_search_exa": {
-            "fn_name": "exa_web_search_exa",
-            "call": lambda fn: fn(query=query, numResults=min(limit, 20)),
-        },
-        "web_search": {
-            "fn_name": "web_search",
-            "call": lambda fn: fn(query=query, topK=min(limit, 10)),
-        },
-        "article_get_references": {
-            "fn_name": "article_get_references",
-            "call": lambda fn: fn(identifier=query, id_type="auto", max_results=limit),
-        },
-        "article_get_literature_relations": {
-            "fn_name": "article_get_literature_relations",
-            "call": lambda fn: fn(identifiers=[query], relation_types=["similar"], max_results=limit),
-        },
-    }
-
-    if tool_name not in _tool_map:
-        raise ImportError(f"{tool_name}: unknown tool")
-
-    info = _tool_map[tool_name]
-    fn_name = info["fn_name"]
-
-    # 尝试从全局作用域获取函数 (Reasonix 注入的 MCP 工具)
-    fn = globals().get(fn_name)
-
-    # 如果 globals 中没有, 尝试从 __builtins__ 获取
-    if fn is None:
-        try:
-            fn = __builtins__.get(fn_name) if isinstance(__builtins__, dict) else getattr(__builtins__, fn_name, None)
-        except (AttributeError, KeyError):
-            fn = None
-
-    # 如果仍然没有, 尝试导入 (某些 MCP 工具可能可 import)
-    if fn is None:
-        try:
-            import importlib
-            mod = importlib.import_module(fn_name)
-            fn = mod if callable(mod) else None
-        except (ImportError, ModuleNotFoundError):
-            fn = None
-
-    if fn is None:
-        # HTTP fallback: try parallel_search.MCP_HTTP_FALLBACK
-        try:
-            from src.parallel_search import MCP_HTTP_FALLBACK as _hfb
-            if tool_name in _hfb:
-                return _hfb[tool_name](query, limit)
-        except Exception:
-            pass
-        raise ImportError(f"{tool_name}({fn_name}): MCP tool not available")
-
-    # 调用工具
-    try:
-        result = info["call"](fn)
-        # 标准化输出
-        if isinstance(result, list):
-            return result
-        elif isinstance(result, dict):
-            return result.get("results", result.get("papers", [result]))
-        else:
-            return [result]
-    except Exception as e:
-        raise ImportError(f"{tool_name}: call failed: {e}")
 
 
 def aggregate_results(engine_results: List[EngineResult], http_fb: List = None) -> Dict:
