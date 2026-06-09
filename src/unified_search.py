@@ -513,6 +513,7 @@ def search_streaming(
     results: List[EngineResult] = []
     completed = 0
     total = len(engines) * len(queries)
+    _http_fallback: List[Dict] = []  # SearchRuleEngine HTTP results
 
     def _search_one(engine_id: str, query: str) -> EngineResult:
         t0 = time.perf_counter()
@@ -576,7 +577,19 @@ def search_streaming(
                 ))
                 completed += 1
 
-    return results
+    # Fallback: SearchRuleEngine HTTP if all MCP engines degraded
+    if all(r.status in ("degraded", "error") for r in results):
+        try:
+            from src.rule_engine import SearchRuleEngine as _SRE
+            sr = _SRE(mode="http")
+            sp_id = (queries[0] if queries else "").replace(" ", "_")
+            res = sr.execute(sp_id)
+            for p in res.get("papers", []):
+                p.setdefault("source", "http_fallback")
+                _http_fallback.append(p)
+        except Exception:
+            pass
+    return results, _http_fallback
 
 
 def _call_mcp_tool(tool_name: str, query: str, limit: int) -> List[Dict]:
@@ -679,7 +692,7 @@ def _call_mcp_tool(tool_name: str, query: str, limit: int) -> List[Dict]:
         raise ImportError(f"{tool_name}: call failed: {e}")
 
 
-def aggregate_results(engine_results: List[EngineResult]) -> Dict:
+def aggregate_results(engine_results: List[EngineResult], http_fb: List = None) -> Dict:
     """
     aggregate_results([EngineResult]) → {papers, stats, timeline}
 
@@ -950,7 +963,7 @@ def coordinated_search(
     if chinese_name:
         all_queries.append(chinese_name)
 
-    engine_results = search_streaming(
+    engine_results, http_fb = search_streaming(
         queries=all_queries,
         group=group,
         limit=limit,
@@ -958,7 +971,7 @@ def coordinated_search(
     )
 
     # ── Step 5: 合并 + 去重 ──
-    merged = aggregate_results(engine_results)
+    merged = aggregate_results(engine_results, http_fb)
     all_papers = merged.get("papers", [])
     engine_stats = merged.get("stats", {})
     timeline = merged.get("timeline", [])
