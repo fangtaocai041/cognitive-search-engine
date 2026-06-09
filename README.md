@@ -26,11 +26,11 @@
 > 验证引擎集成了三层优化：**DeepSeek 级效率** (MoE 门控 + KV 缓存)、**学者级置信** (Rule of Three 统计停止)、**混沌增强探索** (Rössler 扰动 + wildcard 发现)。
 > 协调由 [eon-core](https://github.com/fangtaocai041/eon-core) (10层统一内核) 统一调度。
 
-## 🔺 S-T-V-P₁-P₂ Architecture Role: **Validation (V)**
+## 🔺 Triangle Core Role: **V1 (Validation)**
 
-> Part of the S-T-V-P₁-P₂ ecosystem, coordinated by [eon-core](https://github.com/fangtaocai041/eon-core) (10-layer unified kernel).
-> Triangle Core: fish(Knowledge) + cognitive(Validation) + eon-core(Coordinator)
-> Derived: P₁(porpoise) · P₂(coilia) · C(conflict)
+> **Part of Triangle Core**, coordinated by [eon-core](https://github.com/fangtaocai041/eon-core) (10-layer unified kernel).
+> **Triangle Core**: fish(V0) + cognitive(V1) + eon-core(Coordinator)
+> **Derived (三生万物)**: P₁(porpoise) · P₂(coilia) · ...
 > Validates search results, authority credibility scoring, enforces cross-project independence.
 > **DirectLoader**: `importlib` zero MCP process. **Triangulation**: ≥3 sources, ≥2 independent projects.
 
@@ -414,15 +414,18 @@ Desire satisfied? → STOP
 
 📖 Full architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-## 🔺 S-T-V Triangle (Cross-Project)
+## 🔺 Triangle Core + Derived (Cross-Project)
 
-> Three projects: State(fish) → Transition(porpoise) → Validation(cognitive) closed loop
+> **Triangle Core**: fish(V0) + cognitive(V1) + eon-core(Coordinator) — sealed set(3)
+> **Derived**: P₁(porpoise) · P₂(coilia) · ... independent, triangle does not depend on them
 
-| Component | Project | Function |
-|:---------:|---------|----------|
-| **S** | fish-ecology-assistant | State — knowledge, data, findings |
-| **T** | porpoise-agent | Transition — execution, pipeline |
-| **V** | cognitive-search-engine | Validation — verification, trust scoring |
+| Layer | Project | Function |
+|:----:|---------|----------|
+| **V0** | fish-ecology-assistant | Knowledge — data, findings, contradiction analysis |
+| **V1** | **cognitive-search-engine** | **Validation — 21-engine search, trust scoring** |
+| **Coord** | eon-core | Coordination — EventBus, DAG routing |
+| **P₁** | porpoise-agent | Derived — 江豚 population monitoring |
+| **P₂** | coilia-agent | Derived — 刀鮚 migration ecology |
 
 Config: `config/stv_protocol.yaml` — `min_sources_core_claim = 3`, trust_score 5-level triangulation.
 

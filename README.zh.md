@@ -27,10 +27,11 @@
 > 验证引擎集成了三层优化：**DeepSeek 级效率** (MoE 门控 + KV 缓存)、**学者级置信** (Rule of Three 统计停止)、**混沌增强探索** (Rössler 扰动 + wildcard 发现)。
 > 协调由 [eon-core](https://github.com/fangtaocai041/eon-core) (10层统一内核) 统一调度。
 
-## 🔺 S-T-V-P₁-P₂ 架构角色: **Validation (V)**
+## 🔺 三角闭环角色: **V1 (验证)**
 
-> S-T-V-P₁-P₂ 生态系统的一部分，由 [eon-core](https://github.com/fangtaocai041/eon-core) (10层统一内核) 协调。
-> 三角核心: fish(知识库) + cognitive(验证) + eon-core(协调器)
+> **三角闭环 (V1/验证)**，由 [eon-core](https://github.com/fangtaocai041/eon-core) (10层统一内核) 协调。
+> **三角闭环**: fish(V0知识库) + cognitive(V1验证) + eon-core(协调器) — 缺一不可
+> **三生万物**: P₁(porpoise) · P₂(coilia) · 无限衍生
 > 衍生: P₁(porpoise) · P₂(coilia) · C(conflict)
 > 验证搜索结果、提供权威可信度评分、执行跨项目独立性检查。
 > **DirectLoader**: `importlib` 零 MCP 进程。**三角验证**: ≥3 来源, ≥2 独立项目。
@@ -137,7 +138,7 @@ Think → Act → Observe → Reflect
 
 📖 完整架构: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-## 🔺 S-T-V 三角 (跨项目)
+## 🔺 三角闭环 + 衍生 (跨项目)
 
 > 三个项目: State(fish) → Transition(porpoise) → Validation(cognitive) 闭环
 

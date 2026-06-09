@@ -1076,8 +1076,10 @@ def _family_same(c_family: str, f_family: str) -> bool:
 # §8 协调搜索 — 单一入口点 (coordinated_search)
 # ═══════════════════════════════════════════════════════
 
-# 江汉大学课题组作者列表
-_JHU_AUTHORS: set = {
+# 优先展示机构作者列表 (v5.7 扩展)
+# 江汉大学 + 淡水渔业研究中心 + 水生所 + 长江所 + 水科院
+_PRIORITY_AUTHORS: set = {
+    # ── 江汉大学 (Jianghan University) ──
     "fei xiong", "熊飞",
     "hongyan liu", "刘红艳",
     "ying wang", "王莹",
@@ -1090,7 +1092,41 @@ _JHU_AUTHORS: set = {
     "yuanyuan chen", "陈媛媛", "chen yuanyuan",
     "xinbin duan", "段辛斌",
     "huiwu tian", "田辉伍",
+    # ── 淡水渔业研究中心 (FFRC, CAFS) ──
+    "jian yang", "杨健",
+    "kai liu", "刘凯",
+    "dongpo xu", "徐东坡",
+    "weigang shi", "施炜纲",
+    "min wang", "王敏",
+    "zhong yang", "杨钟",
+    "hui zhang", "张辉",
+    # ── 水生生物研究所 (IHB, CAS) ──
+    "wenxuan cao", "曹文宣",
+    "huanzhang liu", "刘焕章",
+    "yiyu chen", "陈宜瑜",
+    "shunping he", "何舜平",
+    "e zhang", "张鹗",
+    "jianwei wang", "王剑伟",
+    "yongfeng he", "何勇凤",
+    # ── 长江水产研究所 (YFI) ──
+    "qiwei wei", "危起伟",
+    "daqing chen", "陈大庆",
+    "xin gao", "高欣",
+    "hua zhu", "朱华",
+    # ── 水科院/珠江所等 ──
+    "xinhua wang", "王新华",
+    "xuejun li", "李学军",
 }
+
+# 优先展示机构关键词 (用于匹配 affiliation 字段)
+_PRIORITY_INSTITUTIONS = [
+    "jianghan university", "江汉大学",
+    "freshwater fisheries research center", "淡水渔业研究中心",
+    "institute of hydrobiology", "水生生物研究所", "水生所",
+    "yangtze river fisheries research institute", "长江水产研究所", "长江所",
+    "chinese academy of fishery sciences", "中国水产科学研究院", "水科院",
+    "pearl river fisheries research institute", "珠江水产研究所", "珠江所",
+]
 
 
 @dataclass
@@ -1129,7 +1165,7 @@ class CoordinatedSearchResult:
             for ev in tw.get('evidence', []):
                 lines.append(f"   📄 {ev.get('author','?')} ({ev.get('year','?')}) {ev.get('journal','?')}")
         if self.jhu_papers:
-            lines.append(f"🏠 江汉大学: {len(self.jhu_papers)}篇")
+            lines.append(f"🏠 优先机构: {len(self.jhu_papers)}篇 (江汉大学/淡水渔业/水生所/长江所/水科院)")
         if self.citation_traversal_papers:
             lines.append(f"🔗 引用回溯: +{self.citation_traversal_papers}篇")
         if self.variant_net_papers:
@@ -1144,7 +1180,7 @@ class CoordinatedSearchResult:
         for cat, papers in self.categories.items():
             if papers:
                 latest = max((p.get("year", 0) for p in papers), default=0)
-                jhu_in_cat = sum(1 for p in papers if p.get("_is_jhu"))
+                jhu_in_cat = sum(1 for p in papers if p.get("_is_priority"))
                 tag = f" 🏠x{jhu_in_cat}" if jhu_in_cat else ""
                 lines.append(f"  {cat}: {len(papers)}篇 (最新: {latest}){tag}")
         if self.error:
@@ -1178,8 +1214,14 @@ def _load_species_info(species_name: str) -> dict:
     return {"conservation": "DD", "chinese": "", "genus": "", "family": ""}
 
 
-def _is_jhu_paper(paper: Dict) -> bool:
-    """检查论文是否包含江汉大学课题组成员。"""
+def _is_priority_paper(paper: Dict) -> bool:
+    """检查论文是否来自优先展示机构 (江汉大学/淡水渔业/水生所/长江所/水科院)。
+
+    匹配策略:
+      1. 作者姓名匹配 _PRIORITY_AUTHORS
+      2. affiliation 字段匹配 _PRIORITY_INSTITUTIONS 关键词
+    """
+    # 策略1: 作者姓名匹配
     authors = paper.get("authors", [])
     for a in authors:
         name = ""
@@ -1187,16 +1229,28 @@ def _is_jhu_paper(paper: Dict) -> bool:
             name = (a.get("name") or "").strip().lower()
         elif isinstance(a, str):
             name = a.strip().lower()
-        if name and name in _JHU_AUTHORS:
+        if name and name in _PRIORITY_AUTHORS:
             return True
-    # 同时检查 title/authors 字符串字段
+
+    # 策略2: 作者字符串全文字段匹配
     text = (
         (paper.get("title") or "") + " " +
         (paper.get("authorString") or paper.get("authors_string") or "")
     ).lower()
-    for author in _JHU_AUTHORS:
+    for author in _PRIORITY_AUTHORS:
         if author in text:
             return True
+
+    # 策略3: affiliation 机构关键词匹配
+    affiliation = (
+        (paper.get("affiliation") or "") + " " +
+        (paper.get("affiliations") or "") + " " +
+        (paper.get("institution") or "")
+    ).lower()
+    for inst in _PRIORITY_INSTITUTIONS:
+        if inst.lower() in affiliation:
+            return True
+
     return False
 
 
@@ -1219,8 +1273,8 @@ def coordinated_search(
       5. aggregate_results() → DOI去重 + 时间线
          ├─ Step 3: citation_traversal() → 引用回溯 (EXHAUSTIVE/CLASSIFIED)
          └─ Step 4: variant_safety_net() → OCR变体补漏 (EXHAUSTIVE)
-      6. classify_paper() + cn_en_label() + _is_jhu_paper()
-      7. 江汉大学论文优先排序 → 返回 CoordinatedSearchResult
+      6. classify_paper() + cn_en_label() + _is_priority_paper()
+      7. 优先机构论文优先排序 → 返回 CoordinatedSearchResult
 
     用法:
       result = coordinated_search("珠星三块鱼")  # 中文名 → 自动转 Pseudaspius hakonensis
@@ -1367,9 +1421,9 @@ def coordinated_search(
         if is_inc:
             incidental_count += 1
 
-        # 江汉大学标记
-        p["_is_jhu"] = _is_jhu_paper(p)
-        if p["_is_jhu"]:
+        # 优先机构标记
+        p["_is_priority"] = _is_priority_paper(p)
+        if p["_is_priority"]:
             jhu_papers.append(p)
 
         # 分类索引
@@ -1377,7 +1431,7 @@ def coordinated_search(
             categories[cat] = []
         categories[cat].append(p)
 
-    # ── Step 7: 排序 (JHU优先) ──
+    # ── Step 7: 排序 (优先机构优先) ──
     jhu_dois = {p.get("doi", "") for p in jhu_papers}
     jhu_list = [p for p in all_papers if p.get("doi", "") in jhu_dois]
     other_list = [p for p in all_papers if p.get("doi", "") not in jhu_dois]
