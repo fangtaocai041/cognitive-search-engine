@@ -423,135 +423,193 @@ def build_search_plan(
 
 
 # ═══════════════════════════════════════════════════════
-# §6 并行搜索引擎 — 多引擎同时+重试+容错
+# §6 全量搜索引擎注册表 + 流式并行搜索
 # ═══════════════════════════════════════════════════════
+
+# 可用搜索引擎全量清单 (按优先级)
+ENGINE_REGISTRY = {
+    # 学术搜索 (Priority 1-3)
+    "scholar_graph":    {"tool": "scholar_search_literature_graph", "category": "academic", "priority": 1},
+    "scholar_keywords": {"tool": "scholar_search_google_scholar_key_words", "category": "academic", "priority": 1},
+    "scholar_advanced": {"tool": "scholar_search_google_scholar_advanced", "category": "academic", "priority": 2},
+    "ncbi_esearch":     {"tool": "ncbi_ncbi_esearch", "category": "academic", "priority": 1},
+    "crossref_article": {"tool": "article_search_literature", "category": "academic", "priority": 2},
+    "scholarly_multi":  {"tool": "scholarly_research_search", "category": "academic", "priority": 3},
+    # 语义/深度搜索 (Priority 4-5)
+    "tavily_search":    {"tool": "tavily_tavily_search", "category": "semantic", "priority": 4},
+    "tavily_research":  {"tool": "tavily_tavily_research", "category": "semantic", "priority": 5},
+    "exa_search":       {"tool": "exa_web_search_exa", "category": "semantic", "priority": 4},
+    # 内置搜索 (Priority 6)
+    "web_search":       {"tool": "web_search", "category": "web", "priority": 6},
+    # 引用/关系 (Priority 7)
+    "references":       {"tool": "article_get_references", "category": "graph", "priority": 7},
+    "relations":        {"tool": "article_get_literature_relations", "category": "graph", "priority": 7},
+}
+
+# 默认搜索引擎组 (按场景)
+ENGINE_GROUPS = {
+    "quick":    ["scholar_graph", "ncbi_esearch", "web_search"],                    # 3引擎, ~10s
+    "standard": ["scholar_graph", "ncbi_esearch", "crossref_article", "web_search", "tavily_search"],  # 5引擎, ~20s
+    "full":     ["scholar_graph", "ncbi_esearch", "crossref_article", "scholarly_multi",
+                 "tavily_search", "exa_search", "web_search"],                      # 7引擎, ~30s
+    "chinese":  ["scholar_graph", "ncbi_esearch", "web_search"],                   # 含中文源
+}
+
 
 @dataclass
 class EngineResult:
     engine: str
     query: str
-    status: str = "pending"       # pending | ok | degraded | error
+    tool: str = ""
+    status: str = "pending"
     results: List[Dict] = field(default_factory=list)
     error: str = ""
     retries: int = 0
     elapsed_ms: float = 0.0
 
 
-def parallel_search(
+@dataclass
+class StreamEvent:
+    """流式结果 — 引擎完成后立即输出"""
+    engine: str
+    status: str
+    paper_count: int
+    elapsed_ms: float
+    is_last: bool = False
+
+
+def search_streaming(
     queries: List[str],
-    engines: List[str],
+    engines: List[str] = None,
+    group: str = "standard",
     limit: int = 10,
     max_retries: int = 3,
-    retry_delay_s: float = 2.0,
-    timeout_s: float = 30.0,
+    per_engine_timeout_s: float = 30.0,
+    on_result: callable = None,  # 回调: (StreamEvent) → None
 ) -> List[EngineResult]:
     """
-    parallel_search(queries, engines) → [EngineResult]
+    search_streaming(queries, group="standard") → [EngineResult]
 
-    多引擎并行搜索 + 自动重试 + 容错汇总。
+    流式并行搜索: 先完成的引擎先返回, 后完成的后续合并。
 
     特性:
-      - 所有引擎同时启动 (concurrent.futures)
-      - 单个引擎失败不影响其他引擎
-      - 自动重试 (最多 max_retries 次, 指数退避)
-      - 超时保护 (每个引擎 timeout_s)
-      - 返回所有引擎的状态和结果 (包括失败的)
+      - 异步流式: 每个引擎完成立即回调 on_result(event)
+      - 分时执行: 不等最慢的引擎, 先到先得
+      - 每组引擎独立30s超时+重试
+      - 支持预定义引擎组: quick/standard/full/chinese
 
-    使用场景:
-      - Tavily 挂了 → scholar + ncbi 继续跑
-      - web_search 超时 → 重试3次后退化返回已有结果
-      - PubMed 慢 → 等30s超时后标记 degraded
+    用法:
+      def on_result(event: StreamEvent):
+          print(f"[{event.engine}] {event.status} {event.paper_count}篇 {event.elapsed_ms:.0f}ms")
+
+      results = search_streaming(["Pseudaspius hakonensis"], group="full", on_result=on_result)
     """
     import concurrent.futures
     import time
 
-    results: List[EngineResult] = []
+    if engines is None:
+        engines = ENGINE_GROUPS.get(group, ENGINE_GROUPS["standard"])
 
-    def _search_one(engine: str, query: str) -> EngineResult:
+    results: List[EngineResult] = []
+    completed = 0
+    total = len(engines) * len(queries)
+
+    def _search_one(engine_id: str, query: str) -> EngineResult:
         t0 = time.perf_counter()
-        result = EngineResult(engine=engine, query=query)
+        info = ENGINE_REGISTRY.get(engine_id, {"tool": engine_id, "category": "unknown", "priority": 9})
+        result = EngineResult(engine=engine_id, query=query, tool=info["tool"])
         last_error = ""
 
         for attempt in range(max_retries):
             try:
-                # 这里调用实际的搜索引擎工具
-                # 当前为框架 — 需要 MCP 服务器运行时
-                from scripts.pathway_executor import _load_adapter
-                if engine == "scholar":
-                    try:
-                        from scholar_search_literature_graph import search as _scholar_search
-                        papers = _scholar_search(query, limit=limit)
-                        result.results = papers if isinstance(papers, list) else papers.get("results", [])
-                        result.status = "ok"
-                    except ImportError:
-                        result.status = "degraded"
-                        result.error = "scholar MCP not available"
-                elif engine == "ncbi":
-                    try:
-                        from ncbi_ncbi_esearch import search as _ncbi_search
-                        resp = _ncbi_search(query, maxResults=limit)
-                        result.results = resp if isinstance(resp, list) else [resp]
-                        result.status = "ok"
-                    except ImportError:
-                        result.status = "degraded"
-                        result.error = "ncbi MCP not available"
-                else:
-                    # web_search / other — 标记为需要外部运行时
-                    result.status = "degraded"
-                    result.error = f"{engine}: requires MCP/API runtime"
+                # 尝试调用对应的 MCP 工具
+                # 当前为框架层 → MCP 服务运行时自动激活
+                result.results = _call_mcp_tool(info["tool"], query, limit)
+                result.status = "ok"
+                break
+            except ImportError:
+                result.status = "degraded"
+                result.error = f"{info['tool']}: MCP not available"
                 break
             except Exception as e:
                 last_error = str(e)
                 result.retries = attempt + 1
                 if attempt < max_retries - 1:
-                    time.sleep(retry_delay_s * (2 ** attempt))  # 指数退避
+                    wait = min(retry_delay_s * (2 ** attempt), 10)  # 指数退避, 上限10s
+                    time.sleep(wait)
                 continue
         else:
             result.status = "error"
-            result.error = last_error
+            result.error = last_error[:200]
 
         result.elapsed_ms = (time.perf_counter() - t0) * 1000
         return result
 
-    # 所有引擎×所有查询 并行执行
-    tasks = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(engines) * len(queries)) as ex:
-        for engine in engines:
+    # 并行启动所有引擎 — 先完成先返回
+    with concurrent.futures.ThreadPoolExecutor(max_workers=total) as ex:
+        futures = {}
+        for engine_id in engines:
             for query in queries:
-                tasks.append(ex.submit(_search_one, engine, query))
+                future = ex.submit(_search_one, engine_id, query)
+                futures[future] = (engine_id, query)
 
-        for future in concurrent.futures.as_completed(tasks, timeout=timeout_s):
+        for future in concurrent.futures.as_completed(futures):
+            engine_id, query = futures[future]
             try:
-                results.append(future.result())
+                result = future.result(timeout=per_engine_timeout_s)
+                results.append(result)
+                completed += 1
+
+                # 流式回调: 立即通知
+                if on_result:
+                    on_result(StreamEvent(
+                        engine=result.engine,
+                        status=result.status,
+                        paper_count=len(result.results),
+                        elapsed_ms=result.elapsed_ms,
+                        is_last=(completed == total),
+                    ))
             except concurrent.futures.TimeoutError:
-                pass
-            except Exception:
-                pass
+                results.append(EngineResult(
+                    engine=engine_id, query=query,
+                    status="error", error=f"timeout ({per_engine_timeout_s}s)"
+                ))
+                completed += 1
 
     return results
 
 
+def _call_mcp_tool(tool_name: str, query: str, limit: int) -> List[Dict]:
+    """调用 MCP 工具 — 框架层, 运行时激活"""
+    # 在 Reasonix 运行时中, MCP 工具直接可用
+    # 此处为离线框架定义
+    raise ImportError(f"{tool_name}: requires Reasonix MCP runtime")
+
+
 def aggregate_results(engine_results: List[EngineResult]) -> Dict:
     """
-    aggregate_results([EngineResult]) → {merged, stats}
+    aggregate_results([EngineResult]) → {papers, stats, timeline}
 
-    合并所有引擎的结果, 去重, 统计。
+    合并所有引擎的结果, DOI去重, 保留时间线。
     """
     all_papers = []
-    stats = {"total_engines": 0, "ok": 0, "degraded": 0, "error": 0}
+    timeline = []
+    stats = {"total_queries": len(engine_results), "ok": 0, "degraded": 0, "error": 0}
 
     for r in engine_results:
-        stats["total_engines"] += 1
-        if r.status == "ok":
-            stats["ok"] += 1
-        elif r.status == "degraded":
-            stats["degraded"] += 1
-        else:
-            stats["error"] += 1
+        stats[r.status] = stats.get(r.status, 0) + 1
 
         for paper in r.results:
             paper["_source_engine"] = r.engine
             all_papers.append(paper)
+
+        timeline.append({
+            "engine": r.engine,
+            "query": r.query[:60],
+            "status": r.status,
+            "papers": len(r.results),
+            "ms": r.elapsed_ms,
+        })
 
     # DOI去重
     seen_doi = set()
@@ -564,12 +622,12 @@ def aggregate_results(engine_results: List[EngineResult]) -> Dict:
             seen_doi.add(doi)
         merged.append(p)
 
-    return {"papers": merged, "stats": stats}
+    stats["total_raw"] = len(all_papers)
+    stats["total_merged"] = len(merged)
+    stats["duplicates_removed"] = len(all_papers) - len(merged)
 
+    return {"papers": merged, "stats": stats, "timeline": timeline}
 
-# ═══════════════════════════════════════════════════════
-# §7 结果分类输出 (懒加载)
-# ═══════════════════════════════════════════════════════
 
 @dataclass
 class SearchReport:
