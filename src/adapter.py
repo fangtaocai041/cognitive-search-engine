@@ -65,16 +65,22 @@ class CognitiveSearchAdapter(IProjectAdapter):
                 if key == "src" or key.startswith("src."):
                     del sys.modules[key]
 
+            module_name = f"cogsearch.meso.{id(self)}"
             spec = importlib.util.spec_from_file_location(
-                f"cogsearch.meso.{id(self)}", str(engine_file))
+                module_name, str(engine_file))
             if spec and spec.loader:
                 mod = importlib.util.module_from_spec(spec)
+                # 必须先注册到 sys.modules，否则 Python 3.13 的 @dataclass 装饰器
+                # 会因找不到模块名而崩溃:
+                #   ns = sys.modules.get(cls.__module__).__dict__
+                #   AttributeError: 'NoneType' object has no attribute '__dict__'
+                sys.modules[module_name] = mod
                 spec.loader.exec_module(mod)
                 factory = getattr(mod, "create_agent", None)
                 if factory:
                     self._engine = factory(mode="http")
-        except Exception:
-            pass  # graceful degradation — adapter.search() returns stub
+        except Exception as exc:
+            logger.warning(f"Cognitive engine init failed: {exc}")
 
     # ── IProjectAdapter interface ──
 
