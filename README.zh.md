@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-5.3.0-8b5cf6?style=flat-square" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-5.5.0-8b5cf6?style=flat-square" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/skills-5-22c55e?style=flat-square" alt="Skills"></a>
   <a href="#"><img src="https://img.shields.io/badge/MCP-7-f59e0b?style=flat-square" alt="MCP"></a>
   <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/架构-meso_cosmos-8b5cf6?style=flat-square" alt="架构"></a>
@@ -558,6 +558,7 @@ MIT © 2026 fangtaocai041
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| **v5.5.0** | 2026-06-09 | 🧬 统一搜索协议 (自适应+附带过滤+CN/EN双通道) + 鲌类分类学修订(v2.2) + unified_search.py |
 | **v5.4.0** | 2026-06-09 | 🗄️ 活系统数据库目录 (61库/8领域/4层级) + 图谱路由器 + 渐进搜索 + 涌现引擎 |
 | **v5.3.0** | 2026-06-08 | 🆕 inference_engine + ☯️ TAO 架构 (木) + 🔥 WUXING dynamics |
 | **v5.2.2** | 2026-06-08 | validator.py 提取 + evolution_executor + contradiction-driven meso_agent |
@@ -566,7 +567,7 @@ MIT © 2026 fangtaocai041
 | **v5.1** | 2026-06-07 | Hub-and-Spoke 搜索 + 权威可信度评分 |
 | **v5.0** | 2026-06-07 | BDI + ReAct 认知架构 |
 
-> **最新**: v5.4.0 · 2026-06-09
+> **最新**: v5.5.0 · 2026-06-09
 
 > **"不要搜索字符串，要重建所指。"**
 > Don't search for strings — reconstruct the signified.
