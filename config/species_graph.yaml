@@ -1,5 +1,5 @@
 graph:
-  version: 2.2.0
+  version: 2.3.0
   species:
   - id: Ochetobius_elongatus
     name: Ochetobius elongatus
@@ -85,6 +85,17 @@ graph:
     genus: Chanodichthys
     conservation: DD
     variants: [Culter abramoides]
+
+  - id: Pseudaspius_hakonensis
+    name: Pseudaspius hakonensis
+    chinese: 珠星三块鱼
+    aliases: [珠星雅罗鱼, 珠星擬赤稍魚]
+    family: Leuciscidae
+    genus: Pseudaspius
+    conservation: LC
+    variants: [Tribolodon hakonensis, Leuciscus hakonensis]
+    note: "2020属名修订: Tribolodon→Pseudaspius。中日韩俄分布。"
+    distribution: "日本全境, 朝鲜半岛, 中国图们江/绥芬河"
 
   - id: Culter_compressocorpus
     name: Culter compressocorpus

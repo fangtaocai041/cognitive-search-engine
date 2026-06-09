@@ -195,6 +195,19 @@ IUCN评估:  1 篇 (#10)
   必须同时搜索: "Chanodichthys oxycephalus" + "Culter oxycephaloides"
   中文: "拟尖头鲌" + "尖头原鲌"
   原因: 2024年确认 senior synonym, 但老文献全部使用旧名
+
+## 10. 珠星三块鱼属名修订 (2020)
+
+```
+属级: Tribolodon → Pseudaspius (2020)
+科级: Cyprinidae → Leuciscidae (雅罗鱼科)
+
+⚠️ 搜索策略:
+  必须同时搜索: "Pseudaspius hakonensis" + "Tribolodon hakonensis"
+  新论文(2020后)使用 Pseudaspius; 老论文(1987-2019)使用 Tribolodon
+  中文: "珠星三块鱼" + "珠星雅罗鱼"
+
+教训: 2026.3 徐子悦论文(Pseudaspius hakonensis, Genes)因只用旧名搜索而遗漏
 ```
 
 ---
