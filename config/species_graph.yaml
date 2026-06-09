@@ -1,5 +1,5 @@
 graph:
-  version: 2.1.0
+  version: 2.2.0
   species:
   - id: Ochetobius_elongatus
     name: Ochetobius elongatus
@@ -27,10 +27,71 @@ graph:
     conservation: CR
     variants:
     - Neophocaena asiaorientalis
+  # ═══ 鲌类 (Culter + Chanodichthys) — 2024分类学修订 ═══
+  # 来源: Chen & Zhang 2024, Eschmeyer's Catalog, FishBase
+  # 科: Xenocyprididae (原鲤科鲌亚科)
+  # 注意: 中文名以中国鱼类学实际使用为准, 拉丁名跟随最新修订
+
   - id: Culter_alburnus
     name: Culter alburnus
     chinese: 翘嘴鲌
     family: Xenocyprididae
+    genus: Culter
+    conservation: LC
+    variants: []
+
+  - id: Chanodichthys_mongolicus
+    name: Chanodichthys mongolicus
+    chinese: 蒙古鲌
+    aliases: [蒙古红鲌, 蒙古原鲌]
+    family: Xenocyprididae
+    genus: Chanodichthys
+    conservation: LC
+    variants: [Culter mongolicus, Erythroculter mongolicus]
+
+  - id: Chanodichthys_dabryi
+    name: Chanodichthys dabryi
+    chinese: 达氏鲌
+    aliases: [青梢鲌, 达氏原鲌, 青梢红鲌]
+    family: Xenocyprididae
+    genus: Chanodichthys
+    conservation: LC
+    variants: [Culter dabryi, Erythroculter dabryi]
+
+  - id: Chanodichthys_erythropterus
+    name: Chanodichthys erythropterus
+    chinese: 红鳍原鲌
+    aliases: [红鳍鲌]
+    family: Xenocyprididae
+    genus: Chanodichthys
+    conservation: LC
+    variants: [Culter erythropterus, Erythroculter erythropterus]
+
+  - id: Chanodichthys_oxycephalus
+    name: Chanodichthys oxycephalus
+    chinese: 拟尖头鲌
+    aliases: [尖头原鲌, 尖头鲌]
+    family: Xenocyprididae
+    genus: Chanodichthys
+    conservation: VU
+    variants: [Culter oxycephaloides, Chanodichthys oxycephaloides, Culter oxycephalus]
+    note: "2024分类学修订: Culter oxycephaloides (1908) → Chanodichthys oxycephalus (1871, senior synonym)"
+
+  - id: Chanodichthys_abramoides
+    name: Chanodichthys abramoides
+    chinese: 壮体鲌
+    aliases: [壮体原鲌]
+    family: Xenocyprididae
+    genus: Chanodichthys
+    conservation: DD
+    variants: [Culter abramoides]
+
+  - id: Culter_compressocorpus
+    name: Culter compressocorpus
+    chinese: 扁体鲌
+    family: Xenocyprididae
+    genus: Culter
+    conservation: DD
     variants: []
   - id: Elopichthys_bambusa
     name: Elopichthys bambusa

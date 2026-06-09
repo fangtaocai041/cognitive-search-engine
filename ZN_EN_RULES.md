@@ -172,6 +172,33 @@ IUCN评估:  1 篇 (#10)
 
 ---
 
+## 9. 鲌类分类学修订 (2024)
+
+```
+科级: 鲤科 Cyprinidae → Xenocyprididae
+属级: Culter (鲌属) → Chanodichthys (原鲌属) [6种移出]
+      Culter 保留 2种: 翘嘴鲌 + 扁体鲌
+
+中文名以中国鱼类学实际使用为准 (非Wikipedia翻译):
+
+  拉丁名 (现)           中文名        旧名/别名
+  ─────────────         ─────        ──────────
+  Culter alburnus       翘嘴鲌        —
+  Culter compressocorpus 扁体鲌        —
+  Ch. mongolicus        蒙古鲌        蒙古红鲌, 蒙古原鲌
+  Ch. dabryi            达氏鲌        青梢鲌, 达氏原鲌
+  Ch. erythropterus     红鳍原鲌      红鳍鲌
+  Ch. oxycephalus       拟尖头鲌      尖头原鲌, Culter oxycephaloides
+  Ch. abramoides        壮体鲌        壮体原鲌
+
+⚠️ 拟尖头鲌搜索策略:
+  必须同时搜索: "Chanodichthys oxycephalus" + "Culter oxycephaloides"
+  中文: "拟尖头鲌" + "尖头原鲌"
+  原因: 2024年确认 senior synonym, 但老文献全部使用旧名
+```
+
+---
+
 > **铁律**: 中文期刊 ≠ 英文名。英文期刊 ≠ 中文名。去重后保留原文。
 > **附带规则**: 专题论文在前，附带论文在后。附带论文仅列出物种出现形式，不展开摘要。
 > **实现**: cognitive-search-engine/src/graph_updater.py (ZN/EN 自动填充)
