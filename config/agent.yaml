@@ -3,8 +3,13 @@
 
 agent:
   name: "Cognitive Search Engine"
-  version: "5.5.0"
-  description: "BDI + ReAct + 5-Layer Agent Architecture — semiotics + graph traversal + energy-efficient"
+  version: "5.7.0"
+  description: "BDI + ReAct + 5-Layer Agent Architecture — 19 engines (7 MCP + 7 Native) — semiotics + graph traversal + energy-efficient"
+  gateway:
+    role: "EXCLUSIVE_SEARCH_GATEWAY"
+    mode: "all_external_searches"
+    rule: "本引擎是工作区所有外部搜索的唯一入口。任何搜索请求必须路由到此引擎，禁止绕过。"
+    fallback: "builtin_skills_only_on_engine_error"
   philosophy:
     worldview: "Panta Rhei — knowledge is provisional, emergence is the norm"
     methodology: "Systems Thinking — contradiction analysis · phase strategy · concentration of force"

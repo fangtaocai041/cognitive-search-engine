@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-5.5.0-8b5cf6?style=flat-square" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-5.7.0-8b5cf6?style=flat-square" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/skills-5-22c55e?style=flat-square" alt="Skills"></a>
   <a href="#"><img src="https://img.shields.io/badge/MCP-7-f59e0b?style=flat-square" alt="MCP"></a>
   <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/架构-meso_cosmos-8b5cf6?style=flat-square" alt="架构"></a>
@@ -29,9 +29,11 @@
 
 ## 🔺 S-T-V-P₁-P₂ 架构角色: **Validation (V)**
 
-> S-T-V 刚性三角形: `fish(S) → porpoise(T) → cognitive(V) → fish(S)`
-> 验证搜索结果、提供权威可信度评分、维护共享知识图谱。
-> **D₁ 点**: `DirectLoader` (importlib — 零 MCP 进程)。**三角验证**: 每个核心声明 ≥3 独立源。
+> S-T-V-P₁-P₂ 生态系统的一部分，由 [eon-core](https://github.com/fangtaocai041/eon-core) (10层统一内核) 协调。
+> 三角核心: fish(知识库) + cognitive(验证) + eon-core(协调器)
+> 衍生: P₁(porpoise) · P₂(coilia) · C(conflict)
+> 验证搜索结果、提供权威可信度评分、执行跨项目独立性检查。
+> **DirectLoader**: `importlib` 零 MCP 进程。**三角验证**: ≥3 来源, ≥2 独立项目。
 
 ---
 
@@ -401,8 +403,10 @@ cognitive-search-engine/
 
 | 项目 | 角色 | 说明 |
 |------|:----:|------|
-| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S** (State) | 鱼类生态学 AI 研究团队 — 22 MCP · 25 skills · 知识提供者 |
-| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **T** (Transition) | 江豚研究智能体 — 16 MCP · 16 skills · 管线执行者 |
+| [eon-core](https://github.com/fangtaocai041/eon-core) | **协调器** | 10层统一内核 — EventBus · Samsara karma · DAG 路由 |
+| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **三角 V0** (知识库) | 鱼类生态学 — 21 MCP · 28 skills · 长江 443 物种知识库 |
+| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **衍生 P₁** (Porpoise) | 江豚专精智能体 — NBHF 声学 · 栖息地建模 |
+| [coilia-agent](https://github.com/fangtaocai041/coilia-agent) | **衍生 P₂** (Coilia) | 鲚专精智能体 — 耳石微化学 · 洄游生态 |
 
 > **协同进化**: 引擎代码更新 → fish 和 porpoise 通过 submodule 自动受益。
 > 知识图谱进化 → 三项目共享。
@@ -410,7 +414,7 @@ cognitive-search-engine/
 
 ### 🧠 中宇宙式 Agent (Workspace Level)
 
-> **宏观(BDI) → 中宇宙(协调) → 微观(执行)** — 跨越三个 S-T-V 项目的统一协调层。
+> **宏观(BDI) → 中宇宙(协调) → 微观(执行)** — 跨越三角闭环 + 衍生项目的统一协调层。
 
 ```
 用户问题
@@ -431,7 +435,7 @@ cognitive-search-engine/
      ▼                   ▼                   ▼
 ┌─────────┐      ┌──────────┐       ┌──────────────┐
 │  fish   │      │ porpoise  │       │  cognitive    │
-│  (S)    │      │   (T)     │       │    (V)        │
+│(三角 V0)│      │(衍生 P₁)  │       │  (三角 V1)    │
 └─────────┘      └──────────┘       └──────────────┘
 ```
 
@@ -492,6 +496,11 @@ cognitive-search-engine/
 
 | 版本 | 日期 | 主题 | 变更内容 |
 |:------|:-----|:------|:-------------|
+| **v5.7.0** | 2026-06-20 | 🧬 KB-First 两阶段搜索 | `search_with_kb_first()` + `continue_full_search()` + `KbFirstSearchResult` 跨项目聚合 · f项目知识库预查 · `kb_first()` 入口 |
+| **v5.6.0** | 2026-06-10 | 🔁 生产加固 | HTTP重连 + 🚀 MCP并行预热 + 🌐 中文三层搜索 + 🛑 停止机制重构 |
+| **v5.5.0** | 2026-06-09 | 🧬 统一搜索协议 | 自适应+附带过滤+CN/EN双通道 + 鲌类分类学修订(v2.2) + unified_search.py |
+| **v5.4.0** | 2026-06-09 | 🗄️ 活系统数据库目录 | 61 DBs, 8 领域, 4 层级 + 图谱路由器 + 渐进搜索 + 涌现引擎 |
+| **v5.3.0** | 2026-06-08 | 🆕 推理引擎 | inference_engine + ☯️ TAO 架构 (木) + 🔥 WUXING 动力学 |
 | **v5.2.1** | 2026-06-07 | 跨项目同步 | + S-T-V 三角角色声明, + DeepWiki/Docker/自进化徽标, + 关联项目增强 (协同进化描述), + 与 fish/porpoise 项目规范对齐 |
 | **v5.2** | 2026-06-06 | 中宇宙式 Agent | + MesoAgent (src/meso_agent.py), + 动态图谱 v2.0 (ZN/EN 自动 authors_zh/自动注册/双语去重), + CN/EN 文献规则, + MCP 15 秒超时保护, + Chinese Academic Search Skill (第 4 个技能), + 架构: meso_cosmos |
 | **v5.1** | 2026-06-06 | Hub-and-Spoke 协议 | + Hub-and-Spoke (3 阶段 10 调用), + 权威可信度评分 (0-100), + 综述优先策略, + 分类知识图谱 (懒加载), + Chinese-academic-search Skill, + 三模式自适应深度, + OCR 变体安全网 |
@@ -647,6 +656,77 @@ timeout:
   mcp_parallel_timeout_s: 180       # MCP 并行总超时 (3min)
   mcp_per_call_timeout_s: 30        # MCP 单次调用超时
   mcp_parallel_max_workers: 7       # 最大并行连接数
+```
+
+---
+
+## 🧬 v5.7.0: KB-First 两阶段搜索 — f项目知识库优先
+
+> **先查 f项目知识库，再决定是否启动全量搜索。** 不再无条件触发 7 引擎并行。
+
+### 新 API
+
+```python
+from src.search_coordinator import kb_first, continue_full_search
+
+# 阶段 1: KB 查询 (快速，无外部 API 调用)
+result = kb_first("珠星三块鱼")
+# → KbFirstSearchResult {
+#     stage: "kb_check",
+#     kb_found: True,
+#     kb_summary: "📚 三块鱼 / 鲤科 / 溯河洄游...",
+#     suggested_next: "ask_user"
+#   }
+
+print(result.ask_user_prompt())
+# → 询问用户：留步 or 继续搜索
+
+# 阶段 2: 全量搜索 (仅当用户选择继续时)
+result = continue_full_search(result, group="full")
+# → KbFirstSearchResult {
+#     stage: "full_search",
+#     full_search: CoordinatedSearchResult { total_papers: 42, ... }
+#   }
+```
+
+### 新增模块
+
+| 模块 | 文件 | 功能 |
+|------|------|------|
+| `KbFirstResult` | `fish-ecology-assistant/src/orchestrator.py` | KB 查询结果结构体 (found/info/recommendation) |
+| `KbFirstSearchResult` | `cognitive-search-engine/src/unified_search.py` | 两阶段搜索包装器 (ask_user_prompt / full_search) |
+| `_load_fish_kb()` | `cognitive-search-engine/src/unified_search.py` | 跨项目 importlib 加载 f项目 orchestrator |
+| `search_with_kb_first()` | `cognitive-search-engine/src/unified_search.py` | 阶段 1 入口 (KB check + fallback) |
+| `continue_full_search()` | `cognitive-search-engine/src/unified_search.py` | 阶段 2 入口 (全量搜索 + KB 数据丰富) |
+| `kb_first()` | `cognitive-search-engine/src/search_coordinator.py` | 薄委托入口 |
+| `unified-species-search` v4.0 | `fish-ecology-assistant/.reasonix/skills/` | Skill 层 KB-First 流程 |
+
+### 数据流
+
+```
+fish_species_kb.yaml (f项目)
+  └─ kb_first_lookup()
+       ├─ 精确匹配: scientific / chinese
+       ├─ 别名匹配: aliases[]
+       ├─ 同义名匹配: synonyms[]  ← 新增
+       └─ 模糊匹配: genus + 中文字符
+            │
+            ▼
+       ask_choice: 留步 | 继续搜索
+            │
+       [继续] → coordinated_search()
+                (taxonomy check → mode → 7 engines → dedup → classify)
+```
+
+### 降级策略
+
+```
+IF f项目不可用:
+  → 直接执行 coordinated_search() (自动降级)
+IF KB 查询异常:
+  → 记录错误 → 直接执行 coordinated_search()
+IF KB 未命中:
+  → 展示近缘候选 → 推荐 continue_to_c
 ```
 
 > **"不要搜索字符串，要重建所指。"**

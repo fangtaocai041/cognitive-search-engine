@@ -104,7 +104,7 @@ graph_route(query: str, health_aware: bool) → List[Dict{id, _graph_score, _ten
 | **v5.1** | 2026-06-07 | Hub-and-Spoke search + authority credibility scoring |
 | **v5.0** | 2026-06-07 | BDI + ReAct cognitive architecture |
 
-> **Latest**: v5.6.0 · 2026-06-10
+> **Latest**: v5.7.0 · 2026-06-20
 
 > **Core Strength**: From "string matching" to "signified reconstruction" — multiple signifier paths (exact, OCR variant, author network, citation graph, Chinese name) converge on the same signified (the species itself).
 
