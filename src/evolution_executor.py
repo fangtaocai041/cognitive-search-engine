@@ -22,7 +22,6 @@ if _SRC_ROOT not in _sys.path:
   T7: health_check_failure — project health check fails 2 consecutive times
 
 Usage:
-    from src.evolution_executor import EvolutionExecutor
 
     executor = EvolutionExecutor("config/evolution.yaml")
     metrics = {"pipeline_success_rate": 0.45, "recall_rate": 0.72, ...}

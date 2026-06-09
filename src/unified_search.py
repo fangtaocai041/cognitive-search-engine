@@ -9,7 +9,6 @@
   5. cn_en_label() → CN/EN通道标注
 
 用法:
-  from src.unified_search import estimate_mode, check_taxonomy
   mode = estimate_mode("Ochetobius elongatus", "CR", 16)
   variants = check_taxonomy("Tribolodon hakonensis")
   # → ["Tribolodon hakonensis", "Pseudaspius hakonensis", "Leuciscus hakonensis"]

@@ -26,7 +26,6 @@ MesoAgent — 中宇宙式 Agent，宏观（BDI）与微观（工具调用）之
 └──────────────────────────────────────────────────────────────────┘
 
 Usage:
-    from src.meso_agent import MesoAgent
 
     agent = MesoAgent(mode="http")
     result = agent.search("Ochetobius_elongatus")

@@ -7,7 +7,6 @@ Core of the 12-layer protocol's multi-query parallelism:
   - Supports asyncio (true I/O parallelism) and threading (fallback)
 
 Usage:
-    from src.parallel_search import ParallelSearch
 
     searcher = ParallelSearch(mode="http")
     results = await searcher.search_all([

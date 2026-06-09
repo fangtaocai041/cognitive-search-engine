@@ -9,7 +9,6 @@ Implements the fuzzy-species-search-rule v5.0 output template:
   - Chinese journal authority whitelist integration
 
 Usage:
-  from src.report_formatter import format_report, classify_papers
 
   classified = classify_papers(papers, species_id)
   report = format_report(classified)

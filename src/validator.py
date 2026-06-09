@@ -19,7 +19,6 @@ Design: This module is SEPARATE from search logic (rule_engine.py).
         It can be imported independently by any project in the S-T-V triangle.
 
 Usage:
-    from src.validator import validate_papers, credibility_score, enforce_independence
 
     papers = [...]
     result = validate_papers(papers, known_authors=[], known_journals=[],

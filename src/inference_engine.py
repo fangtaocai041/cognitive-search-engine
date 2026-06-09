@@ -16,7 +16,6 @@ Post-Search Inference Engine — P3: 推理增强检索
   Phase 4 (Verify):  交叉验证新结果与旧结果的一致性
 
 Usage:
-    from src.inference_engine import InferenceEngine
 
 import sys as _sys
 from pathlib import Path
