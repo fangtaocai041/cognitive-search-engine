@@ -86,8 +86,14 @@ def estimate_mode(
         "cyprinus carpio", "carassius auratus", "ctenopharyngodon idella",
         "hypophthalmichthys molitrix", "aristichthys nobilis",
         "mylopharyngodon piceus", "parabramis pekinensis",
+        # 中文别名
+        "鲤鱼", "鲫鱼", "草鱼", "鲢鱼", "鳙鱼", "青鱼", "鳊鱼",
+        "鲤", "鲫", "草", "鲢", "鳙", "青", "鳊",
     }
-    if species_name.lower() in HOT_SPECIES and estimated_volume > 500:
+    name_lower = species_name.lower()
+    if (name_lower in HOT_SPECIES or
+        any(hot in name_lower for hot in ["cyprinus carpio", "鲤鱼", "鲤"])) \
+        and estimated_volume > 500:
         return SearchDecision(
             mode=SearchMode.SATURATED,
             include_incidental=False,
