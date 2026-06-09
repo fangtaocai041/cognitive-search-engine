@@ -85,42 +85,91 @@ graph-search-engine 已存在于 cognitive-search-engine/skills/
   停止条件: 连续2层无新论文 OR 达到 budget
 ```
 
-## 4. 工程合约
+## 4. 自适应搜索模式 — 按文献量+濒危等级
 
 ```
-unified_search(species_name: str, mode: str = "auto") → SearchReport
+estimate_literature_volume(species_name) → {
+  estimated: int,
+  conservation: CR | EN | VU | NT | LC,
+  mode: exhaustive | classified | review_anchored,
+  include_incidental: bool,
+}
 
-  模式:
-    auto:     IF estimated < 20 → exhaustive (全量)
-              ELIF 20-100 → classified (分类)
-              ELSE → review_anchored (综述锚定)
+模式决策矩阵:
 
-    quick:    仅精确名 + 变体 (5-8篇, 快速)
-    full:     精确名 + 宽网 + 变体 + 引用 (穷举)
+  CR + <20篇    → 穷举 (100%): 精确+宽网+变体+引用+附带
+                  附带论文 = 每一条记录都珍贵, 全部保留
+
+  EN/VU + <50   → 穷举 (100%): 含附带, 但附带仅列不展开
+
+  20-100篇      → 分类 (80%):  专题全量, 附带标注📎过滤
+
+  >100篇        → 综述锚定 (20%): 先搜综述→精选5-8篇
+                  附带论文 = 噪音 ❌ 全部跳过
+
+  鲤/鲫/草鱼等   → 饱和模式: 附带论文 = 噪音 ❌ 全部过滤
+  研究热门物种      仅保留专题核心
+
+附带论文过滤规则:
+  IF conservation IN [CR, EN] AND estimated < 50:
+    include_incidental = True   // 濒危+少文献: 每条记录珍贵
+  ELSE:
+    include_incidental = False  // 文献充裕: 附带=噪音, 过滤
+```
+
+## 5. 工程合约
+
+```
+unified_search(species_name: str) → SearchReport
+
+  自适应决策:
+    estimate = estimate_literature_volume(species_name)
+    mode = estimate.mode
 
   输出:
     SearchReport {
-      total: int,
-      papers: List[Paper],
+      total: int,              // 去重后总数
+      mode: str,               // exhaustive | classified | review_anchored
+      conservation: str,       // CR | EN | VU | NT | LC
+      include_incidental: bool,
+      papers: List[Paper],     // 专题论文
+      incidental: List[Paper], // 附带论文 (仅穷举模式)
+      incidental_skipped: int, // 非穷举模式跳过的附带数
       categories: Dict[str, List[Paper]],
-      gaps: List[str],        // 发现的缺口
-      variants_used: List[str],
-      new_from_graph: int,    // 图谱遍历新发现
+      gaps: List[str],
     }
 ```
 
-## 5. 鳤文献搜索 — 正确流程示例
+## 6. 鳤 (CR, <20篇) — 穷举模式示例
 
 ```
-unified_search("Ochetobius elongatus", mode="exhaustive")
+unified_search("Ochetobius elongatus")
+  → conservation=CR, estimated≈16 → mode=exhaustive
 
-Step 1: 精确名 → 10篇 (PubMed/Crossref/OpenAlex)
-Step 2: 宽网搜索 → +2篇 (Science禁渔 + NSR评论)
-Step 3: OCR变体 → +2篇 (Ochetobibus 2009+2026)
-Step 4: 引用遍历 → +1篇 (从Yang2018引用链发现)
-Step 5: 作者回溯 → +1篇 (从Cai FT作者回溯)
+Step 1: 精确名 → 10篇
+Step 2: 宽网补漏 → +2篇 (Science禁渔 + NSR)
+Step 3: OCR变体 → +2篇 (Ochetobibus)
+Step 4: 引用遍历 → +1篇
+Step 5: 作者回溯 → +1篇
+Step 6: 附带纳入 → +5篇 (调查名录)
 ────────────────────────────────
-总计: 16篇 (专题11 + 附带5)
+总计: 21篇 (专题11 + 附带5 + 变体2 + 宽网2 + 图谱1)
+去重后: 16篇 (专题10+Science1 + 附带5)
+```
+
+## 7. 鲤鱼 (LC, >1000篇) — 综述锚定模式
+
+```
+unified_search("Cyprinus carpio")
+  → conservation=LC, estimated>1000 → mode=review_anchored
+
+Step 1: 先搜综述 → "Cyprinus carpio review" → 精选5篇综述
+Step 2: 从综述参考文献提取研究方向分类
+Step 3: 每个方向精选3-5篇最高引论文
+Step 4: 附带论文全部跳过 ❌ (噪音)
+────────────────────────────────
+总计: 25-40篇 (各方向精选)
+附带跳过: >200篇
 ```
 
 ---
