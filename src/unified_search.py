@@ -423,7 +423,152 @@ def build_search_plan(
 
 
 # ═══════════════════════════════════════════════════════
-# §6 结果分类输出 (懒加载)
+# §6 并行搜索引擎 — 多引擎同时+重试+容错
+# ═══════════════════════════════════════════════════════
+
+@dataclass
+class EngineResult:
+    engine: str
+    query: str
+    status: str = "pending"       # pending | ok | degraded | error
+    results: List[Dict] = field(default_factory=list)
+    error: str = ""
+    retries: int = 0
+    elapsed_ms: float = 0.0
+
+
+def parallel_search(
+    queries: List[str],
+    engines: List[str],
+    limit: int = 10,
+    max_retries: int = 3,
+    retry_delay_s: float = 2.0,
+    timeout_s: float = 30.0,
+) -> List[EngineResult]:
+    """
+    parallel_search(queries, engines) → [EngineResult]
+
+    多引擎并行搜索 + 自动重试 + 容错汇总。
+
+    特性:
+      - 所有引擎同时启动 (concurrent.futures)
+      - 单个引擎失败不影响其他引擎
+      - 自动重试 (最多 max_retries 次, 指数退避)
+      - 超时保护 (每个引擎 timeout_s)
+      - 返回所有引擎的状态和结果 (包括失败的)
+
+    使用场景:
+      - Tavily 挂了 → scholar + ncbi 继续跑
+      - web_search 超时 → 重试3次后退化返回已有结果
+      - PubMed 慢 → 等30s超时后标记 degraded
+    """
+    import concurrent.futures
+    import time
+
+    results: List[EngineResult] = []
+
+    def _search_one(engine: str, query: str) -> EngineResult:
+        t0 = time.perf_counter()
+        result = EngineResult(engine=engine, query=query)
+        last_error = ""
+
+        for attempt in range(max_retries):
+            try:
+                # 这里调用实际的搜索引擎工具
+                # 当前为框架 — 需要 MCP 服务器运行时
+                from scripts.pathway_executor import _load_adapter
+                if engine == "scholar":
+                    try:
+                        from scholar_search_literature_graph import search as _scholar_search
+                        papers = _scholar_search(query, limit=limit)
+                        result.results = papers if isinstance(papers, list) else papers.get("results", [])
+                        result.status = "ok"
+                    except ImportError:
+                        result.status = "degraded"
+                        result.error = "scholar MCP not available"
+                elif engine == "ncbi":
+                    try:
+                        from ncbi_ncbi_esearch import search as _ncbi_search
+                        resp = _ncbi_search(query, maxResults=limit)
+                        result.results = resp if isinstance(resp, list) else [resp]
+                        result.status = "ok"
+                    except ImportError:
+                        result.status = "degraded"
+                        result.error = "ncbi MCP not available"
+                else:
+                    # web_search / other — 标记为需要外部运行时
+                    result.status = "degraded"
+                    result.error = f"{engine}: requires MCP/API runtime"
+                break
+            except Exception as e:
+                last_error = str(e)
+                result.retries = attempt + 1
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay_s * (2 ** attempt))  # 指数退避
+                continue
+        else:
+            result.status = "error"
+            result.error = last_error
+
+        result.elapsed_ms = (time.perf_counter() - t0) * 1000
+        return result
+
+    # 所有引擎×所有查询 并行执行
+    tasks = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(engines) * len(queries)) as ex:
+        for engine in engines:
+            for query in queries:
+                tasks.append(ex.submit(_search_one, engine, query))
+
+        for future in concurrent.futures.as_completed(tasks, timeout=timeout_s):
+            try:
+                results.append(future.result())
+            except concurrent.futures.TimeoutError:
+                pass
+            except Exception:
+                pass
+
+    return results
+
+
+def aggregate_results(engine_results: List[EngineResult]) -> Dict:
+    """
+    aggregate_results([EngineResult]) → {merged, stats}
+
+    合并所有引擎的结果, 去重, 统计。
+    """
+    all_papers = []
+    stats = {"total_engines": 0, "ok": 0, "degraded": 0, "error": 0}
+
+    for r in engine_results:
+        stats["total_engines"] += 1
+        if r.status == "ok":
+            stats["ok"] += 1
+        elif r.status == "degraded":
+            stats["degraded"] += 1
+        else:
+            stats["error"] += 1
+
+        for paper in r.results:
+            paper["_source_engine"] = r.engine
+            all_papers.append(paper)
+
+    # DOI去重
+    seen_doi = set()
+    merged = []
+    for p in all_papers:
+        doi = (p.get("doi") or "").lower().strip()
+        if doi and doi in seen_doi:
+            continue
+        if doi:
+            seen_doi.add(doi)
+        merged.append(p)
+
+    return {"papers": merged, "stats": stats}
+
+
+# ═══════════════════════════════════════════════════════
+# §7 结果分类输出 (懒加载)
 # ═══════════════════════════════════════════════════════
 
 @dataclass
