@@ -1,16 +1,21 @@
 """
-统一物种搜索 — 自适应模式 + 附带过滤 + CN/EN双通道
+统一物种搜索 — 自适应模式 + 附带过滤 + CN/EN双通道 + 分类学变更检查
 
 工程语言化所有搜索规则:
   1. estimate_literature_volume() → 自适应模式决策
-  2. is_incidental() → 附带论文判定
-  3. classify_paper() → 学科分类
-  4. cn_en_label() → CN/EN通道标注
+  2. check_taxonomy() → 分类学变更检查 (⚠️ 防止属名变更遗漏)
+  3. is_incidental() → 附带论文判定
+  4. classify_paper() → 学科分类
+  5. cn_en_label() → CN/EN通道标注
 
 用法:
-  from src.unified_search import estimate_mode, is_incidental, classify_paper
+  from src.unified_search import estimate_mode, check_taxonomy
   mode = estimate_mode("Ochetobius elongatus", "CR", 16)
-  # → mode="exhaustive", include_incidental=True
+  variants = check_taxonomy("Tribolodon hakonensis")
+  # → ["Tribolodon hakonensis", "Pseudaspius hakonensis", "Leuciscus hakonensis"]
+
+⚠️ 教训: 2026.3 徐子悦论文因只用 Tribolodon 搜索遗漏了 Pseudaspius 属名
+   现在 check_taxonomy() 强制检查 species_graph.yaml 的 variants 字段
 """
 
 from __future__ import annotations
@@ -431,6 +436,52 @@ class SearchReport:
     incidental_skipped: int
     categories: Dict[str, List[Dict]]
     variants_used: List[str]
+
+# ═══════════════════════════════════════════════════════
+# §7 分类学变更检查 (⚠️ 防止属名变更遗漏)
+# ═══════════════════════════════════════════════════════
+
+def check_taxonomy(species_name: str) -> List[str]:
+    """
+    check_taxonomy(name) → [all_valid_names]
+
+    从 species_graph.yaml 加载 variants 字段, 返回所有有效搜索名。
+
+    ⚠️ 铁律: 搜索一个物种前, 必须先调用此函数获取所有曾用名,
+             然后对每个名字执行搜索。
+
+    教训: 2026.3 徐子悦 Pseudaspius hakonensis 论文
+          因只搜 Tribolodon 而遗漏。
+    """
+    import yaml
+    from pathlib import Path
+
+    config_path = Path(__file__).resolve().parent.parent / "config" / "species_graph.yaml"
+    if not config_path.exists():
+        return [species_name]
+
+    with open(config_path, encoding="utf-8") as f:
+        graph = yaml.safe_load(f)
+
+    species_list = graph.get("graph", {}).get("species", [])
+    name_lower = species_name.lower()
+
+    for s in species_list:
+        s_name = s.get("name", "").lower()
+        variants = [v.lower() for v in s.get("variants", [])]
+        all_names = [s_name] + variants
+
+        if name_lower in all_names:
+            # 返回所有变体 (保持原始大小写)
+            result = [s.get("name", species_name)]
+            result.extend(s.get("variants", []))
+            if s.get("note"):
+                result.append(f"⚠️ {s['note']}")
+            return result
+
+    # 未在图中找到 → 返回原名
+    return [species_name]
+
 
     def summary(self) -> str:
         lines = [
