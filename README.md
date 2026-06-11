@@ -105,7 +105,7 @@ graph_route(query: str, health_aware: bool) → List[Dict{id, _graph_score, _ten
 | **v5.1** | 2026-06-07 | Hub-and-Spoke search + authority credibility scoring |
 | **v5.0** | 2026-06-07 | BDI + ReAct cognitive architecture |
 
-> **Latest**: v5.7.0 · 2026-06-20
+> **Latest**: v5.8.0 · 2026-07-11
 
 > **Core Strength**: From "string matching" to "signified reconstruction" — multiple signifier paths (exact, OCR variant, author network, citation graph, Chinese name) converge on the same signified (the species itself).
 
@@ -272,7 +272,7 @@ This engine is integrated as a git submodule in:
 | Project | Role | Description |
 |---------|:----:|-------------|
 | [eon-core](https://github.com/fangtaocai041/eon-core) | **Coordinator** | 10-layer unified kernel — EventBus · Samsara karma · DAG routing |
-| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S / V0** (State) | Fish ecology — 21 MCP · 28 skills · Yangtze 443 species KB |
+| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S / V0** (State) | Fish ecology — 20 MCP · 28 skills · Yangtze 443 species KB |
 | [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **Derived P₁** (Porpoise) | Finless porpoise specialist — NBHF acoustics · habitat modeling |
 | [coilia-agent](https://github.com/fangtaocai041/coilia-agent) | **Derived P₂** (Coilia) | Tapertail anchovy specialist — otolith microchemistry · migration ecology |
 | [culter-agent](https://github.com/fangtaocai041/culter-agent) | **Derived P₃** (Culter) | Culter specialist — genomics · age-growth · isotopes · coexistence |
