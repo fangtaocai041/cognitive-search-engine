@@ -275,14 +275,16 @@ This engine is integrated as a git submodule in:
 | [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S / V0** (State) | Fish ecology — 21 MCP · 28 skills · Yangtze 443 species KB |
 | [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **Derived P₁** (Porpoise) | Finless porpoise specialist — NBHF acoustics · habitat modeling |
 | [coilia-agent](https://github.com/fangtaocai041/coilia-agent) | **Derived P₂** (Coilia) | Tapertail anchovy specialist — otolith microchemistry · migration ecology |
+| [culter-agent](https://github.com/fangtaocai041/culter-agent) | **Derived P₃** (Culter) | Culter specialist — genomics · age-growth · isotopes · coexistence |
+| [conflict-arbiter](https://github.com/fangtaocai041/conflict-arbiter) | **Derived C** (Conflict) | Multi-source conservation conflict arbitration · circuit breaker |
 
-> **Co-evolution**: Engine code updated → fish & porpoise auto-benefit via submodule.
+> **Co-evolution**: Engine code updated → all derived projects auto-benefit.
 > Knowledge graph evolves → shared across all three projects.
 > Full coordination spec: `coordination.yaml` at workspace root.
 
 ### 🧠 eon-core Unified Kernel (Workspace Level)
 
-> **10-layer concentric architecture** — OriginKernel → YinYang → 4 Vertices → 8 Trigrams → Tetrahedron → WuXing → Samsara → Sphere → Tendrils → Evolution.
+> **10-layer concentric architecture** — OriginKernel → YinYang → 4 Vertices → 8 Trigrams → Tetrahedron → Monitoring → Samsara → Sphere → Tendrils → Evolution.
 > Coordinated by [eon-core](https://github.com/fangtaocai041/eon-core). Replaces the now-deprecated meso-cosmos-agent (deleted v7.1).
 
 ```
@@ -298,7 +300,7 @@ User Question
 │                                     │          │
 │  ┌──────────┐  ┌──────────┐  ┌─────▼───────┐ │
 │  │  EVOLVE  │←─│  KARMA   │←─│   MONITOR   │ │
-│  │(L9)      │  │(L6 Court)│  │(L5 WuXing)  │ │
+│  │(L9)      │  │(L6 Court)│  │(L5 Mon.)    │ │
 │  └──────────┘  └──────────┘  └─────────────┘ │
 └────────────────────────────────────────────────┘
      │                   │                   │
@@ -588,7 +590,7 @@ cognitive-search-engine/
 │   ├── catalog_loader.py         ← 🗄️ DB catalog + graph router + emergence
 │   ├── evolution_executor.py     ← 🦋 Self-evolution feedback executor
 │   ├── graph_updater.py          ← 📊 Graph persistence + reverse indexes
-│   ├── inference_engine.py       ← 🧮 TAO + WuXing inference engine
+│   ├── inference_engine.py       ← 🧮 TAO inference engine
 │   ├── mcp_client.py             ← 🔌 MCP stdio client (7 servers)
 │   ├── memory_layer.py           ← 🗄️  MemorySystem — short-term + long-term
 │   ├── meso_agent.py             ← 🧭 MesoAgent — coordination layer
