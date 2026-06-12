@@ -506,7 +506,7 @@ if not ENGINE_REGISTRY:
     "relations":        {"tool": "article_get_literature_relations", "category": "graph", "priority": 7},
 }
 
-# 默认搜索引擎组 (按场景) — v5.6 扩组
+# 默认搜索引擎组 (按场景) — v8.1 知网研学优先
 ENGINE_GROUPS = {
     # 快速验证 (3引擎, ~10s)
     "quick":    ["scholar_graph", "ncbi_esearch", "web_search"],
@@ -521,7 +521,7 @@ ENGINE_GROUPS = {
     # 预印本速递 (3引擎, ~15s) ⭐ v5.6 新增
     "preprint": ["biorxiv_api", "researchgate_web", "scholar_graph"],
     # 全量搜索 (21引擎并行发散) v8.1 全部引擎同时启动
-    "exhaustive": ["scholar_graph", "scholar_keywords", "scholar_advanced",
+    "exhaustive": ["cnki_xue", "scholar_graph", "scholar_keywords", "scholar_advanced",
                    "ncbi_esearch", "europe_pmc", "crossref_article", "scholarly_multi",
                    "baidu_scholar", "cnki_web", "wanfang_web", "cas_web", "chinese_sweep", "duckduckgo_search",
                    "tavily_search", "tavily_research", "exa_search",
