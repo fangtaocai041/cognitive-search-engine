@@ -46,7 +46,32 @@ except ImportError:
 
 # ──── Helpers ────
 
-from src._utils import DotDict  # v5.7: de-duplicated from agent_core + rule_engine
+# v5.7: de-duplicated from agent_core + rule_engine
+# v8.1: resilient import — fallback to direct loading if package resolution fails
+try:
+    from src._utils import DotDict
+except (ImportError, ModuleNotFoundError):
+    import importlib.util as _iu_util
+    _up = Path(__file__).resolve().parent / "_utils.py"
+    _us = _iu_util.spec_from_file_location("cognitive._utils", str(_up))
+    if _us and _us.loader:
+        _um = _iu_util.module_from_spec(_us)
+        _sys.modules["cognitive._utils"] = _um
+        _us.loader.exec_module(_um)
+        DotDict = _um.DotDict
+    else:
+        class DotDict(dict):
+            __slots__ = ()
+            def __getattr__(self, key):
+                try: val = self[key]
+                except KeyError: raise AttributeError(f"'DotDict' has no attribute '{key}'")
+                if isinstance(val, dict) and not isinstance(val, DotDict):
+                    val = DotDict(val); self[key] = val
+                return val
+            def __setattr__(self, key, value): self[key] = value
+            def __delattr__(self, key):
+                try: del self[key]
+                except KeyError: raise AttributeError(f"'DotDict' has no attribute '{key}'")
 
 # ──── Data Classes ────
 
@@ -138,8 +163,8 @@ class SearchRuleEngine:
         self._http_timeout_per_call: int = 8        # 单次 HTTP 请求超时 (15→8s)
         self._http_retry_max_s: int = 12            # 总重试窗口 (60→12s)
         self._http_retry_attempts: int = 2           # 最多重试 (5→2次)
-        self._mcp_parallel_timeout_s: int = 180       # MCP 并行总超时 3min
-        self._mcp_per_call_timeout_s: int = 30        # MCP 单次调用超时
+        self._mcp_parallel_timeout_s: int = 300       # MCP 并行总超时 3min
+        self._mcp_per_call_timeout_s: int = 120        # MCP 单次调用超时
 
         # D₃ World Model
         self._world_model = WorldModel() if WorldModel else None

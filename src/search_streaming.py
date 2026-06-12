@@ -71,7 +71,7 @@ def search_streaming(
     group: str = "standard",
     limit: int = 10,
     max_retries: int = 3,
-    per_engine_timeout_s: float = 30.0,
+    per_engine_timeout_s: float = 120.0,
     on_result: Optional[Callable] = None,
     engine_registry: Optional[Dict[str, Dict]] = None,
     engine_groups: Optional[Dict[str, List[str]]] = None,
