@@ -520,6 +520,13 @@ ENGINE_GROUPS = {
                  "scholar_graph", "ncbi_esearch", "chinese_sweep"],
     # 预印本速递 (3引擎, ~15s) ⭐ v5.6 新增
     "preprint": ["biorxiv_api", "researchgate_web", "scholar_graph"],
+    # 全量搜索 (21引擎并行发散) v8.1 全部引擎同时启动
+    "exhaustive": ["scholar_graph", "scholar_keywords", "scholar_advanced",
+                   "ncbi_esearch", "europe_pmc", "crossref_article", "scholarly_multi",
+                   "baidu_scholar", "cnki_web", "wanfang_web", "cas_web", "chinese_sweep", "duckduckgo_search",
+                   "tavily_search", "tavily_research", "exa_search",
+                   "biorxiv_api", "researchgate_web",
+                   "web_search", "references", "relations"],
 }
 
 # ── 从 search_streaming 模块导入 ──
@@ -1256,7 +1263,7 @@ def _is_priority_paper(paper: Dict) -> bool:
 
 def coordinated_search(
     species_name: str,
-    group: str = "standard",
+    group: str = "exhaustive",
     limit: int = 10,
     on_result: callable = None,
 ) -> CoordinatedSearchResult:

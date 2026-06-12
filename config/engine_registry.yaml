@@ -43,6 +43,12 @@ registry:
   relations:        {tool: article_get_literature_relations, category: graph, priority: 7}
 
 groups:
+  exhaustive: [scholar_graph, scholar_keywords, scholar_advanced,
+               ncbi_esearch, europe_pmc, crossref_article, scholarly_multi,
+               baidu_scholar, cnki_web, wanfang_web, cas_web, chinese_sweep, duckduckgo_search,
+               tavily_search, tavily_research, exa_search,
+               biorxiv_api, researchgate_web,
+               web_search, references, relations]
   quick:    [scholar_graph, ncbi_esearch, web_search]
   standard: [scholar_graph, ncbi_esearch, crossref_article, web_search, tavily_search]
   full:     [scholar_graph, ncbi_esearch, crossref_article, scholarly_multi,
