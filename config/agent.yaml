@@ -77,7 +77,7 @@ openai:
 
 search:
   # 搜索引擎列表 [v2.0 升级]
-  engines: ["ncbi","scholar","article","scholarly","tavily","exa","web_search"]
+  engines: ["scholar","ncbi","article","scholarly","tavily","exa","web_search"]
   engine_categories:
     academic: ["ncbi","scholar","article","scholarly"]
     web: ["tavily","exa"]
