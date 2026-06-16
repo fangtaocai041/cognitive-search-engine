@@ -143,6 +143,19 @@ This engine is the **exclusive search gateway** for the entire workspace. All ex
 
 ---
 
+## 🧭 Future Optimization Trends
+
+| Project | Layer | Near-term (3mo) | Mid-term (6mo) | Long-term (12mo) |
+|---------|:-----:|-----------------|-----------------|------------------|
+| **cognitive-search-engine** | V1 | SerpAPI Baidu/DuckDuckGo anti-crawl bypass · Exa semantic expansion; target: 21→28 engines, p95 latency 25→15s | Cross-lingual retrieval (CN↔EN bidirectional) · Real-time graph update on search; target: zero cold-start | Self-tuning MoE router — per-species dynamic engine selection; target: 90% recall at 50% token cost |
+| **fish-ecology-assistant** | V0 | Literature auto-classification · Contradiction detection pipeline; target: 95% auto-categorization | KB-Graph bidirectional sync · Automated annual review generation; target: 80% synthesis automated | Multi-modal knowledge base (text + image + genomic) · LLM-based research gap suggestion; target: suggest 3 actionable gaps per species |
+| **eon-core** | Coord | EventBus throughput optimization · DAG routing with learned priorities; target: inter-project latency <200ms | Cross-project resource-aware scheduling · Distributed coordination across 5+ agents; target: zero-conf project onboarding | Self-healing coordination graph · Autonomous derived-project spawning (三生万物 auto P₃/P₄…); target: new project scaffold in <5min |
+| **porpoise-agent** | P₁ | Acoustic monitoring data integration · Population trend dashboard; target: monthly update from field data | ML-based threat assessment (ship strike + fishing + pollution) · Real-time alerting; target: early warning 48h before risk event | Full digital twin — simulate management scenarios · Policy impact prediction; target: recommend optimal conservation action with 90% confidence |
+| **coilia-agent** | P₂ | Otolith microchemistry automation pipeline · Migration route reconstruction from trace elements; target: 80% automated | Multi-year spawning ground prediction · Climate scenario simulation; target: forecast recruitment 2yr ahead | Full life-cycle digital twin (egg→adult) · Gene-flow metapopulation model; target: guide hatchery release with 85% recruitment success |
+| **culter-agent** | P₃ | Chromosome-level genome assembly pipeline · Trophic niche inference from gut microbiome; target: genome annotation <2wk | Population genomics — adaptive loci discovery · Speciation genomics across Culterinae; target: identify 10+ adaptive loci | Eco-evolutionary simulation — predict species response to environmental change · Integrate genomic + trophic + distribution data; target: 5yr population forecast with 80% accuracy |
+
+---
+
 ## Installation
 
 ```bash
