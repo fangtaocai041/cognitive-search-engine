@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """
-search_api.py — cognitive-search-engine CLI API (供 f 项目调用)
+search_api.py — cognitive-search-engine CLI API (供 search_species.py 调用)
 
-  协议: f项目 (fish-ecology-assistant) → subprocess → 本脚本 → JSON stdout
-  角色: 二之Yang — 搜索验证引擎，为 f项目(Yin·知识) 提供动态验证
+═══════════════════════════════════════════════════════════
+框架角色: c项目搜索引擎 (V/V1 · 搜索验证层)
+═══════════════════════════════════════════════════════════
+
+  标准工作流: f项目(search_species.py) → 本脚本 → 结果回写f知识库
+  ⚠️ 不要直接调用本脚本！正确入口是 f项目的 search_species.py
+     它会先查 f知识库 → 询问用户 → 再调用本脚本 → 自动回写
+
+  协议: subprocess → JSON stdout
+  管线: 分类学变体 → 跨项目检测 → 7引擎并行 → DOI去重 → 分类标注
 
 用法:
   python scripts/search_api.py --species "Pseudaspius hakonensis"
