@@ -287,12 +287,14 @@ class McpClient:
         Returns:
             List of content items from the tool response.
         """
-        proc = self._get_or_start_process(server_name)
-        if proc is None:
-            return [{"error": f"Server '{server_name}' not available", "source": "mcp"}]
-
-        # Split into server_name and tool_name
+        # Split into server_name part and tool_name part FIRST
         parts = server_name.split("/", 1)
+        actual_server = parts[0]
+        proc = self._get_or_start_process(actual_server)
+        if proc is None:
+            return [{"error": f"Server '{actual_server}' not available", "source": "mcp"}]
+
+        # Determine tool name
         if len(parts) > 1:
             tool_name = parts[1]
         else:

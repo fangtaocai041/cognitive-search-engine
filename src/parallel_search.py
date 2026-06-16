@@ -249,13 +249,29 @@ def _search_openalex(query: str, max_results: int = 20) -> List[Dict[str, Any]]:
                 name = (a.get("author") or {}).get("display_name", "")
                 if name:
                     authors.append(name)
+
+            # 将 abstract_inverted_index 还原为可读文本
+            inverted = result.get("abstract_inverted_index")
+            abstract_text = ""
+            if isinstance(inverted, dict) and inverted:
+                # 按位置重建单词顺序
+                word_positions = []
+                for word, positions in inverted.items():
+                    if isinstance(positions, list):
+                        for pos in positions:
+                            word_positions.append((int(pos), word))
+                word_positions.sort(key=lambda x: x[0])
+                abstract_text = " ".join(w for _, w in word_positions)
+            elif isinstance(inverted, str):
+                abstract_text = inverted
+
             paper = {
                 "doi": doi,
                 "title": result.get("title", ""),
                 "authors": authors,
                 "year": str(result.get("publication_year", "")),
                 "journal": (result.get("primary_location") or {}).get("source", {}).get("display_name", ""),
-                "abstract": result.get("abstract_inverted_index", ""),
+                "abstract": abstract_text,
                 "source": "openalex",
                 "pmid": "",
                 "pmcid": "",
@@ -341,11 +357,13 @@ def _search_cnki_web(chinese_name: str, max_results: int = 10) -> List[Dict[str,
     if not chinese_name:
         return papers
     try:
+        # 用精确搜索 + site 限定提升相关性
+        safe_query = urllib.parse.quote(f"{chinese_name} 研究 论文 期刊 水产 生物")
         bing_url = (
             "https://www.bing.com/search?"
             + urllib.parse.urlencode({
                 "q": f"{chinese_name} 研究 论文 期刊 水产 生物",
-                "count": max_results,
+                "count": max_results * 2,  # 多取一些再过滤
                 "setlang": "zh-cn",
             })
         )
@@ -358,19 +376,27 @@ def _search_cnki_web(chinese_name: str, max_results: int = 10) -> List[Dict[str,
 
         # Extract result snippets
         snippets = re.findall(r'<li class="b_algo"(.*?)</li>', html, re.DOTALL)
-        for sn in snippets[:max_results]:
+        for sn in snippets[:max_results * 2]:
             title_m = re.search(r'<h2>.*?<a[^>]*>(.*?)</a>', sn, re.DOTALL)
             url_m = re.search(r'href="(https?://[^"]+)"', sn)
             desc_m = re.search(r'<p[^>]*>(.*?)</p>', sn, re.DOTALL)
             title = re.sub(r'<.*?>', '', title_m.group(1)).strip() if title_m else ""
             url = url_m.group(1) if url_m else ""
             abstract = re.sub(r'<.*?>', '', desc_m.group(1)).strip() if desc_m else ""
+
+            # 过滤垃圾结果：无标题 或 含中文字符不够（游戏广告页）
+            if not title:
+                continue
+            cn_chars = len(re.findall(r'[\u4e00-\u9fff]', title + abstract))
+            if cn_chars < 2:
+                continue  # 没有足够中文字符 → 无关页面
+
             paper = {
                 "doi": "",
                 "title": title,
                 "authors": [],
                 "year": "",
-                "journal": "中文文献",
+                "journal": "",
                 "abstract": abstract,
                 "source": "cnki_web",
                 "pmid": "",
@@ -402,6 +428,71 @@ _PROVIDERS: Dict[str, Tuple[Callable, int]] = {
 _CN_PROVIDERS: Dict[str, Tuple[Callable, int]] = {
     "cnki_web": (_search_cnki_web, 10),
 }
+
+
+# ═══════════════════════════════════════════════════════════════
+# Genus filter — 噪音论文过滤
+# ═══════════════════════════════════════════════════════════════
+
+def _extract_genus(query: str) -> Optional[str]:
+    """从搜索查询中提取属名（首个拉丁单词，首字母大写）。"""
+    query = query.strip()
+    # 匹配合法学名：首字母大写的拉丁词
+    m = re.match(r'([A-Z][a-z]+)', query)
+    if m:
+        return m.group(1).lower()
+    return None
+
+
+def _filter_by_genus(query: str, papers: List[Dict[str, Any]],
+                     strict_sources: Optional[set] = None) -> List[Dict[str, Any]]:
+    """按属名/物种名过滤论文，移除标题中不含目标属名的噪音条目。
+
+    Args:
+        query: 搜索查询（从中提取属名）
+        papers: 论文列表
+        strict_sources: 启用严格模式的源名集合
+                        (arXiv/Crossref 噪音大，默认启用)
+
+    Returns:
+        过滤后的论文列表
+    """
+    if strict_sources is None:
+        strict_sources = {"arxiv", "crossref"}
+
+    genus = _extract_genus(query)
+    if not genus:
+        return papers  # 无法提取属名时不过滤
+
+    filtered: List[Dict[str, Any]] = []
+    for p in papers:
+        source = p.get("source", "")
+        title = (p.get("title") or "").lower()
+        abstract = (p.get("abstract") or "")
+        if isinstance(abstract, dict):
+            abstract = str(abstract)
+        abstract = abstract.lower()
+
+        # 标题中包含属名 → 保留
+        if genus in title:
+            filtered.append(p)
+            continue
+
+        # arXiv: 严格模式 — 标题必须含属名
+        if source in strict_sources:
+            continue  # 跳过
+
+        # 其他源: 标题或摘要含属名均可
+        if genus in abstract:
+            # 摘要匹配比标题匹配可信度低
+            p["credibility_score"] = min(p.get("credibility_score", 50), 45)
+            filtered.append(p)
+            continue
+
+        # 完全不相关
+        logger.debug(f"Filtered out '{p.get('title', '')[:60]}' (genus={genus}, source={source})")
+
+    return filtered
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -505,10 +596,13 @@ class ParallelSearch:
         # 去重
         deduped = _deduplicate(all_papers)
 
+        # 属名校验 — 过滤标题不含目标属名的噪音论文
+        filtered = _filter_by_genus(query, deduped)
+
         return SearchStats(
             total_raw=len(all_papers),
-            total_merged=len(deduped),
-            new_papers=deduped,
+            total_merged=len(filtered),
+            new_papers=filtered,
             providers_succeeded=succeeded,
             providers_failed=failed,
             elapsed_s=time.perf_counter() - t0,

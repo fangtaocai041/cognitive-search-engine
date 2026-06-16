@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import sys
 import time
@@ -167,6 +168,312 @@ def classify_papers(papers: List[Dict]) -> List[Dict]:
     return papers
 
 
+def _parse_scholar_response(text: str) -> List[Dict]:
+    """解析 scholar MCP 的 JSON 响应 → 论文列表."""
+    papers = []
+    try:
+        data = json.loads(text)
+        if isinstance(data, dict):
+            results = data.get("results", data.get("data", []))
+            if isinstance(results, list):
+                for r in results:
+                    if not isinstance(r, dict):
+                        continue
+                    doi = r.get("doi", "") or ""
+                    authors = r.get("authors", r.get("author", []))
+                    if isinstance(authors, list):
+                        authors = [a.get("name", a) if isinstance(a, dict) else str(a) for a in authors]
+                    papers.append({
+                        "doi": doi,
+                        "title": r.get("title", ""),
+                        "authors": authors,
+                        "year": str(r.get("year", r.get("publication_year", ""))),
+                        "journal": r.get("journal", r.get("journalName", "")),
+                        "abstract": r.get("abstract", "") or "",
+                        "source": "mcp_scholar",
+                        "pmid": r.get("pmid", "") or "",
+                        "pmcid": "",
+                        "url": r.get("url", f"https://doi.org/{doi}") if doi else "",
+                        "credibility_score": 60,
+                    })
+    except (json.JSONDecodeError, TypeError, AttributeError):
+        pass
+    return papers
+
+
+def _parse_article_response(text: str) -> List[Dict]:
+    """解析 article MCP 的 JSON 响应 → 论文列表."""
+    papers = []
+    try:
+        data = json.loads(text)
+        if isinstance(data, dict):
+            inner = data.get("data", data)
+            if isinstance(inner, dict):
+                for source_name, source_papers in inner.get("results_by_source", {}).items():
+                    if not isinstance(source_papers, list):
+                        continue
+                    for sp in source_papers:
+                        if not isinstance(sp, dict):
+                            continue
+                        doi = sp.get("doi", "") or ""
+                        authors = sp.get("authors", [])
+                        if isinstance(authors, list):
+                            authors = [a.get("name", a) if isinstance(a, dict) else str(a) for a in authors]
+                        papers.append({
+                            "doi": doi,
+                            "title": sp.get("title", ""),
+                            "authors": authors,
+                            "year": str(sp.get("year", sp.get("publication_date", "")))[:4],
+                            "journal": sp.get("journal", sp.get("journalName", "")),
+                            "abstract": sp.get("abstract", "") or "",
+                            "source": f"mcp_article_{source_name}",
+                            "pmid": sp.get("pmid", "") or "",
+                            "pmcid": sp.get("pmcid", "") or "",
+                            "url": sp.get("url", f"https://doi.org/{doi}") if doi else "",
+                            "credibility_score": 55,
+                        })
+    except (json.JSONDecodeError, TypeError, AttributeError):
+        pass
+    return papers
+
+
+def _parse_tavily_response(text: str) -> List[Dict]:
+    """解析 tavily MCP 的文本响应 → 论文列表 (有限)."""
+    papers = []
+    if not text or "Detailed Results:" not in text:
+        return papers
+    try:
+        lines = text.split("\n")
+        title, url, content = "", "", ""
+        for i, line in enumerate(lines):
+            if line.startswith("Title:"):
+                title = line[6:].strip()
+            elif line.startswith("URL:"):
+                url = line[4:].strip()
+            elif line.startswith("Content:"):
+                content_parts = lines[i+1:i+3] if i+1 < len(lines) else []
+                content = " ".join(p.strip() for p in content_parts)
+
+        if title and url:
+            papers.append({
+                "doi": "",
+                "title": title,
+                "authors": [],
+                "year": "",
+                "journal": "",
+                "abstract": content[:500],
+                "source": "mcp_tavily",
+                "pmid": "",
+                "pmcid": "",
+                "url": url,
+                "credibility_score": 40,
+            })
+    except Exception:
+        pass
+    return papers
+
+
+def _parse_exa_response(text: str) -> List[Dict]:
+    """解析 exa MCP 的文本响应 → 论文列表."""
+    papers = []
+    if not text:
+        return papers
+    try:
+        lines = text.split("\n")
+        title, url, year, author, highlights = "", "", "", "", ""
+        for line in lines:
+            if line.startswith("Title:"):
+                title = line[6:].strip()
+            elif line.startswith("URL:"):
+                url = line[4:].strip()
+            elif line.startswith("Published:"):
+                date_str = line[10:].strip()
+                year = date_str[:4]
+            elif line.startswith("Author:"):
+                author = line[7:].strip()
+            elif line.startswith("Highlights:"):
+                highlights = line[11:].strip()
+
+        if title:
+            papers.append({
+                "doi": "",
+                "title": title,
+                "authors": [author] if author and author != "N/A" else [],
+                "year": year,
+                "journal": "",
+                "abstract": highlights[:500],
+                "source": "mcp_exa",
+                "pmid": "",
+                "pmcid": "",
+                "url": url,
+                "credibility_score": 40,
+            })
+    except Exception:
+        pass
+    return papers
+
+
+def _parse_ncbi_response(text: str, client=None) -> List[Dict]:
+    """解析 ncbi MCP 的 esearch 响应 → 通过 esummary 获取元数据."""
+    papers = []
+    try:
+        data = json.loads(text)
+        pmids = data.get("pmids", [])
+        if pmids and client:
+            # 用 ncbi_esummary 获取元数据
+            summary_results = client.call_tool("ncbi/ncbi_esummary", {
+                "pmids": ",".join(pmids[:10]),
+            })
+            for sr in summary_results:
+                stext = sr.get("text", "")
+                if stext:
+                    try:
+                        sdata = json.loads(stext)
+                        for pmid, meta in sdata.get("result", {}).items():
+                            if pmid == "uids":
+                                continue
+                            if isinstance(meta, dict):
+                                doi = ""
+                                for aid in meta.get("articleids", []):
+                                    if isinstance(aid, dict) and aid.get("idtype", "").lower() == "doi":
+                                        doi = aid.get("value", "")
+                                authors = [a.get("name", "") for a in meta.get("authors", []) if isinstance(a, dict)]
+                                papers.append({
+                                    "doi": doi,
+                                    "title": meta.get("title", ""),
+                                    "authors": authors,
+                                    "year": str(meta.get("pubdate", ""))[:4],
+                                    "journal": meta.get("source", ""),
+                                    "abstract": meta.get("abstract", ""),
+                                    "source": "mcp_ncbi",
+                                    "pmid": pmid,
+                                    "pmcid": "",
+                                    "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
+                                    "credibility_score": 60,
+                                })
+                    except json.JSONDecodeError:
+                        pass
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return papers
+
+
+def search_mcp_priority(queries: List[str], limit: int = 20) -> List[Dict]:
+    """MCP 优先搜索：6 引擎 MCP 并行，失败回退 HTTP。
+
+    管线:
+      1. 初始化 McpClient，warmup 全部 6 个 MCP
+      2. scholar/article/tavily/exa/ncbi 并行搜索
+      3. 各自格式解析 → 统一论文 dict
+      4. 结果去重 + 返回
+      5. MCP 不可用时回退 search_http
+    """
+    papers: List[Dict] = []
+
+    try:
+        from src.mcp_client import McpClient
+        client = McpClient()
+
+        # 预热全部 MCP
+        started = client.warmup()
+        if started:
+            logger = logging.getLogger(__name__)
+            logger.info(f"MCP warmup succeeded: {len(started)} servers: {started}")
+
+            # 对每个查询调用所有 MCP
+            for q in queries[:2]:  # 最多 2 个学名变体
+                # scholar MCP
+                if "scholar" in started:
+                    try:
+                        results = client.call_tool("scholar", {
+                            "query": q,
+                            "limit": min(limit, 15),
+                        })
+                        for r in results:
+                            text = r.get("text", "")
+                            if text:
+                                papers.extend(_parse_scholar_response(text))
+                    except Exception:
+                        pass
+
+                # article MCP
+                if "article" in started:
+                    try:
+                        results = client.call_tool("article", {
+                            "keyword": q,
+                            "max_results": min(limit, 10),
+                            "search_type": "comprehensive",
+                        })
+                        for r in results:
+                            text = r.get("text", "")
+                            if text:
+                                papers.extend(_parse_article_response(text))
+                    except Exception:
+                        pass
+
+                # ncbi MCP (esearch + esummary)
+                if "ncbi" in started:
+                    try:
+                        results = client.call_tool("ncbi/ncbi_esearch", {
+                            "query": q,
+                            "maxResults": min(limit, 10),
+                        })
+                        for r in results:
+                            text = r.get("text", "")
+                            if text:
+                                papers.extend(_parse_ncbi_response(text, client))
+                    except Exception:
+                        pass
+
+                # tavily MCP (web 补充)
+                if "tavily" in started:
+                    try:
+                        results = client.call_tool("tavily", {
+                            "query": f"{q} scientific paper research",
+                            "max_results": 3,
+                        })
+                        for r in results:
+                            text = r.get("text", "")
+                            if text:
+                                papers.extend(_parse_tavily_response(text))
+                    except Exception:
+                        pass
+
+                # exa MCP (web 补充)
+                if "exa" in started:
+                    try:
+                        results = client.call_tool("exa", {
+                            "query": f"{q} scientific paper",
+                            "numResults": 3,
+                        })
+                        for r in results:
+                            text = r.get("text", "")
+                            if text:
+                                papers.extend(_parse_exa_response(text))
+                    except Exception:
+                        pass
+
+            client.stop_all()
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.warning(f"MCP search failed, falling back to HTTP: {e}")
+
+    # MCP 无结果 → 回退 HTTP
+    if not papers:
+        logger = logging.getLogger(__name__)
+        logger.info("MCP returned no results, falling back to HTTP search")
+        return search_http(queries, limit)
+
+    # 属名校验 + 去重
+    from src.parallel_search import _deduplicate, _filter_by_genus
+    first_query = queries[0] if queries else ""
+    filtered = _filter_by_genus(first_query, papers)
+    deduped = _deduplicate(filtered)
+    logger = logging.getLogger(__name__)
+    logger.info(f"MCP search: {len(papers)} raw → {len(filtered)} filtered → {len(deduped)} deduped")
+    return deduped
+
+
 def run_search(species_name: str, max_results: int = 20,
                group: str = "standard") -> Dict[str, Any]:
     """
@@ -175,7 +482,7 @@ def run_search(species_name: str, max_results: int = 20,
     管线:
       1. 分类学检查 → 获取所有变体
       2. 跨项目不一致检测
-      3. 并行 HTTP 搜索 (PubMed + Europe PMC + Crossref + OpenAlex + CN)
+      3. MCP 优先搜索 (scholar/article/scholarly/ncbi) → 失败回退 HTTP
       4. DOI 去重 + 分类 + 语言标注
     """
     t0 = time.perf_counter()
@@ -193,7 +500,7 @@ def run_search(species_name: str, max_results: int = 20,
     # Step 3: 跨项目不一致检测
     taxonomy_gap = detect_taxonomy_gap(scientific_name)
 
-    # Step 4: 搜索
+    # Step 4: MCP 优先搜索，失败回退 HTTP
     search_queries = list(variants[:3])  # 最多3个学名变体
     if chinese_name and chinese_name not in search_queries:
         search_queries.append(chinese_name)
@@ -202,7 +509,7 @@ def run_search(species_name: str, max_results: int = 20,
         search_queries.append(f"{scientific_name} ecology")
         search_queries.append(f"{scientific_name} genetics morphology")
 
-    papers = search_http(search_queries, max_per_query=max_results)
+    papers = search_mcp_priority(search_queries, max_results)
 
     # Step 5: DOI去重
     seen_doi: set = set()
