@@ -238,7 +238,7 @@ class MesoAgent:
         return max(len(known), 8)
 
     def _estimate_literature_volume_multi(self, species_id: str) -> int:
-        """Multi-source literature volume estimation via HTTP REST APIs.
+        """Multi-source literature volume estimation via HTTP REST APIs (并行, 6s 超时).
 
         Uses PubMed E-utilities (esearch), Crossref, and Chinese web search
         to estimate total literature volume for adaptive search strategy.
@@ -259,16 +259,14 @@ class MesoAgent:
 
         pubmed_count: int = 0
         scholar_count: int = 0
-        chinese_hits: int = 0
+        openalex_count: int = 0
 
         def _fetch_pubmed():
             nonlocal pubmed_count
             try:
-                url = (
-                    "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?"
-                    f"db=pubmed&term={_url_quote(scientific_name)}&retmax=0&retmode=json"
-                )
-                with _urlreq.urlopen(url, timeout=10) as resp:
+                url = (f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?"
+                       f"db=pubmed&term={_url_quote(scientific_name)}&retmax=0&retmode=json")
+                with _urlreq.urlopen(url, timeout=6) as resp:
                     data = _json.loads(resp.read())
                 pubmed_count = int(data.get("esearchresult", {}).get("count", "0") or "0")
             except Exception:
@@ -277,46 +275,32 @@ class MesoAgent:
         def _fetch_crossref():
             nonlocal scholar_count
             try:
-                url = (
-                    "https://api.crossref.org/works?"
-                    f"query={_url_quote(scientific_name)}&rows=0"
-                )
-                with _urlreq.urlopen(url, timeout=10) as resp:
+                url = f"https://api.crossref.org/works?query={_url_quote(scientific_name)}&rows=0"
+                with _urlreq.urlopen(url, timeout=6) as resp:
                     data = _json.loads(resp.read())
                 scholar_count = int(data.get("message", {}).get("total-results", 0) or 0)
             except Exception:
                 pass
 
-        def _fetch_chinese():
-            nonlocal chinese_hits
-            if not chinese_name:
-                return
+        def _fetch_openalex():
+            nonlocal openalex_count
             try:
-                import re
-                bing_url = (
-                    "https://www.bing.com/search?"
-                    f"q={_url_quote(chinese_name + ' 论文 OR 综述')}&count=5"
-                )
-                req = _urlreq.Request(bing_url, headers={
-                    "User-Agent": "Mozilla/5.0 (compatible; Reasonix/1.0)",
-                    "Accept-Language": "zh-CN,zh;q=0.9",
-                })
-                with _urlreq.urlopen(req, timeout=10) as resp:
-                    html = resp.read().decode("utf-8", errors="replace")
-                blocks = re.findall(r'<li class="b_algo"', html)
-                chinese_hits = len(blocks) * 3
+                url = f"https://api.openalex.org/works?filter=title.search:{_url_quote(scientific_name)}&per_page=0"
+                with _urlreq.urlopen(url, timeout=6) as resp:
+                    data = _json.loads(resp.read())
+                openalex_count = int(data.get("meta", {}).get("count", 0) or 0)
             except Exception:
                 pass
 
         with ThreadPoolExecutor(max_workers=3) as pool:
-            futs = [pool.submit(f) for f in (_fetch_pubmed, _fetch_crossref, _fetch_chinese)]
+            futs = [pool.submit(f) for f in (_fetch_pubmed, _fetch_crossref, _fetch_openalex)]
             for fut in as_completed(futs):
                 try:
-                    fut.result(timeout=12)
+                    fut.result(timeout=8)
                 except Exception:
                     pass
 
-        return max(pubmed_count, scholar_count, int(chinese_hits * 0.5))
+        return max(pubmed_count, scholar_count, openalex_count, 0)
 
     # ── BDI: Desire — search strategy planning ────────────────────
 

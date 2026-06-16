@@ -408,6 +408,112 @@ class McpClient:
         })
 
 
+    # ── Warmup ────────────────────────────────────────────────────
+
+    def warmup(self, server_names: Optional[List[str]] = None) -> List[str]:
+        """预热指定的 MCP 服务器（提前启动进程，缓存工具列表）.
+
+        Args:
+            server_names: 要预热的服务器列表，默认预热全部。
+
+        Returns:
+            成功启动的服务器列表
+        """
+        import threading
+        if server_names is None:
+            server_names = list(self._servers.keys())
+
+        started: List[str] = []
+        results: List[str] = []
+        lock = threading.Lock()
+
+        def _warm_one(name: str) -> None:
+            try:
+                tool = self._get_tool_name(name)
+                if tool:
+                    with lock:
+                        results.append(name)
+            except Exception:
+                pass
+
+        threads = [threading.Thread(target=_warm_one, args=(n,), daemon=True)
+                   for n in server_names]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(timeout=15)
+
+        return results
+
+    # ── Search cache ──────────────────────────────────────────────
+
+    _search_cache: Dict[str, Tuple[float, List[dict]]] = {}
+    _CACHE_TTL_S: int = 86400  # 24h
+
+    @classmethod
+    def cache_get(cls, key: str) -> Optional[List[dict]]:
+        """Get cached search result if not expired."""
+        import time
+        entry = cls._search_cache.get(key)
+        if entry is None:
+            return None
+        ts, data = entry
+        if time.time() - ts > cls._CACHE_TTL_S:
+            del cls._search_cache[key]
+            return None
+        return data
+
+    @classmethod
+    def cache_set(cls, key: str, data: List[dict]) -> None:
+        """Cache a search result."""
+        import time
+        cls._search_cache[key] = (time.time(), data)
+
+    def search_scholar(self, query: str, limit: int = 10) -> List[dict]:
+        """Search via scholar-mcp (带缓存)."""
+        cache_key = f"scholar:{query}:{limit}"
+        cached = self.cache_get(cache_key)
+        if cached is not None:
+            return cached
+        result = self.call_tool("scholar", {"query": query, "limit": limit})
+        self.cache_set(cache_key, result)
+        return result
+
+    def search_article(self, keyword: str, max_results: int = 10) -> List[dict]:
+        """Search via article-mcp (带缓存)."""
+        cache_key = f"article:{keyword}:{max_results}"
+        cached = self.cache_get(cache_key)
+        if cached is not None:
+            return cached
+        result = self.call_tool("article", {
+            "keyword": keyword,
+            "max_results": max_results,
+            "search_type": "comprehensive",
+        })
+        self.cache_set(cache_key, result)
+        return result
+
+    def search_tavily(self, query: str, max_results: int = 5) -> List[dict]:
+        """Search via tavily-mcp (带缓存)."""
+        cache_key = f"tavily:{query}:{max_results}"
+        cached = self.cache_get(cache_key)
+        if cached is not None:
+            return cached
+        result = self.call_tool("tavily", {"query": query, "max_results": max_results})
+        self.cache_set(cache_key, result)
+        return result
+
+    def search_exa(self, query: str, num_results: int = 5) -> List[dict]:
+        """Search via exa-mcp (带缓存)."""
+        cache_key = f"exa:{query}:{num_results}"
+        cached = self.cache_get(cache_key)
+        if cached is not None:
+            return cached
+        result = self.call_tool("exa", {"query": query, "numResults": num_results})
+        self.cache_set(cache_key, result)
+        return result
+
+
 # ── Module-level convenience ──────────────────────────────────────
 
 _default_client: Optional[McpClient] = None

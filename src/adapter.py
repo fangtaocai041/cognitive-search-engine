@@ -123,6 +123,85 @@ class CognitiveSearchAdapter:
             ],
         }
 
+    # ── KB-First: 搜索前检查 f 项目知识库 ──
+
+    def check_fish_knowledge_base(self, species_id: str) -> Dict[str, Any]:
+        """搜索前检查 fish-ecology-assistant 知识库已有内容.
+
+        S-T-V 闭环: S(fish) → V(cognitive) 状态同步.
+        避免重复搜索已知文献.
+
+        Returns:
+            {"found": bool, "papers_count": int, "kb_path": str}
+        """
+        import os
+        from pathlib import Path
+
+        base = Path(__file__).resolve().parent.parent.parent
+        kb_dir = base / "fish-ecology-assistant" / "data" / "knowledge_base"
+
+        if not kb_dir.exists():
+            return {"found": False, "papers_count": 0, "kb_path": str(kb_dir), "note": "f项目知识库不存在"}
+
+        # 搜索匹配的知识库文件
+        species_key = species_id.replace("_", " ").lower()
+        matched_files = list(kb_dir.glob(f"*{species_key.replace(' ', '_')}*"))
+        matched_files += list(kb_dir.glob(f"*{species_key.split(' ')[0]}*"))
+
+        total_papers = 0
+        for mf in matched_files:
+            try:
+                text = mf.read_text(encoding="utf-8", errors="replace")
+                # 粗略统计论文条目
+                import re
+                papers = re.findall(r'(?:^|\n)#+\s+|^-\s+\[|^\[\d+\]|DOI[:：]', text, re.MULTILINE)
+                total_papers += len(papers)
+            except Exception:
+                pass
+
+        return {
+            "found": len(matched_files) > 0,
+            "papers_count": total_papers,
+            "files_found": [str(mf.relative_to(kb_dir)) for mf in matched_files],
+            "kb_path": str(kb_dir),
+            "note": None if total_papers > 0 else "知识库文件存在但未解析出论文条目",
+        }
+
+    # ── S-T-V 状态同步 ──
+
+    def sync_stv_state(self, species_id: str,
+                       state_vector: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """S-T-V 闭环状态同步.
+
+        从 S(fish) 接收 state_vector, 返回 V(cognitive) 的验证状态.
+
+        Args:
+            species_id: 物种 ID
+            state_vector: S 项目传来的状态向量 (schema, findings, contradiction)
+        """
+        # 查询图谱
+        graph_info = self.graph_lookup(species_id)
+
+        # 验证状态
+        verification = {
+            "species_id": species_id,
+            "verified_papers": graph_info.get("papers_count", 0) if isinstance(graph_info, dict) else 0,
+            "engine": "cognitive-search-engine",
+            "role": "V_Validation",
+            "feedback": "可用",
+        }
+
+        if state_vector:
+            # 处理 S 项目传来的矛盾信号
+            contradiction = state_vector.get("contradiction")
+            if contradiction:
+                verification["contradiction_detected"] = True
+                verification["action"] = "需要重新搜索验证"
+        else:
+            verification["contradiction_detected"] = False
+
+        return verification
+
     # ── Domain methods ──
 
     def graph_lookup(self, species_id: str) -> Dict[str, Any]:

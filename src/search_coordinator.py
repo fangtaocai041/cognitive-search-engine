@@ -37,8 +37,7 @@ logger = logging.getLogger(__name__)
 try:
     from src.unified_search import (
         check_taxonomy, estimate_mode, is_incidental, classify_paper,
-        cn_en_label, search_streaming, aggregate_results, ENGINE_REGISTRY,
-        ENGINE_GROUPS, EngineResult, StreamEvent, SearchMode,
+        cn_en_label, SearchMode, SearchDecision, SearchReport,
     )
     _HAVE_RULES = True
 except ImportError:
