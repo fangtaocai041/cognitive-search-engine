@@ -1,0 +1,36 @@
+phases:
+  graph_lookup:
+    function: load_known_papers
+    language: both
+    inputs:
+      species_id: $species_id
+    source: config/species_graph.yaml
+    output: list[Paper]
+    budget: 0
+    priority: 0
+    stop_condition: len(output) >= config.search.energy.min_papers_satisfice
+  exact_search:
+    function: search_scholar_article
+    language: en    # 英文源：PubMed/Crossref/OpenAlex
+    inputs:
+      query: $genus $species
+    tools:
+    - scholar_search_literature_graph
+    - article_search_literature
+    - ncbi_ncbi_esearch
+    output: list[Paper]
+    budget: 500
+    priority: 2
+    # NO stop_condition — seed phase, fill budget fully
+  chinese_exact_search:
+    function: search_chinese_scholar
+    language: zh    # 中文源：百度学术/CNKI/万方
+    inputs:
+      query: $chinese_name
+    tools:
+    - web_search
+    output: list[Paper]
+    budget: 500
+    priority: 1.5   # 略早于英文 exact_search
+    activation: bool(chinese_name)   # 仅当有中文名时触发
+  author_crossref:

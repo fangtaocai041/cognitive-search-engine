@@ -1,0 +1,46 @@
+    if score >= 75:
+        label = "高"
+        flag = "🟢"
+    elif score >= 45:
+        label = "中"
+        flag = "🟡"
+    elif score >= 20:
+        label = "低"
+        flag = "🟠"
+    else:
+        label = "不可用"
+        flag = "🔴"
+
+    paper["_credibility_score"] = score
+    paper["_credibility_label"] = label
+    paper["_credibility_flag"] = flag
+    paper["_credibility_detail"] = ", ".join(detail_parts)
+    paper["_credibility_tier"] = tier if tier != "unknown" else ("SCI" if sci else "standard")
+
+    return paper
+
+
+def score_papers(papers: List[Dict], species_name: str = "") -> List[Dict]:
+    """批量评分."""
+    return [score_paper(p, species_name) for p in papers]
+
+
+def format_credibility(score: int, flag: str = "") -> str:
+    """将得分格式化为可视化标识.
+
+    Args:
+        score: 0-100 的得分
+        flag: 可选，已有标记 (🟢/🟡/🟠/🔴)
+
+    Returns:
+        如 "🟢 高 85" 或 "🔴 不可用 15"
+    """
+    if not flag:
+        if score >= 75:
+            flag = "🟢"
+            label = "高"
+        elif score >= 45:
+            flag = "🟡"
+            label = "中"
+        elif score >= 20:
+            flag = "🟠"

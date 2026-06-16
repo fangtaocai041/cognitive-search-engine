@@ -1,0 +1,38 @@
+# Cognitive Search Engine — MCP Server Configuration
+# 搜索引擎集成：Scholar + Article + Tavily + Google Scholar
+
+servers:
+  scholar:
+    name: Scholar MCP
+    command: npx
+    args: ["-y", "scholar-mcp"]
+    description: Google Scholar via MCP — strongest fuzzy matching
+
+  article:
+    name: Article MCP
+    command: npx
+    args: ["-y", "article-mcp"]
+    description: Europe PMC + PubMed + Crossref full-text search
+
+  scholarly:
+    name: Scholarly MCP
+    command: npx
+    args: ["-y", "scholarly-mcp"]
+    description: Multi-source academic search (OpenAlex + Semantic Scholar)
+
+  tavily:
+    name: Tavily Search
+    command: npx
+    args: ["-y", "tavily-mcp"]
+    description: AI deep web search
+
+  exa:
+    name: Exa Search
+    command: npx
+    args: ["-y", "exa-mcp"]
+    description: Semantic web search
+
+categories:
+  academic: 3
+  web: 2
+  total: 5

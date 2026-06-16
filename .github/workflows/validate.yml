@@ -1,0 +1,21 @@
+name: Validate
+
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate config structure
+        run: |
+          echo "Checking config files..."
+          test -f config/agent.yaml && echo "✅ agent.yaml" || echo "❌ agent.yaml missing"
+          test -f config/mcp_servers.yaml && echo "✅ mcp_servers.yaml" || echo "❌ mcp_servers.yaml missing"
+          test -f config/species_graph.yaml && echo "✅ species_graph.yaml" || echo "❌ species_graph.yaml missing"
+      - name: Validate skills
+        run: |
+          for skill in skills/*.md; do
+            name=$(basename "$skill")
+            grep -q '^---$' "$skill" && echo "✅ $name" || echo "❌ $name: missing frontmatter"
+          done

@@ -1,0 +1,126 @@
+    # ── 重连/重试工具 ──
+
+    def _http_retry(self, url_fn, label="http"):
+        """带指数退避的 HTTP 重试包装器。
+
+        Args:
+            url_fn: 返回 (response_body: bytes) 的可调用对象
+            label: 日志标签
+
+        Returns:
+            response_body: bytes
+
+        Raises:
+            urllib.error.URLError: 重试全部耗尽后抛出
+        """
+        deadline = time.monotonic() + self._http_retry_max_s
+        last_error = None
+        for attempt in range(self._http_retry_attempts):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            try:
+                return url_fn()
+            except (urllib.error.URLError, urllib.error.HTTPError,
+                    TimeoutError, OSError) as e:
+                last_error = e
+                wait = min(2 ** attempt, remaining / 2, 15)  # 退避 ≤15s
+                if wait > 0.5 and attempt < self._http_retry_attempts - 1:
+                    logger.info(f"Retry {label} attempt {attempt+1}/{self._http_retry_attempts} "
+                                f"after {wait:.1f}s ({type(e).__name__})")
+                    time.sleep(wait)
+        raise last_error or RuntimeError(f"{label}: retry exhausted")
+
+    # ── Tool Calling ──
+
+    def _call_search_tools(self, query: str, tools: list[str],
+                           ctx: dict, n: int = 20) -> list[Paper]:
+        """Dispatch search query to available tools based on mode."""
+        if self.mode == "mock":
+            return self._mock_search(query, n)
+        elif self.mode == "record":
+            return self._recorded_search(query, n)
+        elif self.mode == "http":
+            return self._http_search(query, tools, n)
+        elif self.mode == "mcp":
+            return self._mcp_search(query, tools, n)
+        return []
+
+    def _http_search(self, query: str, tools: list[str], n: int) -> list[Paper]:
+        """HTTP-mode: call PubMed E-utilities, Crossref, OpenAlex directly."""
+        papers = []
+
+        # ── PubMed via NCBI E-utilities (带重试) ──
+        try:
+            from urllib.parse import quote as _q
+            def _fetch_pubmed():
+                esearch_url = (
+                    f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?"
+                    f"db=pubmed&term={_q(query)}&retmax={n}&retmode=json"
+                )
+                with urllib.request.urlopen(esearch_url, timeout=self._http_timeout_per_call) as resp:
+                    return resp.read()
+            esearch_body = self._http_retry(_fetch_pubmed, label=f"PubMed esearch({query[:40]})")
+            esearch_data = json.loads(esearch_body)
+            id_list = esearch_data.get("esearchresult", {}).get("idlist", [])
+            if id_list:
+                ids = ",".join(id_list[:n])
+                def _fetch_details():
+                    efetch_url = (
+                        f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?"
+                        f"db=pubmed&id={ids}&retmode=xml"
+                    )
+                    with urllib.request.urlopen(efetch_url, timeout=self._http_timeout_per_call) as resp:
+                        return resp.read()
+                xml_body = self._http_retry(_fetch_details, label=f"PubMed efetch({query[:40]})")
+                papers.extend(self._parse_pubmed_xml_bytes(xml_body, query))
+            logger.info(f"PubMed: {len(id_list)} hits for '{query}'")
+        except Exception as exc:
+            logger.warning(f"PubMed failed for '{query}' after retry: {exc}")
+            self._search_errors.append(f"PubMed({query}): {exc}")
+
+        # ── Crossref (带重试) ──
+        try:
+            from urllib.parse import quote as _q
+            def _fetch_crossref():
+                cr_url = f"https://api.crossref.org/works?query={_q(query)}&rows={n}"
+                with urllib.request.urlopen(cr_url, timeout=self._http_timeout_per_call) as resp:
+                    return resp.read()
+            cr_body = self._http_retry(_fetch_crossref, label=f"Crossref({query[:40]})")
+            cr_data = json.loads(cr_body)
+            items = cr_data.get("message", {}).get("items", [])
+            for item in items:
+                paper = self._crossref_to_paper(item)
+                if paper:
+                    papers.append(paper)
+            logger.info(f"Crossref: {len(items)} items for '{query}'")
+        except Exception as exc:
+            logger.warning(f"Crossref failed for '{query}' after retry: {exc}")
+            self._search_errors.append(f"Crossref({query}): {exc}")
+
+        # ── OpenAlex (带重试) ──
+        try:
+            from urllib.parse import quote as _q
+            def _fetch_openalex():
+                oa_query = _q(query, safe='')
+                oa_url = f"https://api.openalex.org/works?search={oa_query}&per_page={min(n, 50)}"
+                req = urllib.request.Request(oa_url, headers={
+                    "User-Agent": "mailto:cognitive-search-engine@reasonix.local",
+                    "Accept": "application/json",
+                })
+                import urllib.request as _ur_req
+                with _ur_req.urlopen(req, timeout=self._http_timeout_per_call) as resp:
+                    return resp.read()
+            oa_body = self._http_retry(_fetch_openalex, label=f"OpenAlex({query[:40]})")
+            oa_data = json.loads(oa_body)
+            results = oa_data.get("results", [])
+            for item in results:
+                paper = self._openalex_to_paper(item)
+                if paper:
+                    papers.append(paper)
+            logger.info(f"OpenAlex: {len(results)} results for '{query}'")
+        except Exception as exc:
+            logger.warning(f"OpenAlex failed for '{query}' after retry: {exc}")
+            self._search_errors.append(f"OpenAlex({query}): {exc}")
+
+        return papers

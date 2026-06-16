@@ -1,0 +1,14 @@
+  graph_path: "config/species_graph.yaml (shared across all three projects via submodule)"
+
+# ══════════════════════════════════════════════════════════════════
+# 超时/重连/并行 配置 (v2.0 新增)
+# ══════════════════════════════════════════════════════════════════
+timeout:
+  http_retry_max_s: 60             # HTTP 重试总窗口 (1分钟内均可重连)
+  http_retry_attempts: 5            # 最多重试 5 次
+  http_per_call_timeout_s: 15       # 单次 HTTP 请求超时
+  mcp_parallel_timeout_s: 180       # MCP 并行总超时 (3分钟)
+  mcp_per_call_timeout_s: 30        # MCP 单次调用超时
+  mcp_parallel_max_workers: 7       # MCP 并行最大连接数 (7 搜索引擎)
+
+# DeepSeek 标准配置 (YAML 1.2)

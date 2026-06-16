@@ -1,15 +1,4 @@
-﻿# Python
-__pycache__/
-*.pyc
-*.pyo
-.pytest_cache/
-
-# Reasonix runtime
-.reasonix/truncated-results/
-
-# Secrets
 .env
-
-# Secrets – DO NOT COMMIT
-.env
-CREDENTIALS.*.yaml
+node_modules/
+dist/
+.DS_Store
