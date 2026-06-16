@@ -4,6 +4,8 @@
 
 version: "1.0.0"
 
+version: "3.0.0"
+
 phases:
   graph_lookup:
     function: load_known_papers
@@ -12,7 +14,6 @@ phases:
     output: "list[Paper]"
     budget: 0
     priority: 0
-    stop_condition: "len(output) >= config.search.energy.min_papers_satisfice"
 
   exact_search:
     function: search_scholar_article
@@ -21,17 +22,33 @@ phases:
     output: "list[Paper]"
     budget: 500
     priority: 1
-    stop_condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
+
+  chinese_exact_search:
+    function: search_chinese_scholar
+    language: zh
+    inputs:
+      query: $chinese_name
+    tools:
+    - baidu_scholar
+    - cnki_web
+    - wanfang_web
+    - cas_web
+    - chinese_sweep
+    - web_search
+    output: "list[Paper]"
+    budget: 800
+    priority: 1.5
+    activation: bool(chinese_name)
+    parallel: true
 
   author_crossref:
     function: search_by_authors
     inputs: { authors: "$graph.authors[species_id]", min_year: "$min_year" }
-    tools: [scholar_search_google_scholar_key_words, scholar_search_literature_graph]
+    tools: [scholar_search_literature_graph, scholar_search_google_scholar_key_words]
     output: "list[Paper]"
     budget: 1500
     priority: 2
-    activation: "len(all_papers) < config.search.energy.min_papers_satisfice"
-    stop_condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
+    activation: bool($graph.authors)
 
   review_mining:
     function: mine_review_references
@@ -40,8 +57,6 @@ phases:
     output: "list[Paper]"
     budget: 500
     priority: 3
-    activation: "any(filter(papers, λp: p.title matches review_pattern))"
-    stop_condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
 
   reference_verification:
     function: verify_references
@@ -63,16 +78,30 @@ phases:
     budget: 1000
     priority: 5
     activation: "len(all_papers_with_doi) >= 3"
-    stop_condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
 
   variant_search:
     function: search_variants
     inputs: { genus: "$genus", species: "$species", variants: "$graph.variants[species_id]" }
-    tools: [scholar_search_literature_graph, article_search_literature]
+    tools: [scholar_search_literature_graph, article_search_literature, baidu_scholar, biorxiv_api]
     output: "list[Paper]"
-    budget: 2000
+    budget: 2500
     priority: 6
     activation: "len(all_papers) < 10"
+
+  preprint_search:
+    function: search_preprints
+    language: en
+    inputs:
+      query: $genus $species
+    tools:
+    - biorxiv_api
+    - researchgate_web
+    - scholar_graph
+    output: "list[Paper]"
+    budget: 600
+    priority: 6.5
+    activation: 'len(all_papers) < 30'
+    parallel: true
 
   phonetic_search:
     function: search_phonetic
@@ -86,18 +115,18 @@ phases:
   journal_scan:
     function: scan_target_journals
     inputs: { journals: "$graph.journals[species_id]", keyword: "$chinese_name" }
-    tools: [scholar_search_literature_graph]
+    tools: [scholar_search_literature_graph, cnki_web, baidu_scholar]
     output: "list[Paper]"
-    budget: 1200
+    budget: 1500
     priority: 8
-    activation: "len(all_papers) < config.search.energy.min_papers_satisfice"
+    activation: "len(all_papers) < 8"
 
   llm_expansion:
     function: llm_query_expansion
     inputs: { genus: "$genus", species: "$species", context: "$semiotic_context" }
-    tools: [thinking_sequentialthinking, scholar_search_literature_graph, tavily_tavily_search]
+    tools: [scholar_search_literature_graph, tavily_tavily_search, web_search, biorxiv_api, chinese_sweep]
     output: "list[Paper]"
-    budget: 3000
+    budget: 3500
     priority: 9
     activation: "len(all_papers) < 5"
 
@@ -114,14 +143,12 @@ phases:
 
 stop_conditions:
   global:
-    - condition: "len(all_papers) >= config.search.energy.min_papers_satisfice"
-      action: "STOP_ALL"
-    - condition: "consecutive_zero_new >= 2"
+    - condition: "consecutive_zero_new >= 5"
       action: "STOP_ALL"
     - condition: "total_tokens >= config.search.energy.max_total_tokens"
       action: "STOP_ALL"
-    - condition: "IG_per_token < 0.005 FOR 2 CONSECUTIVE phases"
-      action: "SKIP_REMAINING"
+    - condition: "len(ig_history) >= 3 AND all(v < 0.003 for v in ig_history[-3:])"
+      action: "STOP_ALL"
 
 adaptive_params:
   satisfice_threshold:
