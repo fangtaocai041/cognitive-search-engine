@@ -6,24 +6,35 @@
 
 ---
 
-## 这引擎能干嘛？
+## 🔺 Triangle Core Role: **V1 (Validation)**
 
-你输入一个物种名，它能：
-
-1. **猜你要搜多少文献** — 先查 PubMed、Crossref、OpenAlex 估算文献量
-2. **决定怎么搜** — 文献少就穷举，多就分类，太多了就综述锚定
-3. **并行搜 6+ 个源** — 谷歌学术/PubMed/Crossref/OpenAlex/arXiv/中文期刊，谁先返回先处理
-4. **去重打分** — 按期刊权威性给每篇论文打分（0~100）
-5. **检测缺口** — 看看哪些方向还没人研究
-6. **自我进化** — 搜得越多，参数越准
-
-**关键词**: 物种 · 文献 · 多源搜索 · 可信度评分 · BDI 认知循环
+> **Part of Triangle Core**, coordinated by [eon-core](https://github.com/fangtaocai041/eon-core).
+> **Triangle Core**: fish(V0) + cognitive(V1) + eon-core(Coordinator)
+> **Derived (三生万物)**: P₁(porpoise) · P₂(coilia) · ...
+>
+> Validates search results, authority credibility scoring, enforces triangulation (≥3 sources, ≥2 projects).
+> **DirectLoader**: `importlib` zero MCP process. **Triangulation**: ≥3 sources, ≥2 independent projects.
 
 ---
 
-## 怎么用
+## What It Does
 
-### 一行代码搜物种
+Enter a species name, it:
+
+1. **Estimates literature volume** — PubMed, Crossref, OpenAlex pre-flight
+2. **Decides search strategy** — few → exhaustive, moderate → classified, many → review-anchored
+3. **Searches 21 engines in parallel** — SerpAPI·Exa·Europe PMC·NCBI·OpenAlex·Semantic Scholar·CNKI·more
+4. **Deduplicates + scores** — journal whitelist (0-100)
+5. **Detects gaps** — which directions are under-studied
+6. **Self-evolves** — more searches → better parameters
+
+**Keywords**: species · literature · multi-source search · credibility scoring · BDI cognitive cycle
+
+---
+
+## Quick Start
+
+### One-liner in code
 
 ```python
 from src.meso_agent import create_agent
@@ -31,17 +42,17 @@ from src.meso_agent import create_agent
 agent = create_agent(mode="http")
 result = agent.search("Ochetobius_elongatus")
 
-print(f"{len(result.papers)} 篇论文，耗时 {result.elapsed_s:.1f} 秒")
+print(f"{len(result.papers)} papers, {result.elapsed_s:.1f}s")
 ```
 
-### 命令行搜
+### CLI
 
 ```bash
 python scripts/search_api.py --species "鳤"
 python scripts/search_api.py --species "Pseudaspius hakonensis" --max 20
 ```
 
-### 给其他项目调用
+### From other projects
 
 ```python
 from src.adapter import CognitiveSearchAdapter
@@ -52,93 +63,97 @@ result = adapter.search("珠星三块鱼", mode="adaptive")
 
 ---
 
-## 它怎么工作的
+## How It Works
 
-### 六个搜索通道
+### 6+ Search Channels (MCP + HTTP)
 
 ```
-MCP 通道 (需 npx/node):
-  scholar    → 谷歌学术 / OpenAlex / Semantic Scholar
-  article    → Europe PMC / PubMed / Crossref 全文
-  tavily     → AI 深度网络搜索
-  exa        → 语义网络搜索
-  ncbi       → PubMed E-utilities 直连
+MCP (requires npx/node):
+  scholar    → Google Scholar / OpenAlex / Semantic Scholar
+  article    → Europe PMC / PubMed / Crossref full-text
+  tavily     → AI deep web search
+  exa        → Semantic web search
+  ncbi       → PubMed E-utilities direct
   scholarly  → OpenAlex + Semantic Scholar
 
-HTTP 通道 (无需装任何东西):
+HTTP (no dependencies):
   pubmed     → NCBI E-utilities REST
   crossref   → Crossref REST API
   openalex   → OpenAlex REST API
   arxiv      → arXiv API
   europe_pmc → Europe PMC REST API
-  cnki       → Bing 中文文献搜索
+  cnki       → Bing Chinese literature search
 ```
 
-搜不到的时候还会自动生成 OCR 拼写变体（`Ochetobius` → `Ochetobibus`、`Ocheotbius`……），防止打字错误漏论文。
+Auto-generates OCR spelling variants (`Ochetobius` → `Ochetobibus`, `Ocheotbius`…), preventing typo misses.
 
-### 可信度评分
+### Credibility Scoring
 
 ```
-评分 = 50(基础) + 30(SCI期刊) + 25(CSCD核心) + 10(有DOI) + 10(有PMID)
-       - 30(预印本) - 100(掠夺性期刊)
+Score = 50(base) + 30(SCI journal) + 25(CSCD core) + 10(DOI) + 10(PMID)
+        - 30(preprint) - 100(predatory)
 ```
 
-| 分数 | 标记 | 含义 |
-|------|------|------|
-| ≥80 | 🟢 | 高可信度，SCI/Q1 期刊论文 |
-| 60–79 | 🟡 | 中等，一般同行评审期刊 |
-| 40–59 | 🟠 | 低可信度，预印本/学位论文 |
-| <40 | 🔴 | 不可信，掠夺性期刊 |
+| Score | Mark | Meaning |
+|-------|------|---------|
+| ≥80 | 🟢 | Highly credible, SCI/Q1 journal |
+| 60–79 | 🟡 | Moderate, peer-reviewed |
+| 40–59 | 🟠 | Low, preprint/thesis |
+| <40 | 🔴 | Untrustworthy, predatory |
 
-### 项目文本
+### Project Structure
 
 ```
 cognitive-search-engine/
-├── config/           # 配置文件（搜索规则、物种图谱、MCP 服务器）
-├── src/              # Python 源码
-│   ├── meso_agent.py       ← BDI 认知循环，搜索入口
-│   ├── mcp_client.py       ← MCP 子进程管理 + 工具发现
-│   ├── parallel_search.py  ← HTTP 直连搜索（6 源并行）
-│   ├── unified_search.py   ← 搜索协议 + 分类学服务
-│   ├── validator.py        ← 论文验证
-│   ├── credibility_scorer.py ← 期刊白名单评分
-│   ├── variant_generator.py  ← OCR 拼写变体
-│   ├── inference_engine.py ← 推理增强（缺口检测）
-│   ├── evolution_executor.py ← 自进化参数调整
-│   ├── world_model.py      ← 预搜索仿真
-│   ├── adapter.py          ← 跨项目接口
-│   └── report_formatter.py ← 分类报告输出
-├── scripts/          # CLI 工具
-├── skills/           # Reasonix AI 技能
+├── config/           # Config (search rules, species graph, MCP servers)
+├── src/              # Python source
+│   ├── meso_agent.py       ← BDI cognitive loop, search entry
+│   ├── mcp_client.py       ← MCP subprocess management + tool discovery
+│   ├── parallel_search.py  ← HTTP direct search (6 sources parallel)
+│   ├── unified_search.py   ← Search protocol + taxonomy service + engine registry
+│   ├── search_coordinator.py ← Unified search coordinator
+│   ├── validator.py        ← Paper validation
+│   ├── credibility_scorer.py ← Journal whitelist scoring
+│   ├── variant_generator.py  ← OCR spelling variants
+│   ├── inference_engine.py ← Inference enhancement (gap detection)
+│   ├── evolution_executor.py ← Self-evolution parameter tuning
+│   ├── world_model.py      ← Pre-search simulation
+│   ├── adapter.py          ← Cross-project interface
+│   └── report_formatter.py ← Categorized report output
+├── scripts/          # CLI tools (search_api, credibility_scorer, kb_to_graph_sync, self_evolve)
+├── skills/           # Reasonix AI playbooks
 └── tests/
 ```
 
 ---
 
-## 它和谁一起工作
+## Works With
 
 ```
-三角核心（S-T-V 闭环）
-├── S  fish-ecology-assistant   → 知识库 + 数据分析
-├── T  porpoise-agent           → 任务调度 + 流水线执行
-└── V  cognitive-search-engine  → 搜索验证 ← 就是这个项目
+Triangle Core + Derived (跨项目)
+├── V0  fish-ecology-assistant   → Knowledge base + data + contradiction
+├── V1  cognitive-search-engine  → Validation ← THIS PROJECT
+├── Coord  eon-core              → EventBus + DAG routing
+│
+├── P₁  porpoise-agent           → Derived: 江豚种群监测
+└── P₂  coilia-agent             → Derived: 刀鲚洄游生态
 ```
 
-你是 `fish-ecology-assistant` 的用户？你查物种文献时，**先查 f 项目知识库**（不花 token），再决定要不要走 c 项目全量搜索（花 token 但更全）。
+This engine is the **exclusive search gateway** for the entire workspace. All external search requests route through it first.
 
 ---
 
-## 先装啥
+## Installation
 
 ```bash
-pip install pyyaml        # 配置文件读取
-pip install requests      # HTTP 搜索（可选，默认用 urllib）
+pip install pyyaml        # Config reading
+pip install requests      # HTTP (optional, uses urllib by default)
 ```
 
-Python 3.10+。Windows/Linux/macOS 都行。
+Python 3.10+. Windows/Linux/macOS.
 
 ---
 
-## 许可证
+## License
 
 MIT © 2026 fangtaocai041

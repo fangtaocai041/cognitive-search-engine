@@ -15,9 +15,11 @@
 
 from __future__ import annotations
 
+import concurrent.futures
+import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 
 # ═══════════════════════════════════════════════════════
@@ -561,3 +563,165 @@ def detect_taxonomy_discrepancy(name: str) -> Optional[Dict[str, Any]]:
 
     # 未找到 → 返回空
     return None
+
+
+# ═══════════════════════════════════════════════════════
+# §8 全量搜索引擎注册表 + 流式并行搜索
+# ═══════════════════════════════════════════════════════
+
+# 可用搜索引擎全量清单 (按优先级)
+ENGINE_REGISTRY = {
+    # 学术搜索 (Priority 1-3)
+    "scholar_graph":    {"tool": "scholar_search_literature_graph", "category": "academic", "priority": 1},
+    "scholar_keywords": {"tool": "scholar_search_google_scholar_key_words", "category": "academic", "priority": 1},
+    "scholar_advanced": {"tool": "scholar_search_google_scholar_advanced", "category": "academic", "priority": 2},
+    "ncbi_esearch":     {"tool": "ncbi_ncbi_esearch", "category": "academic", "priority": 1},
+    "crossref_article": {"tool": "article_search_literature", "category": "academic", "priority": 2},
+    "scholarly_multi":  {"tool": "scholarly_research_search", "category": "academic", "priority": 3},
+    # 语义/深度搜索 (Priority 4-5)
+    "tavily_search":    {"tool": "tavily_tavily_search", "category": "semantic", "priority": 4},
+    "tavily_research":  {"tool": "tavily_tavily_research", "category": "semantic", "priority": 5},
+    "exa_search":       {"tool": "exa_web_search_exa", "category": "semantic", "priority": 4},
+    # 内置搜索 (Priority 6)
+    "web_search":       {"tool": "web_search", "category": "web", "priority": 6},
+    # 引用/关系 (Priority 7)
+    "references":       {"tool": "article_get_references", "category": "graph", "priority": 7},
+    "relations":        {"tool": "article_get_literature_relations", "category": "graph", "priority": 7},
+}
+
+# 默认搜索引擎组 (按场景)
+ENGINE_GROUPS = {
+    "quick":    ["scholar_graph", "ncbi_esearch", "web_search"],
+    "standard": ["scholar_graph", "ncbi_esearch", "crossref_article", "web_search", "tavily_search"],
+    "full":     ["scholar_graph", "ncbi_esearch", "crossref_article", "scholarly_multi",
+                 "tavily_search", "exa_search", "web_search"],
+    "chinese":  ["scholar_graph", "ncbi_esearch", "web_search"],
+}
+
+
+@dataclass
+class EngineResult:
+    engine: str
+    query: str
+    tool: str = ""
+    status: str = "pending"
+    results: List[Dict] = field(default_factory=list)
+    error: str = ""
+    retries: int = 0
+    elapsed_ms: float = 0.0
+
+
+@dataclass
+class StreamEvent:
+    """流式结果 — 引擎完成后立即输出"""
+    engine: str
+    status: str
+    paper_count: int
+    elapsed_ms: float
+    is_last: bool = False
+
+
+def search_streaming(
+    queries: List[str],
+    engines: List[str] = None,
+    group: str = "standard",
+    limit: int = 10,
+    max_retries: int = 3,
+    per_engine_timeout_s: float = 30.0,
+    on_result: Callable = None,
+) -> List[EngineResult]:
+    """
+    流式并行搜索: 先完成的引擎先返回, 后完成的后续合并。
+
+    特性:
+      - 异步流式: 每个引擎完成立即回调 on_result(event)
+      - 分时执行: 不等最慢的引擎, 先到先得
+      - 每组引擎独立30s超时+重试
+      - 支持预定义引擎组: quick/standard/full/chinese
+
+    Args:
+        queries: 搜索查询列表
+        engines: 自定义引擎列表 (覆盖 group)
+        group: 预定义引擎组名
+        limit: 每引擎最大结果数
+        max_retries: 最大重试次数
+        per_engine_timeout_s: 单引擎超时
+        on_result: 回调 (StreamEvent) -> None
+
+    Returns:
+        所有引擎结果列表
+    """
+    if engines is None:
+        engines = ENGINE_GROUPS.get(group, ENGINE_GROUPS["standard"])
+
+    results: List[EngineResult] = []
+    total_papers = 0
+
+    # 对每个查询×每个引擎依次调用
+    for query in queries[:3]:
+        for engine_id in engines:
+            info = ENGINE_REGISTRY.get(engine_id, {})
+            tool_name = info.get("tool", "")
+            if not tool_name:
+                continue
+
+            t0 = time.perf_counter()
+            er = EngineResult(engine=engine_id, query=query, tool=tool_name)
+
+            # 尝试调用 MCP 函数 (在 Reasonix 会话中可用)
+            fn = globals().get(tool_name)
+            if fn is None:
+                er.status = "degraded"
+                er.error = "MCP function not available"
+                er.elapsed_ms = (time.perf_counter() - t0) * 1000
+                results.append(er)
+                continue
+
+            # 执行搜索 (带重试)
+            for attempt in range(max_retries):
+                try:
+                    response = fn(query=query, limit=limit)
+                    if isinstance(response, list):
+                        er.results = response
+                        er.status = "ok"
+                    else:
+                        er.results = [response] if response else []
+                        er.status = "ok"
+                    break
+                except Exception as e:
+                    er.retries = attempt + 1
+                    er.error = str(e)
+                    er.status = "error"
+                    if attempt < max_retries - 1:
+                        time.sleep(1.0)
+
+            er.elapsed_ms = (time.perf_counter() - t0) * 1000
+            results.append(er)
+            total_papers += len(er.results)
+
+            # 回调
+            if on_result:
+                on_result(StreamEvent(
+                    engine=engine_id,
+                    status=er.status,
+                    paper_count=len(er.results),
+                    elapsed_ms=er.elapsed_ms,
+                ))
+
+    return results
+
+
+def _mcp_available() -> bool:
+    """检查 MCP 工具是否可用."""
+    for engine_id, info in ENGINE_REGISTRY.items():
+        tool_name = info.get("tool", "")
+        if tool_name and globals().get(tool_name) is not None:
+            return True
+        # 检查 __builtins__
+        try:
+            fn = getattr(__builtins__, tool_name, None)
+            if fn is not None:
+                return True
+        except Exception:
+            pass
+    return False

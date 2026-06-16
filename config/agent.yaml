@@ -3,8 +3,53 @@
 
 agent:
   name: "Cognitive Search Engine"
-  version: "4.0.0"
-  description: "Frontier species literature search — semiotics + graph traversal + energy-efficient"
+  version: "5.5.0"
+  description: "BDI + ReAct + 5-Layer Agent Architecture — semiotics + graph traversal + energy-efficient"
+  gateway:
+    role: "EXCLUSIVE_SEARCH_GATEWAY"
+    mode: "all_external_searches"
+    rule: "本引擎是工作区所有外部搜索的唯一入口。任何搜索请求必须路由到此引擎，禁止绕过。"
+    fallback: "builtin_skills_only_on_engine_error"
+  philosophy:
+    worldview: "Panta Rhei — knowledge is provisional, emergence is the norm"
+    methodology: "Systems Thinking — contradiction analysis · phase strategy · concentration of force"
+    handbook_ref: "fish-ecology-assistant/.reasonix/handbooks/systems-thinking.md"
+    grammar_ref: "fish-ecology-assistant/.reasonix/handbooks/engineering-grammar.md"
+
+# 求同: 共享协议 (三个项目一致)
+shared:
+  version: "5.2.0"
+  rule_framework: "FB-1..DS-4 (18 rules, referenced from fish-ecology-assistant)"
+  philosophy: "dual-core (Panta Rhei + Systems Thinking)"
+  coordination: "D:\\Reasonix\\config\\coordination.yaml"
+  stv_role: "V (Validation) — authority scoring + graph maintenance + search verification"
+  meso_agent:
+    enabled: true
+    config: "config/meso_agent.yaml"
+    role: "V (Validation) — authority scoring, graph maintenance, cross-project search verification"
+  peers:
+    - { project: "fish-ecology-assistant", role: "S (State)", skill_dir: ".reasonix/skills" }
+    - { project: "porpoise-agent", role: "T (Transition)", skill_dir: "src/skills" }
+  rule_doc: "fish-ecology-assistant/.reasonix/handbooks/engineering-grammar.md (canonical source)"
+  graph_path: "config/species_graph.yaml (shared across all three projects via submodule)"
+
+# 超时/重连/并行 配置
+timeout:
+  http_retry_max_s: 60             # HTTP 重试总窗口 (1分钟内均可重连)
+  http_retry_attempts: 5            # 最多重试 5 次
+  http_per_call_timeout_s: 15       # 单次 HTTP 请求超时
+  mcp_parallel_timeout_s: 180       # MCP 并行总超时 (3分钟)
+  mcp_per_call_timeout_s: 30        # MCP 单次调用超时
+  mcp_parallel_max_workers: 7       # MCP 并行最大连接数 (7 搜索引擎)
+
+# LLM 配置
+llm:
+  provider: deepseek
+  model: deepseek-chat
+  api_base: https://api.deepseek.com/v1
+  params:
+    max_tokens: 4096
+    temperature: 0.3
 
 search:
   # 能效优化 (Energy Efficiency)

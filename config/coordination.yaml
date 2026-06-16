@@ -1,0 +1,64 @@
+# Coordination Config — 工作区协调配置
+# Triangle Core + Derived (三角闭环 + 三生万物)
+
+coordination:
+  version: "4.1.0"
+  last_sync: "2026-07-17"
+  changelog:
+    - "v4.1.0 (2026-07-17): Exclusive search gateway — cognitive-search-engine declared as the sole external search entry point. +search_gateway section, +agent.yaml gateway role, +scripts(credibility_scorer, kb_to_graph_sync, self_evolve)"
+    - "v4.0.0 (2026-06-07): Meso-Cosmos Agent — workspace-level coordination layer. Macro(BDI)→Meso(Route)→Micro(Execute)"
+
+# ═══════════════════════════════════════════════════════
+# 三角闭环 + 衍生万物 架构
+# ═══════════════════════════════════════════════════════
+
+architecture:
+  triangle_core:
+    - { role: "V0", project: "fish-ecology-assistant", function: "Knowledge — data, findings, contradiction analysis" }
+    - { role: "V1", project: "cognitive-search-engine", function: "Validation — 21-engine search, trust scoring" }
+    - { role: "Coord", project: "eon-core", function: "Coordination — EventBus, DAG routing" }
+  derived:
+    - { role: "P₁", project: "porpoise-agent", function: "Derived — 江豚种群监测, 威胁评估" }
+    - { role: "P₂", project: "coilia-agent", function: "Derived — 刀鲚洄游生态, 资源评估" }
+
+# ═══════════════════════════════════════════════════════
+# 搜索网关 — 本工作区唯一外部搜索入口
+# ═══════════════════════════════════════════════════════
+
+search_gateway:
+  enabled: true
+  exclusive: true
+  engine: "cognitive-search-engine"
+  entry_points:
+    species: "MesoAgent.search(species_id) → 12-stage cognitive pipeline"
+    literature: "graph-search-engine → species_graph.yaml → PubMed/Crossref fallback"
+    concept: "cognitive-species-search → variant_generator → crossref"
+  fallback_policy: "builtin_skills_only_on_engine_error"
+  priority: 0
+  mode: "exclusive"
+
+# ═══════════════════════════════════════════════════════
+# 搜索引擎注册表
+# ═══════════════════════════════════════════════════════
+
+search_engines:
+  cognitive_search:
+    name: "Cognitive Search Engine (MesoAgent)"
+    priority: 0
+    type: "local"
+    entry: "src.meso_agent.MesoAgent.search"
+    loader: "DirectLoader (importlib)"
+
+  engine_groups:
+    quick: ["scholar_graph", "ncbi_esearch", "web_search"]
+    standard: ["scholar_graph", "ncbi_esearch", "crossref_article", "web_search", "tavily_search"]
+    full: ["scholar_graph", "ncbi_esearch", "crossref_article", "scholarly_multi", "tavily_search", "exa_search", "web_search"]
+
+# ═══════════════════════════════════════════════════════
+# 共享日志格式
+# ═══════════════════════════════════════════════════════
+
+logging:
+  shared_format: true
+  format: "JSONL"
+  fields: [timestamp, project, component, event_type, payload]

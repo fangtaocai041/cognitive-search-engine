@@ -6,13 +6,24 @@
 
 ---
 
+## 🔺 三角闭环角色: **V1 (验证)**
+
+> **三角闭环 (V1/验证)**，由 [eon-core](https://github.com/fangtaocai041/eon-core) 协调。
+> **三角闭环**: fish(V0知识库) + cognitive(V1验证) + eon-core(协调器) — 缺一不可
+> **三生万物**: P₁(porpoise) · P₂(coilia) · 无限衍生
+>
+> 搜索验证、权威可信度评分、多重三角验证 (≥3源, ≥2项目独立验证)。
+> **DirectLoader**: `importlib` 零 MCP 进程。**三角验证**: ≥3 来源, ≥2 独立项目。
+
+---
+
 ## 这引擎能干嘛？
 
 你输入一个物种名，它能：
 
 1. **猜你要搜多少文献** — 先查 PubMed、Crossref、OpenAlex 估算文献量
 2. **决定怎么搜** — 文献少就穷举，多就分类，太多了就综述锚定
-3. **并行搜 6+ 个源** — 谷歌学术/PubMed/Crossref/OpenAlex/arXiv/中文期刊，谁先返回先处理
+3. **并行搜 21 个引擎** — SerpAPI·Exa·Europe PMC·NCBI·OpenAlex·Semantic Scholar·CNKI·更多
 4. **去重打分** — 按期刊权威性给每篇论文打分（0~100）
 5. **检测缺口** — 看看哪些方向还没人研究
 6. **自我进化** — 搜得越多，参数越准
@@ -54,7 +65,7 @@ result = adapter.search("珠星三块鱼", mode="adaptive")
 
 ## 它怎么工作的
 
-### 六个搜索通道
+### 6+ 搜索通道 (MCP + HTTP)
 
 ```
 MCP 通道 (需 npx/node):
@@ -99,7 +110,8 @@ cognitive-search-engine/
 │   ├── meso_agent.py       ← BDI 认知循环，搜索入口
 │   ├── mcp_client.py       ← MCP 子进程管理 + 工具发现
 │   ├── parallel_search.py  ← HTTP 直连搜索（6 源并行）
-│   ├── unified_search.py   ← 搜索协议 + 分类学服务
+│   ├── unified_search.py   ← 搜索协议 + 分类学服务 + 引擎注册表
+│   ├── search_coordinator.py ← 统一搜索协调器
 │   ├── validator.py        ← 论文验证
 │   ├── credibility_scorer.py ← 期刊白名单评分
 │   ├── variant_generator.py  ← OCR 拼写变体
@@ -108,23 +120,26 @@ cognitive-search-engine/
 │   ├── world_model.py      ← 预搜索仿真
 │   ├── adapter.py          ← 跨项目接口
 │   └── report_formatter.py ← 分类报告输出
-├── scripts/          # CLI 工具
+├── scripts/          # CLI 工具 (search_api, credibility_scorer, kb_to_graph_sync, self_evolve)
 ├── skills/           # Reasonix AI 技能
 └── tests/
 ```
 
 ---
 
-## 它和谁一起工作
+## 和谁一起工作
 
 ```
-三角核心（S-T-V 闭环）
-├── S  fish-ecology-assistant   → 知识库 + 数据分析
-├── T  porpoise-agent           → 任务调度 + 流水线执行
-└── V  cognitive-search-engine  → 搜索验证 ← 就是这个项目
+三角闭环 + 衍生 (跨项目)
+├── V0  fish-ecology-assistant   → 知识库 + 数据 + 矛盾分析
+├── V1  cognitive-search-engine  → 搜索验证 ← 就是这个项目
+├── Coord  eon-core              → EventBus + DAG 路由
+│
+├── P₁  porpoise-agent           → 衍生: 江豚种群监测
+└── P₂  coilia-agent             → 衍生: 刀鲚洄游生态
 ```
 
-你是 `fish-ecology-assistant` 的用户？你查物种文献时，**先查 f 项目知识库**（不花 token），再决定要不要走 c 项目全量搜索（花 token 但更全）。
+本引擎是**整个工作区的唯一搜索网关**。所有外部搜索请求必须路由到此引擎。
 
 ---
 
