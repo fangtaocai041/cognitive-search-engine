@@ -1,66 +1,179 @@
-  # ═══ 鲌类 (Culter + Chanodichthys) — 2024分类学修订 ═══
-  # 来源: Chen & Zhang 2024, Eschmeyer's Catalog, FishBase
-  # 科: Xenocyprididae (原鲤科鲌亚科)
-  # 注意: 中文名以中国鱼类学实际使用为准, 拉丁名跟随最新修订
-
+graph:
+  version: 3.0.0
+  species:
+  - id: Ochetobius_elongatus
+    name: Ochetobius elongatus
+    chinese: "鳤"
+    aliases: ["鳤鱼", "刁子", "麦秆刁", "吹鱼", "鳤条鱼"]
+    family: Xenocyprididae
+    conservation: CR
+    variants: ["Ochetobibus elongatus", "Ochetobus elongatus", "Opsarius elongatus"]
+  - id: Neophocaena_asiaeorientalis
+    name: Neophocaena asiaeorientalis
+    chinese: "长江江豚"
+    aliases: ["江豚", "finless porpoise"]
+    family: Phocoenidae
+    conservation: CR
+    variants: ["Neophocaena asiaorientalis"]
   - id: Culter_alburnus
     name: Culter alburnus
-    chinese: 翘嘴鲌
+    chinese: "翘嘴鲌"
     family: Xenocyprididae
-    genus: Culter
     conservation: LC
     variants: []
-
   - id: Chanodichthys_mongolicus
     name: Chanodichthys mongolicus
-    chinese: 蒙古鲌
-    aliases: [蒙古红鲌, 蒙古原鲌]
+    chinese: "蒙古鲌"
+    aliases: ["蒙古红鲌", "蒙古原鲌"]
     family: Xenocyprididae
-    genus: Chanodichthys
     conservation: LC
-    variants: [Culter mongolicus, Erythroculter mongolicus]
-
+    variants: ["Culter mongolicus", "Erythroculter mongolicus"]
   - id: Chanodichthys_dabryi
     name: Chanodichthys dabryi
-    chinese: 达氏鲌
-    aliases: [青梢鲌, 达氏原鲌, 青梢红鲌]
+    chinese: "达氏鲌"
+    aliases: ["青梢鲌", "达氏原鲌", "青梢红鲌"]
     family: Xenocyprididae
-    genus: Chanodichthys
     conservation: LC
-    variants: [Culter dabryi, Erythroculter dabryi]
-
+    variants: ["Culter dabryi", "Erythroculter dabryi"]
   - id: Chanodichthys_erythropterus
     name: Chanodichthys erythropterus
-    chinese: 红鳍原鲌
-    aliases: [红鳍鲌]
+    chinese: "红鳍原鲌"
+    aliases: ["红鳍鲌"]
     family: Xenocyprididae
-    genus: Chanodichthys
     conservation: LC
-    variants: [Culter erythropterus, Erythroculter erythropterus]
-
+    variants: ["Culter erythropterus", "Erythroculter erythropterus"]
   - id: Chanodichthys_oxycephalus
     name: Chanodichthys oxycephalus
-    chinese: 拟尖头鲌
-    aliases: [尖头原鲌, 尖头鲌]
+    chinese: "拟尖头鲌"
+    aliases: ["尖头原鲌", "尖头鲌"]
     family: Xenocyprididae
-    genus: Chanodichthys
     conservation: VU
-    variants: [Culter oxycephaloides, Chanodichthys oxycephaloides, Culter oxycephalus]
-    note: "2024分类学修订: Culter oxycephaloides (1908) → Chanodichthys oxycephalus (1871, senior synonym)"
-
+    variants: ["Culter oxycephaloides", "Culter oxycephalus"]
   - id: Chanodichthys_abramoides
     name: Chanodichthys abramoides
-    chinese: 壮体鲌
-    aliases: [壮体原鲌]
+    chinese: "壮体鲌"
     family: Xenocyprididae
-    genus: Chanodichthys
     conservation: DD
-    variants: [Culter abramoides]
-
+    variants: ["Culter abramoides"]
+  - id: Pseudaspius_hakonensis
+    name: Pseudaspius hakonensis
+    chinese: "珠星三块鱼"
+    aliases: ["珠星雅罗鱼", "珠星擬赤稍魚"]
+    family: Leuciscidae
+    conservation: LC
+    variants: ["Tribolodon hakonensis", "Leuciscus hakonensis"]
   - id: Culter_compressocorpus
     name: Culter compressocorpus
-    chinese: 扁体鲌
+    chinese: "扁体鲌"
     family: Xenocyprididae
-    genus: Culter
     conservation: DD
     variants: []
+  - id: Elopichthys_bambusa
+    name: Elopichthys bambusa
+    chinese: "鳡"
+    aliases: ["鳡鱼", "黄钻", "竿鱼", "水老虎"]
+    family: Xenocyprididae
+    conservation: VU
+    variants: []
+  - id: Cyprinus_carpio
+    name: Cyprinus carpio
+    chinese: "鲤"
+    family: "鲤科"
+    conservation: "无"
+  - id: Carassius_auratus
+    name: Carassius auratus
+    chinese: "鲫"
+    family: "鲤科"
+    conservation: "无"
+  - id: Hypophthalmichthys_molitrix
+    name: Hypophthalmichthys molitrix
+    chinese: "鲢"
+    family: "鲤科"
+    conservation: "无"
+  - id: Pelteobagrus_fulvidraco
+    name: Pelteobagrus fulvidraco
+    chinese: "黄颡鱼"
+    family: "鲿科"
+    conservation: "无"
+  - id: Coilia_brachygnathus
+    name: Coilia brachygnathus
+    chinese: "短颌鲚"
+    family: "鳀科"
+    conservation: "无"
+  - id: Silurus_asotus
+    name: Silurus asotus
+    chinese: "鲇"
+    family: "鲇科"
+    conservation: "无"
+  - id: Saurogobio_dabryi
+    name: Saurogobio dabryi
+    chinese: "蛇鮈"
+    family: "鲤科"
+    conservation: "无"
+  - id: Ctenopharyngodon_idellus
+    name: Ctenopharyngodon idellus
+    chinese: "草鱼"
+    family: "鲤科"
+    conservation: "无"
+  - id: Pelteobagrus_nitidus
+    name: Pelteobagrus nitidus
+    chinese: "光泽黄颡鱼"
+    family: "鲿科"
+    conservation: "无"
+  - id: Hemiculter_leucisculus
+    name: Hemiculter leucisculus
+    chinese: "䱗"
+    family: "鲤科"
+    conservation: "无"
+  - id: Siniperca_chuatsi
+    name: Siniperca chuatsi
+    chinese: "鳜"
+    family: "鳜科"
+    conservation: "无"
+  - id: Coreius_heterodon
+    name: Coreius heterodon
+    chinese: "铜鱼"
+    family: "鲤科"
+    conservation: "无"
+  - id: Parabramis_pekinensis
+    name: Parabramis pekinensis
+    chinese: "鳊"
+    family: "鲤科"
+    conservation: "无"
+  - id: Aristichthys_nobilis
+    name: Aristichthys nobilis
+    chinese: "鳙"
+    family: "鲤科"
+    conservation: "无"
+  - id: Acipenser_dabryanus
+    name: Acipenser dabryanus
+    chinese: "长江鲟"
+    family: "鲟科"
+    conservation: "无"
+  - id: Myxocyprinus_asiaticus
+    name: Myxocyprinus asiaticus
+    chinese: "胭脂鱼"
+    family: "胭脂鱼科"
+    conservation: "无"
+  - id: Trachidermus_fasciatus
+    name: Trachidermus fasciatus
+    chinese: "松江鲈"
+    family: "杜父鱼科"
+    conservation: "无"
+  - id: Psephurus_gladius
+    name: Psephurus gladius
+    chinese: "白鲟"
+    family: "匙吻鲟科"
+    conservation: "无"
+  - id: Tenualosa_reevesii
+    name: Tenualosa reevesii
+    chinese: "鲥"
+    family: "鲱科"
+    conservation: "无"
+  - id: Tribolodon_brandti
+    name: Tribolodon brandti
+    chinese: "三块鱼"
+    aliases: ["珠星三块鱼", "东北三块鱼", "小鳞三块鱼", "珠星滩头鱼"]
+    family: Leuciscidae
+    conservation: "无"
+    variants: ["Leuciscus brandti", "Pseudaspius brandti", "Tribolodon hakonensis", "Pseudaspius hakonensis", "Leuciscus hakonensis"]
