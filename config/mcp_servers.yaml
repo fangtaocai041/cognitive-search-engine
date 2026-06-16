@@ -1,38 +1,44 @@
 # Cognitive Search Engine — MCP Server Configuration
-# 搜索引擎集成：Scholar + Article + Tavily + Google Scholar
+# 搜索引擎集成：同步自 Reasonix Desktop config.json
 
 servers:
   scholar:
     name: Scholar MCP
     command: npx
     args: ["-y", "scholar-mcp"]
-    description: Google Scholar via MCP — strongest fuzzy matching
+    description: Google Scholar via MCP — 最强模糊匹配
 
   article:
     name: Article MCP
     command: npx
     args: ["-y", "article-mcp"]
-    description: Europe PMC + PubMed + Crossref full-text search
+    description: Europe PMC + PubMed + Crossref 全文搜索
 
   scholarly:
-    name: Scholarly MCP
+    name: Scholarly Research MCP
     command: npx
-    args: ["-y", "scholarly-mcp"]
-    description: Multi-source academic search (OpenAlex + Semantic Scholar)
+    args: ["-y", "scholarly-research-mcp"]
+    description: 多源学术搜索 (OpenAlex + Semantic Scholar)
 
   tavily:
     name: Tavily Search
     command: npx
-    args: ["-y", "tavily-mcp"]
-    description: AI deep web search
+    args: ["-y", "tavily-mcp@latest"]
+    description: AI 深度网络搜索
 
   exa:
     name: Exa Search
     command: npx
-    args: ["-y", "exa-mcp"]
-    description: Semantic web search
+    args: ["-y", "exa-mcp-server"]
+    description: 语义网络搜索
+
+  ncbi:
+    name: NCBI Search
+    command: node
+    args: ["C:\\Users\\小陶\\.reasonix\\mcp-servers\\ncbi-mcp.mjs"]
+    description: PubMed/NCBI 直连 — E-utilities API
 
 categories:
-  academic: 3
+  academic: 4
   web: 2
-  total: 5
+  total: 6

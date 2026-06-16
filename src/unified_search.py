@@ -440,3 +440,124 @@ class SearchReport:
                 latest = max(p.get("year", 0) for p in papers)
                 lines.append(f"  {cat}: {len(papers)}篇 (最新: {latest})")
         return "\n".join(lines)
+
+
+# ═══════════════════════════════════════════════════════
+# §7 分类学服务 (供 search_api.py 和 search_coordinator.py 调用)
+# ═══════════════════════════════════════════════════════
+
+# 全局物种图谱缓存
+_SPECIES_GRAPH: List[Dict[str, Any]] = []
+
+
+def _ensure_species_graph_loaded() -> List[Dict[str, Any]]:
+    """Lazy-load species graph from config."""
+    global _SPECIES_GRAPH
+    if _SPECIES_GRAPH:
+        return _SPECIES_GRAPH
+    try:
+        import os
+        from pathlib import Path
+        import yaml
+        base = Path(__file__).resolve().parent.parent  # engine root
+        graph_path = base / "config" / "species_graph.yaml"
+        if graph_path.exists():
+            with open(graph_path, encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+            _SPECIES_GRAPH = data.get("graph", {}).get("species", [])
+    except Exception:
+        pass
+    return _SPECIES_GRAPH
+
+
+def check_taxonomy(name: str) -> List[str]:
+    """获取搜索所需的所有分类学变体.
+
+    输入学名或中文名，返回所有搜索用名：
+      1. 主学名
+      2. 同义名/变体
+      3. 中文名 (如果有)
+
+    Args:
+        name: 物种名 (学名 e.g. "Pseudaspius hakonensis" 或中文 "珠星三块鱼")
+
+    Returns:
+        搜索用名列表: ["Pseudaspius hakonensis", "Tribolodon brandti", "珠星三块鱼"]
+    """
+    species = _ensure_species_graph_loaded()
+    name_lower = name.lower().replace(" ", "_")
+
+    # 精确匹配物种 ID
+    for s in species:
+        sid = s.get("id", "").lower()
+        if name_lower == sid or name_lower == s.get("name", "").lower():
+            result = [s.get("name", name)]
+            result.extend(s.get("variants", []))
+            cn = s.get("chinese", "")
+            if cn:
+                result.append(cn)
+            return result
+
+    # 中文名匹配
+    for s in species:
+        cn = s.get("chinese", "")
+        if cn and name == cn:
+            result = [s.get("name", name)]
+            result.extend(s.get("variants", []))
+            result.append(cn)
+            return result
+
+    # 别名匹配
+    for s in species:
+        aliases = s.get("aliases", [])
+        if name in aliases:
+            result = [s.get("name", name)]
+            result.extend(s.get("variants", []))
+            cn = s.get("chinese", "")
+            if cn:
+                result.append(cn)
+            return result
+
+    # 未找到 → 返回原始名
+    return [name]
+
+
+def detect_taxonomy_discrepancy(name: str) -> Optional[Dict[str, Any]]:
+    """检测 c项目 与 f项目 之间的分类学不一致.
+
+    比较物种图谱中的分类学信息与外部输入。
+
+    Args:
+        name: 物种名 (学名或中文名)
+
+    Returns:
+        None 或不一致详情 dict
+    """
+    species = _ensure_species_graph_loaded()
+    name_lower = name.lower().replace(" ", "_")
+
+    for s in species:
+        sid = s.get("id", "").lower()
+        if name_lower == sid or name_lower == s.get("name", "").lower():
+            return None  # 完全匹配 → 无不一致
+
+        # 检查是否是变体名
+        variants = [v.lower() for v in s.get("variants", [])]
+        if name_lower in variants:
+            return {
+                "field": "taxonomy",
+                "c_value": s.get("name", ""),
+                "f_value": name,
+                "note": f"c项目使用 {s.get('name')} 作为主学名，"
+                        f"但f项目请求的是 {name}（变体/旧名）",
+                "variants": [s.get("name", "")] + s.get("variants", []),
+            }
+
+    # 检查中文名
+    for s in species:
+        cn = s.get("chinese", "")
+        if cn and name == cn:
+            return None  # 中文名匹配
+
+    # 未找到 → 返回空
+    return None

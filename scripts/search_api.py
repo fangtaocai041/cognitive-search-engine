@@ -66,7 +66,7 @@ def get_variants(name: str) -> List[str]:
     try:
         from src.unified_search import check_taxonomy
         return check_taxonomy(name)
-    except Exception:
+    except ImportError:
         pass
     # 离线兜底: 直接从 YAML 读取
     info = _load_species_info(name)
@@ -85,22 +85,19 @@ def detect_taxonomy_gap(name: str) -> Optional[Dict[str, Any]]:
     try:
         from src.unified_search import detect_taxonomy_discrepancy
         return detect_taxonomy_discrepancy(name)
-    except Exception:
+    except ImportError:
         pass
     return None
 
 
 def search_http(queries: List[str], max_per_query: int = 20) -> List[Dict]:
-    """使用 parallel_search HTTP 提供商执行搜索。"""
+    """使用 parallel_search HTTP 并行搜索所有源。
+
+    支持的源: pubmed, europe_pmc, crossref, openalex, arxiv, cnki_web
+    """
     try:
         from src.parallel_search import ParallelSearch
-        searcher = ParallelSearch(
-            mode="http",
-            max_workers=4,
-            providers=["pubmed", "europe_pmc", "crossref", "openalex",
-                       "cnki_web", "wanfang_web", "cas_web",
-                       "biorxiv_search", "researchgate_web"],
-        )
+        searcher = ParallelSearch(max_workers=4)
         stats = searcher.search_all(queries, max_per_query=max_per_query)
         searcher.close()
         return stats.new_papers
@@ -109,20 +106,39 @@ def search_http(queries: List[str], max_per_query: int = 20) -> List[Dict]:
 
 
 def search_mcp_fallback(queries: List[str], limit: int = 20) -> List[Dict]:
-    """尝试 MCP 模式 (Reasonix runtime 中可用)。"""
-    # 检测 MCP 工具是否注入
-    if callable(globals().get("scholar_search_literature_graph")):
+    """尝试 MCP 模式 (Reasonix runtime 中可用)。
+
+    在 Reasonix Desktop 中，scholar_search_literature_graph 工具会被注入。
+    CLI 环境中回退到 HTTP 搜索。
+    """
+    # 检测 MCP 工具是否注入 (Reasonix Desktop runtime)
+    try:
+        from src.unified_search import coordinated_search
+        result = coordinated_search(
+            species_name=queries[0] if queries else "",
+            scientific_name=queries[0] if queries else "",
+            group="standard",
+            limit=limit,
+        )
+        if hasattr(result, "papers") and result.papers:
+            return [p.__dict__ if hasattr(p, "__dict__") else p for p in result.papers]
+    except (ImportError, AttributeError):
+        pass
+
+    # Fallback: check for MCP-injected globals
+    mcp_tool = globals().get("scholar_search_literature_graph")
+    if callable(mcp_tool):
         papers = []
         for q in queries[:3]:
             try:
-                result = scholar_search_literature_graph(
-                    query=q, limit=min(limit, 20))
+                result = mcp_tool(query=q, limit=min(limit, 20))
                 if isinstance(result, list):
                     papers.extend(result)
             except Exception:
                 pass
         if papers:
             return papers
+
     # 回退到 HTTP
     return search_http(queries, limit)
 
