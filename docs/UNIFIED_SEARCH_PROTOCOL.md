@@ -1,9 +1,11 @@
-# 🔍 多引擎统一搜索协议 — UnifiedSpeciesSearch v1.0
+# 🔍 19引擎统一搜索协议 — UnifiedSpeciesSearch v3.0
 
+> **三角闭环**: fish(V0知识库) → cognitive(V1搜索) → eon-core(协调)
+> **三生万物**: P₁(porpoise) · P₂(coilia) · ... 从三角闭环衍生
 > **解决**: Science 论文搜不到的问题 — 单引擎精确名搜索遗漏附带/政策/综述论文
-> **策略**: 多引擎并行 → 合并去重 → 分类别 → 按需展开
-> **集成**: 图谱遍历 (graph-search-engine) → 引用链发现
-> **同步**: 2026-06-09
+> **策略**: 19引擎(7 MCP + 12 Native HTTP) → 合并去重 → 分类 → KB-First 两阶段
+> **集成**: 图谱遍历 (graph-search-engine) + KB-First (fish-ecology-assistant 知识库预查)
+> **同步**: 2026-07-17
 
 ---
 
@@ -21,43 +23,30 @@
    → 论文内容提到 Ochetobius elongatus 作为恢复物种之一
 ```
 
-## 2. 多引擎并行策略
+## 2. MCP 优先搜索架构（v2.0）
 
 ```
-Step 1: 精确名搜索 (Primary)
-  PARALLEL:
-    scholar_search("Ochetobius elongatus", limit=15)
-    ncbi_esearch("Ochetobius elongatus", maxResults=20)
-    web_search("鳤 论文 site:cnki.net OR site:biodiversity-science.net")
+MCP优先层 (6引擎, 并行):
+  ┌──────────┬──────────┬──────────┬──────────┬──────────┬──────────┐
+  │ scholar  │ article  │   ncbi   │  tavily  │   exa    │scholarly │
+  │  MCP     │   MCP    │   MCP    │   MCP    │   MCP    │   MCP    │
+  │ Google   │ EuropePMC│ E-utils  │  AI深度  │  语义    │  OpenAlex│
+  │ Scholar  │+PubMed   │ API      │  网络    │  网络    │+Semantic │
+  └────┬─────┴────┬─────┴────┬─────┴────┬─────┴────┬─────┴────┬─────┘
+       │          │          │          │          │          │
+       ▼          ▼          ▼          ▼          ▼          ▼
+     _parse_   _parse_   _parse_   _parse_   _parse_    (TBD)
+    scholar   article     ncbi     tavily     exa
 
-Step 2: 宽网搜索 (Secondary — 补漏)
-  PARALLEL:
-    web_search("Ochetobius elongatus Yangtze conservation fishing ban 2024 2025 2026")
-    scholar_search("Yangtze fishing ban endangered fish recovery 2026", limit=5)
+HTTP回退层 (5引擎, MCP不可用时):
+  pubmed / europe_pmc / crossref / openalex / arxiv (+ cnki_web 中文)
 
-Step 3: OCR变体搜索 (Safety net)
-  FOR EACH variant IN ["Ochetobibus elongatus", "Ochetobus elongatus"]:
-    scholar_search(variant, limit=3)
+去重管线:
+  raw → _filter_by_genus (属名校验) → _deduplicate (DOI+标题) → classify + CN/EN label
 
-Step 4: 合并去重
-  merged = merge_by_doi(all_results)
-  merged = deduplicate_by_title(merged)
-  merged = deduplicate_cn_en(merged)  // ZN_EN_RULES
-
-Step 5: 分类
-  categories = {
-    "🧬 遗传与分子": [],
-    "🧪 基因组学": [],
-    "📐 形态与表型": [],
-    "🍽️ 食性与生理": [],
-    "🌊 生态与资源": [],
-    "📢 保护政策": [],
-    "⚠️ 低可信度/变体": [],
-  }
-
-Step 6: 输出 (懒加载)
-  print("📊 总计 N 篇 | 专题 M 篇 | 附带 K 篇")
-  print("分类 | 计数 | 最新")
+MCP 预热: McpClient.warmup() 一次性启动全部 6 个 npx 子进程
+失败回退: 任意 MCP 调用失败 → 整条管线回退到 HTTP
+```
   // 不展开摘要 — 用户选择分类后再展开
 ```
 
@@ -109,21 +98,46 @@ unified_search(species_name: str, mode: str = "auto") → SearchReport
     }
 ```
 
-## 5. 鳤文献搜索 — 正确流程示例
+## 5. 鳤文献搜索 — 当前流程（v2.0）
 
 ```
-unified_search("Ochetobius elongatus", mode="exhaustive")
-
-Step 1: 精确名 → 10篇 (PubMed/Crossref/OpenAlex)
-Step 2: 宽网搜索 → +2篇 (Science禁渔 + NSR评论)
-Step 3: OCR变体 → +2篇 (Ochetobibus 2009+2026)
-Step 4: 引用遍历 → +1篇 (从Yang2018引用链发现)
-Step 5: 作者回溯 → +1篇 (从Cai FT作者回溯)
-────────────────────────────────
-总计: 16篇 (专题11 + 附带5)
+search_api.py --species "鳤"
+  │
+  ├─ 分类学变体: Ochetobius + Ochetobibus + Ochetobus + Opsarius + 鳤
+  │
+  ├─ MCP优先搜索 (6引擎并行):
+  │     scholar MCP → 7篇
+  │     article MCP → 2篇 (EuropePMC + PubMed)
+  │     ncbi MCP   → 6篇 (全部与scholar重复, 去重移除)
+  │     exa MCP    → 1篇
+  │     tavily MCP → Wikipedia (非论文格式)
+  │     原始合计   → 74篇
+  │
+  ├─ 属名校验 (_filter_by_genus):
+  │     标题不含 "Ochetobius" → 移除 51篇
+  │     保留 23篇
+  │
+  ├─ DOI去重 (_deduplicate):
+  │     DOI/标题重复 → 移除 13篇
+  │     保留 10篇 (unique)
+  │
+  └─ CN/EN通道分类:
+        🇨🇳 中文期刊: 4篇 (生物多样性2 + 水生生物学报 + 动物分类学报)
+        🇬🇧 英文期刊: 7篇 (Animals×3 + Gene + SciData + MitDNA + IUCN)
+        📐 分类: 形态2/遗传2/基因组1/生态4/保护2/食性1
 ```
 
 ---
 
-> **教训**: 单引擎精确名搜索 = 系统性盲区。多引擎 + 宽网 + 变体 + 引用 + 作者 = 接近全量。
-> **实现**: `cognitive-search-engine/src/parallel_search.py` (多引擎) + `skills/graph-search-engine.md` (图谱)
+> **关键增强 (v2.0)**:
+> - MCP 6 引擎优先: 启动时间 5s，精确度远高于 HTTP 模糊搜索
+> - 属名校验: 解决 Crossref "elongatus" 通配返回其他物种的噪音
+> - OpenAlex 摘要: abstract_inverted_index → 可读文本
+> - ncbi esummary: 兼容 `{"papers": [...]}` 格式
+> - cnki_web: 中文不足 2 字自动过滤游戏广告
+>
+> **实现文件**:
+> - `scripts/search_api.py` — search_mcp_priority() + 5个MCP解析器
+> - `src/parallel_search.py` — HTTP 5引擎 + _filter_by_genus + OpenAlex抽象重建
+> - `src/mcp_client.py` — 6 MCP 子进程管理 + call_tool server/tool 分离修复
+> - `ZN_EN_RULES.md` — CN/EN 双通道 + 中文署名映射

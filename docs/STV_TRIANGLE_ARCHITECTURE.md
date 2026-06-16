@@ -1,7 +1,8 @@
-# 🕸️ S-T-V Triangular Architecture — 几何进化方案
+# 🔺 三角闭环架构 — Triangle Core + 三生万物
 
-> **来源**: DeepSeek "三角法则" + Gemini "S-T-V 刚性三角形" + "点线面体"维度跃迁
-> **核心**: 将三个项目编织为 S-T-V 闭环，每个层级自相似三角化
+> **道生一 → 一生二 → 二生三 → 三生万物**
+> **三角闭环**: fish(V0知识库) + cognitive(V1验证) + eon-core(协调器) — 缺一不可
+> **三生万物**: P₁(porpoise) · P₂(coilia) · ... 从三角闭环无限衍生
 
 ---
 
@@ -13,22 +14,29 @@
 面(D₂) → 多 Agent 协同网格 / 交叉验证
 体(D₃) → 闭环生态系统 / 世界模型
 
-三角形刚性法则:
-  S (State)    — fish-ecology-assistant    → 知识库 + 数据分析 + 状态表征
-  T (Transition) — porpoise-agent           → 任务调度 + 流水线 + 动作执行
-  V (Validation) — cognitive-search-engine  → 搜索验证 + 引用检查 + 反馈闭环
+三角闭环刚性法则:
+  V0 (Knowledge) — fish-ecology-assistant    → 知识库 + 数据 + 矛盾分析
+  V1 (Validation) — cognitive-search-engine  → 19引擎搜索 + 验证 + 可信度评分
+  Coord           — eon-core                  → EventBus + DAG路由 + 业力循环
 
-S ──→ T ──→ V ──→ S  (闭环, 非线链)
+衍生项目:
+  P₁ — porpoise-agent  → 江豚种群监测, 威胁评估
+  P₂ — coilia-agent    → 刀鲚耳石微化学, 洄游生态
+  Pₙ — 可无限衍生
 ```
 
-## 1. S-T-V 闭环协议
+## 1. 三角闭环协议
 
 ### 1.1 运行时数据流
 
 ```
-fish(S) ──state_vector{schema, findings, contradiction}──→ porpoise(T)
-porpoise(T) ──action{search_query, task, method}──→ cognitive(V)
-cognitive(V) ──feedback{verified_papers, trust_scores, gaps}──→ fish(S)
+fish(V0) ──state_vector{species_kb, findings, contradiction}──→ cognitive(V1)
+cognitive(V1) ──search_result{scores, papers, gaps}──→ fish(V0)
+eon-core(Coord) ──health_ping→ fish(V0) / cognitive(V1) ──karma→ eon-core
+
+P₁/P₂ 从三角派生:
+  cognitive(V1) ──search→ P₁/P₂
+  fish(V0) ──knowledge→ P₁/P₂
 ```
 
 ### 1.2 三角验证 (Triangulation)
@@ -45,102 +53,102 @@ cognitive(V) ──feedback{verified_papers, trust_scores, gaps}──→ fish(S
     trust = UNVERIFIED → 不发布
 ```
 
-### 1.3 分形自相似: 每层都是 S-T-V
+### 1.3 分形自相似
 
 ```
-跨项目层:  fish(S) → porpoise(T) → cognitive(V)
-项目内层:  每个 Skill 内部: State → Transition → Validation
-原子层:    每个工具调用: 输入(S) → 执行(T) → 校验(V)
+跨项目层: fish(V0) → cognitive(V1) → eon-core(Coord)
+项目内层: 每个模块内部: 输入(知识) → 执行(搜索) → 验证(评分)
+原子层:   每个工具调用: 输入(S) → 执行(T) → 校验(V)
 ```
 
 ---
 
-## 2. 实现计划
+## 2. 实现状态
 
-### 2.1 S-T-V 协议配置
+### 2.1 三角闭环配置
 
-新增 `config/stv_protocol.yaml`:
+`config/stv_protocol.yaml`:
 
 ```yaml
-stv_protocol:
-  version: "1.0.0"
-  
-  roles:
-    S: "fish-ecology-assistant"    # State — knowledge, data, findings
-    T: "porpoise-agent"             # Transition — execution, pipeline
-    V: "cognitive-search-engine"    # Validation — verification, feedback
-  
-  closed_loop:
-    S_to_T: { protocol: "state_vector", format: "json_schema" }
-    T_to_V: { protocol: "action_request", format: "function_call" }
-    V_to_S: { protocol: "feedback_vector", format: "trust_scored_json" }
-  
-  triangulation:
-    min_independent_sources: 3
-    independence_check: "no_shared_authors AND no_same_lab AND no_citation_chain"
-    trust_levels:
-      verified: "≥3 independent sources converge"
-      tentative: "2 independent sources"
-      unverified: "<2 sources → BLOCK output"
+triangle_core:
+  V0: "fish-ecology-assistant"     # 知识库 + 数据供给
+  V1: "cognitive-search-engine"    # 19引擎搜索 + 验证 ← 本文件
+  Coord: "eon-core"                # 协调器 (EventBus + DAG)
 
-  fractal_self_similarity:
-    cross_project: { S: fish, T: porpoise, V: cognitive }
-    intra_project: "every Skill internally uses S-T-V pattern"
-    atomic: "every tool call: input(S)→execute(T)→validate(V)"
+derived:
+  P₁: "porpoise-agent"             # 江豚专属智能体
+  P₂: "coilia-agent"               # 刀鲚专属智能体
+  Pₙ: "spawn_agent.py template"    # 任意物种一键生成
+
+triangulation:
+  min_independent_sources: 3
+  verified: "≥3 independent sources"
+  tentative: "2 independent sources"
 ```
 
-### 2.2 三角化 Skill 模板
+### 2.2 搜索网关（v5.9 更新）
 
-每个 Skill 强制使用 S-T-V 三段结构:
-
-```markdown
-## S: State (PREFLIGHT — 感知输入)
-READ config → EXTRACT params → BUILD state_vector
-
-## T: Transition (EXECUTE — 动作执行)  
-APPLY transformation → CALL tools → PRODUCE output
-
-## V: Validation (POSTFLIGHT — 验证反馈)
-VERIFY output meets constraints → TAG trust_level → FEEDBACK to S
-```
-
-### 2.3 验证升级: FB-1 从 ≥2 → ≥3
+cognitive-search-engine 是**整个工作区的唯一搜索网关**（`coordination.yaml#search_gateway`）:
 
 ```
-当前: verification_loop.investigation_first.min_sources_core_claim = 2
-升级: = 3  (三角验证 — 三条独立路径交汇才可信)
+所有外部搜索请求:
+  → 路由到 cognitive-search-engine
+  → MCP优先 (6引擎) → HTTP回退 (5引擎) = 11引擎并行
+  → 属名校验 (_filter_by_genus) → DOI去重 (_deduplicate)
+  → 评分 (credibility_scorer) → 分类 (unified_search)
+  → CN/EN双通道标注 → 结果返回请求方
+
+MCP 6引擎: scholar / article / ncbi / tavily / exa / scholarly
+HTTP 5引擎: pubmed / europe_pmc / crossref / openalex / arxiv (+ cnki_web 中文)
+```
+
+### 2.3 跨项目通路
+
+```
+P1: fish.lookup → cognitive.search     (知识赋能搜索)
+P2: cognitive.search → fish.score       (搜索回写验证)
+P3: cognitive.search → P₁/P₂            (三角→衍生)
+P4: adapter.health → eon-core.karma     (健康→业力)
 ```
 
 ---
 
-## 3. 进化后的架构
+## 3. 架构全景
 
 ```
-                    ┌──────────────────────────┐
-                    │   V: cognitive-search     │
-                    │   验证 + 反馈             │
-                    │   trust_score ≥ 3 sources │
-                    └──────────┬───────────────┘
-                               │ feedback_vector
-                    ┌──────────▼───────────────┐
-                    │   S: fish-ecology         │
-                    │   状态 + 知识             │
-                    │   contradiction_analysis  │
-                    └──────────┬───────────────┘
-                               │ state_vector
-                    ┌──────────▼───────────────┐
-                    │   T: porpoise-agent       │
-                    │   执行 + 调度             │
-                    │   phase_handlers          │
-                    └──────────────────────────┘
+                    ┌─────────────────────────────┐
+                    │     eon-core (Coord)         │
+                    │  EventBus · DAG · Samsara    │
+                    └────────┬────────┬───────────┘
+                             │P4      │P4
+                    ┌────────▼────────▼───────────┐
+                    │  cognitive-search-engine     │
+                    │  V1 (Validation)             │
+                    │  19 engines · BDI+ReAct      │
+                    │  KB-First · credibility(0-100)│
+                    └────────┬────────┬───────────┘
+                             │P1      │P2
+                    ┌────────▼────────▼───────────┐
+                    │  fish-ecology-assistant      │
+                    │  V0 (Knowledge)              │
+                    │  443 species · 28 skills     │
+                    │  contradiction analysis      │
+                    └────────┬─────────────────────┘
+                             │P3(派生)
+                    ┌────────▼────────┐
+                    │  P₁ porpoise    │
+                    │  P₂ coilia      │
+                    │  Pₙ ...         │
+                    └─────────────────┘
 
-闭环: S→T→V→S  (三角形 — 不可变形的最小完备结构)
+闭环: V0→V1→Coord→V0 (三角形 — 最小完备结构)
+万物: 从三角闭环派生, 三角不依赖万物
 ```
 
 ---
 
 > **"三角形是第一个封闭的面，第一个能围合出空间的存在。"**
-> 三个项目不是孤立的软件 — 它们是 S-T-V 刚性三角形的三个顶点。
+> 三个项目不是孤立的软件 — 它们是三角闭环的三个顶点。
 > 两方只能形成对峙或连接，三方才能形成结构、流动与反馈。
 
-**Last updated: 2026-06-06**
+**Last updated: 2026-07-17**
