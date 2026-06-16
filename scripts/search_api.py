@@ -329,28 +329,35 @@ def _parse_ncbi_response(text: str, client=None) -> List[Dict]:
                 if stext:
                     try:
                         sdata = json.loads(stext)
-                        for pmid, meta in sdata.get("result", {}).items():
-                            if pmid == "uids":
+                        # ncbi MCP esummary 返回格式: {"papers": [{pmid, title, authors, ...}]}
+                        paper_list = sdata.get("papers", [])
+                        if not paper_list and isinstance(sdata, dict):
+                            # 也兼容 OpenAlex/PubMed 标准格式
+                            paper_list = [
+                                v for k, v in sdata.get("result", {}).items()
+                                if k != "uids" and isinstance(v, dict) and v.get("uid")
+                            ]
+                        for sp in paper_list:
+                            if not isinstance(sp, dict):
                                 continue
-                            if isinstance(meta, dict):
-                                doi = ""
-                                for aid in meta.get("articleids", []):
-                                    if isinstance(aid, dict) and aid.get("idtype", "").lower() == "doi":
-                                        doi = aid.get("value", "")
-                                authors = [a.get("name", "") for a in meta.get("authors", []) if isinstance(a, dict)]
-                                papers.append({
-                                    "doi": doi,
-                                    "title": meta.get("title", ""),
-                                    "authors": authors,
-                                    "year": str(meta.get("pubdate", ""))[:4],
-                                    "journal": meta.get("source", ""),
-                                    "abstract": meta.get("abstract", ""),
-                                    "source": "mcp_ncbi",
-                                    "pmid": pmid,
-                                    "pmcid": "",
-                                    "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
-                                    "credibility_score": 60,
-                                })
+                            pmid = sp.get("pmid", sp.get("uid", ""))
+                            doi = sp.get("doi", "") or ""
+                            author_list = sp.get("authors", sp.get("author", []))
+                            if isinstance(author_list, list):
+                                author_list = [a.get("name", a) if isinstance(a, dict) else str(a) for a in author_list]
+                            papers.append({
+                                "doi": doi,
+                                "title": sp.get("title", ""),
+                                "authors": author_list,
+                                "year": str(sp.get("pubdate", sp.get("year", "")))[:4],
+                                "journal": sp.get("source", sp.get("journal", "")),
+                                "abstract": sp.get("abstract", "") or "",
+                                "source": "mcp_ncbi",
+                                "pmid": pmid,
+                                "pmcid": sp.get("pmcid", sp.get("pmc", "")) or "",
+                                "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/" if pmid else "",
+                                "credibility_score": 60,
+                            })
                     except json.JSONDecodeError:
                         pass
     except (json.JSONDecodeError, TypeError):
