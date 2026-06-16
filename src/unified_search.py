@@ -619,6 +619,7 @@ ENGINE_GROUPS = {
                  "biorxiv_medrxiv", "researchgate", "web_search"],
     "chinese":  ["scholar_graph", "ncbi_esearch", "baidu_scholar", "cnki_web", "wanfang_web",
                  "crossref_article", "web_search"],
+    "preprint": ["biorxiv_medrxiv", "researchgate", "scholar_graph"],
 }
 
 

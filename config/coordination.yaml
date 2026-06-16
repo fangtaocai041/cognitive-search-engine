@@ -3,8 +3,9 @@
 
 coordination:
   version: "4.1.0"
-  last_sync: "2026-07-17"
+  last_sync: "2026-07-18"
   changelog:
+    - "v4.2.0 (2026-07-18): +P₃(culter-agent), +C(conflict-arbiter) to derived_projects. rule_engine.py deprecated."
     - "v4.1.0 (2026-07-17): Exclusive search gateway — cognitive-search-engine declared as the sole external search entry point. +search_gateway section, +agent.yaml gateway role, +scripts(credibility_scorer, kb_to_graph_sync, self_evolve)"
     - "v4.0.0 (2026-06-07): Meso-Cosmos Agent — workspace-level coordination layer. Macro(BDI)→Meso(Route)→Micro(Execute)"
 
@@ -20,6 +21,8 @@ architecture:
   derived:
     - { role: "P₁", project: "porpoise-agent", function: "Derived — 江豚种群监测, 威胁评估" }
     - { role: "P₂", project: "coilia-agent", function: "Derived — 刀鲚洄游生态, 资源评估" }
+    - { role: "P₃", project: "culter-agent", function: "Derived — 鲌类基因组, 营养生态位" }
+    - { role: "C",  project: "conflict-arbiter", function: "Derived — 多源信息冲突仲裁 (IUCN vs 国标 vs 文献)" }
 
 # ═══════════════════════════════════════════════════════
 # 搜索网关 — 本工作区唯一外部搜索入口

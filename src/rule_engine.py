@@ -1,6 +1,11 @@
 """
 Search Rule Engine — Load search_rules.yaml and execute phases.
-Replaces natural-language Skill instructions with structured, machine-executable rules.
+
+⚠️ DEPRECATED (v5.9+): Not used by the active search pipeline.
+    MesoAgent.search() → ParallelSearch (direct HTTP) is the actual engine.
+    SearchRuleEngine was the v4.x phase-based engine, superseded by the
+    coordinated_search() + search_streaming() model in unified_search.py.
+    KEPT for reference only — may be removed in v6.0.
 """
 
 import yaml
