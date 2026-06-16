@@ -47,11 +47,11 @@ def test_dotdict_works():
 
 
 def test_engine_registry_count():
-    """ENGINE_REGISTRY must have ≥16 engines."""
+    """ENGINE_REGISTRY must have ≥20 engines."""
     from src.unified_search import ENGINE_REGISTRY
 
-    assert len(ENGINE_REGISTRY) >= 16, (
-        f"Only {len(ENGINE_REGISTRY)} engines, expected ≥16"
+    assert len(ENGINE_REGISTRY) >= 20, (
+        f"Only {len(ENGINE_REGISTRY)} engines, expected ≥20"
     )
 
 

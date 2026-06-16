@@ -606,6 +606,11 @@ ENGINE_REGISTRY = {
     # 引用/关系 (Priority 7)
     "references":       {"tool": "article_get_references", "category": "graph", "priority": 7},
     "relations":        {"tool": "article_get_literature_relations", "category": "graph", "priority": 7},
+    # 物种百科 + 全文 (Priority 3 — free, no key)
+    "wikipedia":        {"tool": "wikipedia", "category": "species", "priority": 3},
+    "duckduckgo":       {"tool": "duckduckgo", "category": "web", "priority": 5},
+    "gbif":             {"tool": "gbif", "category": "species", "priority": 3},
+    "core":             {"tool": "core", "category": "academic", "priority": 3},
 }
 
 # 默认搜索引擎组 (按场景)
@@ -616,7 +621,9 @@ ENGINE_GROUPS = {
     "full":     ["scholar_graph", "ncbi_esearch", "crossref_article", "crossref_direct",
                  "scholarly_multi", "semantic_scholar", "tavily_search", "tavily_research",
                  "exa_search", "baidu_scholar", "cnki_web", "wanfang_web",
-                 "biorxiv_medrxiv", "researchgate", "web_search"],
+                 "biorxiv_medrxiv", "researchgate", "web_search",
+                 "wikipedia", "duckduckgo", "gbif", "core"],
+    "species":  ["wikipedia", "gbif", "web_search", "duckduckgo"],
     "chinese":  ["scholar_graph", "ncbi_esearch", "baidu_scholar", "cnki_web", "wanfang_web",
                  "crossref_article", "web_search"],
     "preprint": ["biorxiv_medrxiv", "researchgate", "scholar_graph"],

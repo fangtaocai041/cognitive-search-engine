@@ -144,17 +144,99 @@ class SearchResult:
 # 核心搜索函数
 # ═══════════════════════════════════════════════════════
 
+# ── Cross-lingual helper: auto-resolve Chinese↔Latin ──
+
+def _resolve_species_name(name: str) -> List[str]:
+    """Resolve a species name to all search forms (CN + Latin + variants).
+
+    Input can be Chinese (刀鲚) or Latin (Coilia nasus).
+    Returns all name forms for comprehensive search.
+    """
+    names = [name]
+    try:
+        from src.unified_search import check_taxonomy, _ensure_species_graph_loaded
+        graph = _ensure_species_graph_loaded()
+        if not graph:
+            return names
+        
+        name_lower = name.lower().replace(" ", "_")
+        
+        # Search by scientific name
+        for s in graph:
+            sid = s.get("id", "").lower()
+            if name_lower == sid or name_lower == s.get("name", "").lower():
+                cn = s.get("chinese", "")
+                if cn and cn not in names:
+                    names.append(cn)
+                for v in s.get("variants", []):
+                    if v not in names:
+                        names.append(v)
+                break
+        
+        # Search by Chinese name
+        for s in graph:
+            cn = s.get("chinese", "")
+            if cn and name == cn:
+                sci = s.get("name", "")
+                if sci and sci not in names:
+                    names.append(sci)
+                break
+    except Exception:
+        pass
+    return names
+
+
+# ── Adaptive engine pruning ──
+
+# Engines to use for different habitat types
+_HABITAT_ENGINES = {
+    "freshwater": ["scholar_graph", "scholar_keywords", "ncbi_esearch", "crossref_article",
+                    "crossref_direct", "semantic_scholar", "cnki_web", "baidu_scholar",
+                    "wanfang_web", "tavily_search", "exa_search", "web_search"],
+    "marine": ["scholar_graph", "scholar_keywords", "ncbi_esearch", "crossref_article",
+                 "crossref_direct", "semantic_scholar", "tavily_search", "exa_search", "web_search"],
+    "diadromous": ["scholar_graph", "scholar_keywords", "ncbi_esearch", "crossref_article",
+                     "crossref_direct", "semantic_scholar", "cnki_web", "baidu_scholar",
+                     "wanfang_web", "tavily_search", "exa_search", "web_search"],
+}
+
+def _prune_engines(family: str, group: List[str]) -> List[str]:
+    """Prune irrelevant engines based on species family/habitat.
+
+    Marine families skip Chinese freshwater-focused engines.
+    """
+    family_lower = family.lower() if family else ""
+    
+    # Marine/estuarine families
+    marine_families = {"tetraodontidae", "cynoglossidae", "mugilidae", "engraulidae",
+                       "clupeidae", "polynemidae", "callionymidae", "soleidae"}
+    
+    if family_lower in marine_families:
+        # Keep only essential engines for marine species
+        return [e for e in group if e not in ("cnki_web", "baidu_scholar", "wanfang_web")]
+    
+    # Freshwater default: keep all
+    return group
+
+
 def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
     """
+    search("鳤") → SearchResult
     search("鳤") → SearchResult
 
     统一入口: 分类学检查 → 模式决策 → 多引擎并行 → 规则分类 → 课题组优先
     """
     t0 = time.perf_counter()
 
+    # 0. 跨语种名称解析 (中英双向)
+    all_names = _resolve_species_name(species)
+    if len(all_names) > 1:
+        logger.info(f"Cross-lingual resolved: {species} -> {all_names}")
+    species_for_search = all_names[0]
+    
     # 1. 分类学变更检查 (unified_search §7)
     try:
-        variants = check_taxonomy(species)
+        variants = check_taxonomy(species_for_search)
     except Exception:
         # check_taxonomy 不可用时, 优先用 species_graph.yaml
         variants = _fallback_check_taxonomy(species)
@@ -170,8 +252,27 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
     except Exception:
         search_mode = "exhaustive"
 
+    # 2b. 自适应引擎裁剪
+    # 获取物种的科信息，裁剪不相关引擎
+    pruned_group = group
+    try:
+        graph = _ensure_species_graph_loaded()
+        if graph:
+            species_lower = species_for_search.lower()
+            for s in graph:
+                if s.get("name", "").lower() == species_lower or s.get("chinese", "") == species:
+                    family = s.get("family", "")
+                    from src.unified_search import ENGINE_GROUPS
+                    full_group = ENGINE_GROUPS.get(group, ENGINE_GROUPS.get("full", []))
+                    pruned_group = _prune_engines(family, full_group)
+                    if len(pruned_group) < len(full_group):
+                        logger.info(f"Adaptive pruning: {len(full_group)} -> {len(pruned_group)} engines")
+                    break
+    except Exception:
+        pass
+    
     # 3. 多引擎并行搜索 — 直接调用 MCP 工具 (本会话可用)
-    engine_results = _run_real_search(variants, group, limit)
+    engine_results = _run_real_search(variants, pruned_group, limit)
 
     # 4. 合并 + 去重 (从 EngineResult 列表提取论文)
     all_papers = []

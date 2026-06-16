@@ -230,7 +230,7 @@ graph:
     - 小鳞三块鱼
     - 珠星滩头鱼
     family: Leuciscidae
-    conservation: NE
+    conservation: 无
     variants:
     - Leuciscus brandti
     - Pseudaspius brandti
@@ -241,28 +241,28 @@ graph:
     name: Coilia brachygnathus
     chinese: 短颌鲚
     family: Engraulidae
-    conservation: NE
+    conservation: 无
     aliases: []
     variants: []
   - id: hemiculter_leucisculus
     name: Hemiculter leucisculus
     chinese: 䱗
     family: Cyprinidae
-    conservation: NE
+    conservation: 无
     aliases: []
     variants: []
   - id: parabramis_pekinensis
     name: Parabramis pekinensis
     chinese: 鳊
     family: Cyprinidae
-    conservation: NE
+    conservation: 无
     aliases: []
     variants: []
   - id: ochetobius_elongatus
     name: Ochetobius elongatus
     chinese: 鳤
     family: Cyprinidae
-    conservation: NE
+    conservation: 无
     aliases: []
     variants: []
   - id: neophocaena_asiaeorientalis
@@ -382,7 +382,7 @@ graph:
     name: Ctenopharyngodon idellus
     chinese: 草鱼
     family: Xenocyprididae
-    conservation: NE
+    conservation: 无
     variants: []
   - id: atrilinea_macrolepis
     name: Atrilinea macrolepis
@@ -2081,7 +2081,7 @@ graph:
     name: Pelteobagrus nitidus
     chinese: 光泽黄颡鱼
     family: Bagridae
-    conservation: NE
+    conservation: 无
     variants: []
   - id: leiocassis_longirostris
     name: Leiocassis longirostris
