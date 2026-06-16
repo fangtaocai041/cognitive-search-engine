@@ -4,22 +4,17 @@ __version__ = "5.8.0"
 
 from .adapter import CognitiveSearchAdapter
 from .meso_agent import create_agent, MesoAgent
-from .unified_search import coordinated_search
-from .agent_core import CognitiveAgent
 from .rule_engine import SearchRuleEngine
-from .mcp_client import McpClient
+from .mcp_client import McpClient, get_client
 from .world_model import WorldModel
-from .variant_generator import generate_variants
 
 __all__ = [
     "CognitiveSearchAdapter",
     "create_agent",
     "MesoAgent",
-    "coordinated_search",
-    "CognitiveAgent",
     "SearchRuleEngine",
     "McpClient",
+    "get_client",
     "WorldModel",
-    "generate_variants",
     "__version__",
 ]
