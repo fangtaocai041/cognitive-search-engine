@@ -109,6 +109,9 @@ class MesoAgent:
         self._CredibilityScorer: Any = None
         self._EvolutionExecutor: Any = None
         self._InferenceEngine: Any = None
+        # 涌现状态追踪 (per-species)
+        self._emergence_signals: Dict[str, list[dict]] = {}
+        self._emergence_mode: Dict[str, str] = {}  # "normal" | "surge" | "stalled"
 
     # ── Lazy imports ──────────────────────────────────────────────
 
@@ -305,12 +308,16 @@ class MesoAgent:
     # ── BDI: Desire — search strategy planning ────────────────────
 
     def _plan_search(self, species_id: str, volume: int) -> Dict[str, Any]:
-        """基于文献量估算规划搜索策略 (Desire 阶段)."""
+        """基于文献量估算 + 涌现信号规划搜索策略 (Desire 阶段)."""
         self._ensure_graph_loaded()
         species_info = self._species_map.get(species_id, {})
         conservation = species_info.get("conservation", "LC")
 
-        # 模式选择
+        # 检查该物种是否有涌现信号
+        signals = self._emergence_signals.get(species_id, [])
+        emergence_adjust = self._emergence_mode.get(species_id, "normal")
+
+        # 模式选择 (基础)
         if volume <= 30:
             mode = "exhaustive"
             full_pipeline = True
@@ -321,18 +328,32 @@ class MesoAgent:
             mode = "review_anchored"
             full_pipeline = True
 
-        # 受保护物种 → 更全面搜索
-        if conservation in ("CR", "EN"):
-            if mode != "exhaustive":
+        # 涌现信号调整策略
+        if signals:
+            if any(s.get("type", "") in ("new_paper_surge", "emergence", "trend_change") for s in signals):
                 mode = "exhaustive"
                 full_pipeline = True
+                emergence_adjust = "surge"
+            elif any(s.get("type", "") in ("stagnation", "diminishing_return", "saturation") for s in signals):
+                if mode != "exhaustive":
+                    mode = "classified"
+                emergence_adjust = "stalled"
 
-        return {
-            "mode": mode,
-            "full_pipeline": full_pipeline,
-            "volume_estimate": volume,
-            "conservation": conservation,
-        }
+        # 受保护物种 → 更全面搜索
+        if conservation in ("CR", "EN") and emergence_adjust != "surge":
+            mode = "exhaustive"
+            full_pipeline = True
+
+        self._emergence_mode[species_id] = emergence_adjust
+
+        return dict(
+            mode=mode,
+            full_pipeline=full_pipeline,
+            volume_estimate=volume,
+            conservation=conservation,
+            emergence_adjust=emergence_adjust,
+            emergence_signals=len(signals),
+        )
 
     # ── BDI: Intention — search execution ─────────────────────────
 
@@ -658,7 +679,7 @@ class MesoAgent:
             except Exception as e:
                 result.errors.append(f"Inference: {e}")
 
-        # ── Evolution ──
+        # ── Evolution + 涌现检测 ──
         if self.config.enable_evolution and self._EvolutionExecutor:
             try:
                 metrics = {
@@ -671,10 +692,21 @@ class MesoAgent:
                     str(self._engine_root / "config" / "evolution.yaml")
                 )
                 actions = executor.evaluate_and_adapt(metrics)
+
+                # 提取涌现信号，存下来影响下一次搜索
+                emergence_actions = [a for a in actions if getattr(a, "param", "") == "emergence_signals"]
+                if emergence_actions:
+                    self._emergence_signals[species_id] = [
+                        {"type": "emergence", "severity": 0.5, "metric": "evolution"}
+                    ]
+                else:
+                    self._emergence_signals.pop(species_id, None)
+
                 result.adaptations = actions
                 result.meso_log.append({
                     "phase": "evolution",
                     "adaptations": actions,
+                    "emergence_signals": len(self._emergence_signals.get(species_id, [])),
                 })
             except Exception as e:
                 pass

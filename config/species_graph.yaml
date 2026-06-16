@@ -32,6 +32,9 @@ graph:
     family: Xenocyprididae
     conservation: LC
     variants: []
+    taxonomy_change: &id001
+      old: 不变
+      note: 确认 Culter 属有效
   - id: Chanodichthys_mongolicus
     name: Chanodichthys mongolicus
     chinese: 蒙古鲌
@@ -43,6 +46,9 @@ graph:
     variants:
     - Culter mongolicus
     - Erythroculter mongolicus
+    taxonomy_change:
+      old: Culter mongolicus / Erythroculter mongolicus
+      note: 属级变更
   - id: Chanodichthys_dabryi
     name: Chanodichthys dabryi
     chinese: 达氏鲌
@@ -55,6 +61,9 @@ graph:
     variants:
     - Culter dabryi
     - Erythroculter dabryi
+    taxonomy_change:
+      old: Culter dabryi
+      note: 属级变更
   - id: Chanodichthys_erythropterus
     name: Chanodichthys erythropterus
     chinese: 红鳍原鲌
@@ -65,6 +74,9 @@ graph:
     variants:
     - Culter erythropterus
     - Erythroculter erythropterus
+    taxonomy_change:
+      old: Culter erythropterus
+      note: 属级变更
   - id: Chanodichthys_oxycephalus
     name: Chanodichthys oxycephalus
     chinese: 拟尖头鲌
@@ -94,6 +106,9 @@ graph:
     variants:
     - Tribolodon hakonensis
     - Leuciscus hakonensis
+    taxonomy_change:
+      old: Tribolodon hakonensis
+      note: '属级变更: Tribolodon → Pseudaspius'
   - id: Culter_compressocorpus
     name: Culter compressocorpus
     chinese: 扁体鲌
@@ -115,97 +130,97 @@ graph:
     name: Cyprinus carpio
     chinese: 鲤
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
   - id: Carassius_auratus
     name: Carassius auratus
     chinese: 鲫
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
   - id: Hypophthalmichthys_molitrix
     name: Hypophthalmichthys molitrix
     chinese: 鲢
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
   - id: Pelteobagrus_fulvidraco
     name: Pelteobagrus fulvidraco
     chinese: 黄颡鱼
-    family: 鲿科
-    conservation: 无
+    family: Bagridae
+    conservation: NE
   - id: Coilia_brachygnathus
     name: Coilia brachygnathus
     chinese: 短颌鲚
-    family: 鳀科
-    conservation: 无
+    family: Engraulidae
+    conservation: NE
   - id: Silurus_asotus
     name: Silurus asotus
     chinese: 鲇
-    family: 鲇科
-    conservation: 无
+    family: Siluridae
+    conservation: NE
   - id: Saurogobio_dabryi
     name: Saurogobio dabryi
     chinese: 蛇鮈
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
   - id: Ctenopharyngodon_idellus
     name: Ctenopharyngodon idellus
     chinese: 草鱼
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
   - id: Pelteobagrus_nitidus
     name: Pelteobagrus nitidus
     chinese: 光泽黄颡鱼
-    family: 鲿科
-    conservation: 无
+    family: Bagridae
+    conservation: NE
   - id: Hemiculter_leucisculus
     name: Hemiculter leucisculus
     chinese: 䱗
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
   - id: Siniperca_chuatsi
     name: Siniperca chuatsi
     chinese: 鳜
     family: 鳜科
-    conservation: 无
+    conservation: NE
   - id: Coreius_heterodon
     name: Coreius heterodon
     chinese: 铜鱼
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
   - id: Parabramis_pekinensis
     name: Parabramis pekinensis
     chinese: 鳊
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
   - id: Aristichthys_nobilis
     name: Aristichthys nobilis
     chinese: 鳙
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
   - id: Acipenser_dabryanus
     name: Acipenser dabryanus
     chinese: 长江鲟
-    family: 鲟科
-    conservation: 无
+    family: Acipenseridae
+    conservation: NE
   - id: Myxocyprinus_asiaticus
     name: Myxocyprinus asiaticus
     chinese: 胭脂鱼
     family: 胭脂鱼科
-    conservation: 无
+    conservation: NE
   - id: Trachidermus_fasciatus
     name: Trachidermus fasciatus
     chinese: 松江鲈
-    family: 杜父鱼科
-    conservation: 无
+    family: Cottidae
+    conservation: NE
   - id: Psephurus_gladius
     name: Psephurus gladius
     chinese: 白鲟
-    family: 匙吻鲟科
-    conservation: 无
+    family: Polyodontidae
+    conservation: NE
   - id: Tenualosa_reevesii
     name: Tenualosa reevesii
     chinese: 鲥
-    family: 鲱科
-    conservation: 无
+    family: Clupeidae
+    conservation: NE
   - id: Tribolodon_brandti
     name: Tribolodon brandti
     chinese: 三块鱼
@@ -215,7 +230,7 @@ graph:
     - 小鳞三块鱼
     - 珠星滩头鱼
     family: Leuciscidae
-    conservation: 无
+    conservation: NE
     variants:
     - Leuciscus brandti
     - Pseudaspius brandti
@@ -225,45 +240,48 @@ graph:
   - id: coilia_brachygnathus
     name: Coilia brachygnathus
     chinese: 短颌鲚
-    family: 鳀科
-    conservation: 无
+    family: Engraulidae
+    conservation: NE
     aliases: []
     variants: []
   - id: hemiculter_leucisculus
     name: Hemiculter leucisculus
     chinese: 䱗
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
     aliases: []
     variants: []
   - id: parabramis_pekinensis
     name: Parabramis pekinensis
     chinese: 鳊
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
     aliases: []
     variants: []
   - id: ochetobius_elongatus
     name: Ochetobius elongatus
     chinese: 鳤
     family: Cyprinidae
-    conservation: 无
+    conservation: NE
     aliases: []
     variants: []
   - id: neophocaena_asiaeorientalis
     name: Neophocaena asiaeorientalis
     chinese: 长江江豚
     family: 鼠海豚科
-    conservation: ''
+    conservation: NE
     aliases: []
     variants: []
   - id: coilia_nasus
     name: Coilia nasus
     chinese: 刀鲚
-    family: 鳀科 (Engraulidae)
-    conservation: 濒危(EN)
+    family: Engraulidae
+    conservation: EN
     aliases: []
     variants: []
+    taxonomy_change:
+      old: Coilia ectenes (syn.)
+      note: 刀鲚单型种确认，原 C.ectenes 为同义名
   - id: psephurus_gladius
     name: Psephurus gladius
     chinese: 白鲟
@@ -558,6 +576,7 @@ graph:
     family: Xenocyprididae
     conservation: LC
     variants: []
+    taxonomy_change: *id001
   - id: culter_mongolicus
     name: Culter mongolicus
     chinese: 蒙古鲌
