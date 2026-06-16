@@ -84,29 +84,7 @@ cognitive-search-engine/
 │   └── search_api.py           ← CLI 入口
 └── config/
     └── evolution.yaml          ← 自适应参数
-```
-
-## 🔗 生态体系
-
-> 🔥 和则无穷力量，分则顶尖专家引擎。
-
-本项目是「三生万物」生态的 搜索验证核心 (V1)。
-
-```
-三角核心 (sealed 3):
-  📦 fish-ecology-assistant    → 知识供给 (V0)
-  🔍 cognitive-search-engine   → 搜索验证 (V1)
-  ⚙️ eon-core                  → 协调内核 (Coord)
-
-万物衍生 (open N):
-  🐬 porpoise-agent    → 江豚专研 (P₁)
-  🐟 coilia-agent      → 刀鲚专研 (P₂)
-  🐟 culter-agent      → 鲌类专研 (P₃)
-  🔥 conflict-arbiter  → 冲突仲裁 (C)
-```
-
-| 🏗️ 项目 | 🔗 顶点 | 🎯 角色 |
-|:---------|:--------:|:--------|
+```---------|:--------:|:--------|
 | [fish-ecology-assistant](../fish-ecology-assistant/) | V0 | 📦 知识供给 |
 | [cognitive-search-engine](../cognitive-search-engine/) | V1 | 🔍 搜索验证 |
 | [eon-core](../eon-core/) | Coord | ⚙️ 协调内核 |
@@ -118,6 +96,25 @@ cognitive-search-engine/
 ---
 ---
 
+
+## 🔗 生态体系
+
+> 🔥 和则无穷力量，分则顶尖专家引擎。
+
+本项目是「三生万物」生态的 V1。
+
+`
+三角核心 (sealed 3):
+  📦 fish-ecology-assistant    → 知识供给 (V0)
+  🔍 cognitive-search-engine   → 搜索验证 (V1)
+  ⚙️ eon-core                  → 协调内核 (Coord)
+
+万物衍生 (open N):
+  🐬 porpoise-agent    → 江豚专研 (P₁)
+  🐟 coilia-agent      → 刀鲚专研 (P₂)
+  🐟 culter-agent      → 鲌类专研 (P₃)
+  🔥 conflict-arbiter  → 冲突仲裁 (C)
+`
 > 🌊 万物皆变 · Panta Rhei
 >
 > 🏛️ 赫拉克利特说：人不能两次踏进同一条河流。
