@@ -361,3 +361,220 @@ def _fallback_check_taxonomy(species_name: str) -> List[str]:
         if name_lower in all_names:
             return [s.get("name", species_name)] + s.get("variants", [])
     return [species_name]
+
+
+# ═══════════════════════════════════════════════════════
+# KB-First 两阶段搜索 (f项目知识库 → 全量搜索)
+# ═══════════════════════════════════════════════════════
+
+@dataclass
+class KbFirstSearchResult:
+    """Result from kb_first() — wraps both stages.
+
+    Stage 1 (kb_check): KB lookup result from f项目.
+    Stage 2 (full_search): Only populated if user chose to continue.
+    """
+    stage: str                              # "kb_check" | "full_search"
+    species_name: str                       # Original query
+    kb_found: bool                          # Whether species found in f项目 KB
+    kb_summary: str = ""                    # Human-readable KB result summary
+    kb_recommendation: str = ""             # "stay_in_kb" | "continue_to_c"
+    kb_data: Dict[str, Any] = field(default_factory=dict)  # Raw KB data
+    full_search: Optional[SearchResult] = None  # Stage 2 result
+    suggested_next: str = ""                # "ask_user" | "done"
+    all_candidates: List[Dict[str, Any]] = field(default_factory=list)
+
+    def ask_user_prompt(self) -> str:
+        """Generate the user-facing prompt asking whether to continue."""
+        if self.kb_found:
+            return (
+                f"📚 f项目知识库已收录「{self.species_name}」。\n\n"
+                f"{self.kb_summary}\n\n"
+                f"───\n"
+                f"**是否继续？**\n"
+                f"- **留步**：仅使用知识库数据（已足够）\n"
+                f"- **继续搜索**：启动 c项目全量文献搜索（多引擎并行 + 引用回溯 + 变体安全网）"
+            )
+        else:
+            candidates = ""
+            if self.all_candidates:
+                top = self.all_candidates[:3]
+                candidates = "\n可能近缘种: " + ", ".join(
+                    f"{c['chinese']}({c['scientific']})" for c in top
+                )
+            return (
+                f"🔍 f项目知识库未收录「{self.species_name}」。{candidates}\n\n"
+                f"**是否启动 c项目全量文献搜索？** (多引擎并行 + 引用回溯 + 变体安全网)"
+            )
+
+
+def _load_fish_kb() -> Any:
+    """Lazy-load FishEcologyOrchestrator from fish-ecology-assistant.
+
+    Returns the orchestrator instance, or None if the f项目 is unavailable.
+    Uses cross-project import path: fish-ecology-assistant/src/orchestrator.py.
+    """
+    try:
+        from pathlib import Path
+
+        # Find fish-ecology-assistant root relative to cognitive-search-engine
+        cognitive_root = Path(__file__).resolve().parent.parent
+        fish_root = cognitive_root.parent / "fish-ecology-assistant"
+        fish_src = fish_root / "src"
+
+        if not fish_src.is_dir():
+            logger.debug("fish-ecology-assistant not found at %s", fish_root)
+            return None
+
+        import sys
+        fish_str = str(fish_root)
+        if fish_str not in sys.path:
+            sys.path.insert(0, fish_str)
+
+        import importlib
+        import importlib.util
+        _mod_name = f"_fish_orch_{id(fish_str).__abs__() % 10000}"
+        spec = importlib.util.spec_from_file_location(
+            _mod_name, str(fish_src / "orchestrator.py"))
+        if spec and spec.loader:
+            mod = importlib.util.module_from_spec(spec)
+            sys.modules[_mod_name] = mod
+            spec.loader.exec_module(mod)
+            factory = getattr(mod, "get_orchestrator", None)
+            if factory:
+                return factory()
+        return None
+    except Exception as exc:
+        logger.warning("Failed to load fish KB: %s", exc)
+        return None
+
+
+def kb_first(
+    species_name: str,
+    group: str = "standard",
+    limit: int = 10,
+) -> KbFirstSearchResult:
+    """KB-First 两阶段搜索 — 先查 f项目知识库，再决定是否启动全量搜索。
+
+    This is the RECOMMENDED entry point for species literature search.
+    It implements the two-stage workflow:
+
+      Stage 1 (kb_check): Query fish-ecology-assistant knowledge base.
+        → Returns KbFirstSearchResult with stage="kb_check".
+        → Caller presents ask_user_prompt() to user.
+
+      Stage 2 (full_search): If user says "continue", call
+        continue_full_search() → runs search() for full coordinated search.
+
+    Usage:
+      # Stage 1: KB check
+      result = kb_first("珠星三块鱼")
+      if result.stage == "kb_check":
+          print(result.ask_user_prompt())
+          # ... wait for user input ...
+
+      # Stage 2: Full search (only if user says continue)
+      result = continue_full_search(result, group="full")
+
+    Args:
+        species_name: Chinese name or scientific name.
+        group: Engine group for full search ("quick"/"standard"/"full").
+        limit: Max results per engine.
+
+    Returns:
+        KbFirstSearchResult with stage="kb_check" (first call) or "full_search".
+    """
+    # Stage 1: Query fish-ecology-assistant KB
+    orch = _load_fish_kb()
+    if orch is None:
+        # f项目不可用 → 直接跳到全量搜索
+        logger.info("fish KB unavailable, running full search directly")
+        full = search(species_name, group=group, limit=limit)
+        return KbFirstSearchResult(
+            stage="full_search",
+            species_name=species_name,
+            kb_found=False,
+            kb_summary="⚠️ f项目知识库不可用，已直接启动全量搜索。",
+            kb_recommendation="continue_to_c",
+            full_search=full,
+            suggested_next="done",
+        )
+
+    try:
+        kb = orch.kb_first_lookup(query=species_name)
+    except Exception as exc:
+        # KB lookup failed → fall through to full search
+        logger.warning("KB lookup failed: %s, running full search", exc)
+        full = search(species_name, group=group, limit=limit)
+        return KbFirstSearchResult(
+            stage="full_search",
+            species_name=species_name,
+            kb_found=False,
+            kb_summary="⚠️ KB查询失败，已直接启动全量搜索。",
+            kb_recommendation="continue_to_c",
+            full_search=full,
+            suggested_next="done",
+        )
+
+    # KB lookup succeeded — build result for user decision
+    kb_data = {
+        "found": getattr(kb, "found", False),
+        "scientific_name": getattr(kb, "scientific_name", ""),
+        "chinese_name": getattr(kb, "chinese_name", ""),
+        "aliases": getattr(kb, "aliases", []),
+        "synonyms": getattr(kb, "synonyms", []),
+        "family": getattr(kb, "family", ""),
+        "conservation": getattr(kb, "conservation", ""),
+        "ecology": getattr(kb, "ecology", ""),
+        "distribution": getattr(kb, "distribution", ""),
+        "summary_text": getattr(kb, "summary_text", ""),
+        "search_recommendation": getattr(kb, "search_recommendation", "continue_to_c"),
+        "all_candidates": getattr(kb, "all_candidates", []),
+    }
+
+    return KbFirstSearchResult(
+        stage="kb_check",
+        species_name=species_name,
+        kb_found=getattr(kb, "found", False),
+        kb_summary=getattr(kb, "summary_text", ""),
+        kb_recommendation=getattr(kb, "search_recommendation", "continue_to_c"),
+        kb_data=kb_data,
+        all_candidates=getattr(kb, "all_candidates", []),
+        suggested_next="ask_user",
+    )
+
+
+def continue_full_search(
+    stage1_result: KbFirstSearchResult,
+    group: str = "full",
+    limit: int = 10,
+) -> KbFirstSearchResult:
+    """Stage 2: Continue to full search with c项目, enriched by KB data.
+
+    Takes the Stage 1 result (kb_check), enriches the search with KB-known
+    synonyms/aliases/variants, and runs search() from search_coordinator.
+
+    Args:
+        stage1_result: Result from kb_first() Stage 1.
+        group: Engine group ("quick"/"standard"/"full").
+        limit: Max results per engine.
+
+    Returns:
+        KbFirstSearchResult with stage="full_search" and populated full_search.
+    """
+    # Build enriched species name: prefer KB scientific name
+    kb = stage1_result.kb_data
+    search_name = kb.get("scientific_name", "") or stage1_result.species_name
+
+    # Run full coordinated search
+    full = search(
+        species_name=search_name,
+        group=group,
+        limit=limit,
+    )
+
+    stage1_result.stage = "full_search"
+    stage1_result.full_search = full
+    stage1_result.suggested_next = "done"
+
+    return stage1_result
