@@ -1,4 +1,4 @@
-﻿# Cognitive Search Engine 🕸️
+# Cognitive Search Engine 🕸️
 
 **三角核心 V/V1 层** — 多源并行搜索 · 分类学验证 · 可信度评分。
 
@@ -84,17 +84,7 @@ cognitive-search-engine/
 │   └── search_api.py           ← CLI 入口
 └── config/
     └── evolution.yaml          ← 自适应参数
-```---------|:--------:|:--------|
-| [fish-ecology-assistant](../fish-ecology-assistant/) | V0 | 📦 知识供给 |
-| [cognitive-search-engine](../cognitive-search-engine/) | V1 | 🔍 搜索验证 |
-| [eon-core](../eon-core/) | Coord | ⚙️ 协调内核 |
-| [porpoise-agent](../porpoise-agent/) | P₁ | 🐬 江豚专研 |
-| [coilia-agent](../coilia-agent/) | P₂ | 🐟 刀鲚专研 |
-| [culter-agent](../culter-agent/) | P₃ | 🐟 鲌类专研 |
-| [conflict-arbiter](../conflict-arbiter/) | C | 🔥 冲突仲裁 |
-
----
----
+```
 
 
 ## 🔗 生态体系

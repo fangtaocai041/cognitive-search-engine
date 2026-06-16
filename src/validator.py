@@ -455,3 +455,192 @@ def quick_validate(papers: list[dict]) -> dict:
         "unique_sources": result.stats["unique_sources"],
         "unique_projects": result.stats["unique_projects"],
     }
+
+# ═══════════════════════════════════════════════════════════════
+# Cross-Project: Conflict Arbiter Integration (C → V1)
+# ═══════════════════════════════════════════════════════════════
+
+def arbitrate_conservation(species: str,
+                           claims: list[dict],
+                           region: str = "china") -> dict:
+    """Cross-project conservation conflict arbitration.
+
+    Integrates conflict-arbiter (C) into the V1 validation pipeline.
+    Detects conflicts between IUCN, China Red List, CITES, and other
+    conservation assessments for the same species.
+
+    Cross-pollination:
+      conflict-arbiter/src/arbiter.py → cognitive-search-engine/src/validator.py
+
+    Args:
+        species: Scientific name (e.g. "Coilia nasus")
+        claims: List of conservation claims, each with:
+            - source: "iucn" | "china_red_list" | "cites" | "local"
+            - status: Original status string
+            - year: Assessment year (optional)
+            - region: Geographic scope (optional)
+        region: Default region for weighting ("china" applies China-priority)
+
+    Returns:
+        {
+            "conflicts_detected": bool,
+            "conflict_level": 0-3,
+            "arbitrated_status": str,
+            "confidence": float,
+            "details": [...]
+        }
+    """
+    try:
+        from conflict_arbiter.src.arbiter import ConflictArbiter
+        arbiter = ConflictArbiter()
+
+        # Map claims to conflict-arbiter format
+        sources_dict = {}
+        for claim in claims:
+            source_key = claim.get("source", "unknown")
+            status = claim.get("status", "")
+            sources_dict[source_key] = status
+
+        # Detect conflicts
+        result = arbiter.detect_conflicts(
+            species=species,
+            sources=sources_dict,
+            region=region,
+        )
+
+        return {
+            "conflicts_detected": result.get("has_conflict", False),
+            "conflict_level": result.get("conflict_level", 0),
+            "conflict_level_label": _conflict_level_label(
+                result.get("conflict_level", 0)),
+            "arbitrated_status": result.get("arbitrated_status", ""),
+            "arbitrated_score": result.get("arbitrated_score", 0),
+            "confidence": result.get("confidence", 0.5),
+            "circuit_triggered": result.get("circuit_triggered", False),
+            "needs_human_review": result.get("needs_human_review", False),
+            "source_details": result.get("source_details", {}),
+            "arbiter": "conflict-arbiter (C)",
+        }
+
+    except (ImportError, Exception) as e:
+        # Graceful degradation: return basic conflict check
+        return _basic_conservation_check(species, claims, str(e))
+
+
+def _conflict_level_label(level: int) -> str:
+    """Human-readable conflict level."""
+    return {
+        0: "一致 (Consistent)",
+        1: "轻微差异 (Minor)",
+        2: "显著差异 (Significant)",
+        3: "严重对立 (Severe)",
+    }.get(level, "未知")
+
+
+def _basic_conservation_check(species: str, claims: list[dict],
+                              error: str = "") -> dict:
+    """Fallback conservation check when conflict-arbiter unavailable."""
+    statuses = set(c.get("status", "") for c in claims)
+    return {
+        "conflicts_detected": len(statuses) > 1,
+        "conflict_level": 1 if len(statuses) > 1 else 0,
+        "conflict_level_label": "轻微差异 (fallback)" if len(statuses) > 1 else "一致",
+        "arbitrated_status": list(statuses)[0] if statuses else "unknown",
+        "confidence": 0.3,
+        "circuit_triggered": False,
+        "needs_human_review": len(statuses) > 1,
+        "source_details": {"note": f"Conflict-arbiter unavailable: {error}"},
+        "arbiter": "basic_check (fallback)",
+    }
+
+
+def validate_with_arbitration(papers: list[dict],
+                              species: str = "",
+                              region: str = "china",
+                              **kwargs) -> dict:
+    """Full validation + conservation conflict arbitration.
+
+    Combines cognitive-search-engine's validator with conflict-arbiter's
+    multi-source conservation conflict detection.
+
+    Pipeline:
+      1. Standard paper validation (trust + credibility scoring)
+      2. Independence enforcement (cross-project source check)
+      3. Conservation conflict arbitration (conflict-arbiter C integration)
+
+    This is the RECOMMENDED validation method for species with
+    conservation status questions.
+    """
+    # Step 1: Standard validation
+    validation = validate_papers(papers, **kwargs)
+
+    # Step 2: Extract conservation claims from papers
+    conservation_claims = []
+    for p in validation.papers:
+        source = p.get("source", p.get("source_project", ""))
+        title = p.get("title", "")
+        journal = p.get("journal", "")
+
+        # Detect conservation-related content
+        is_conservation = any(kw in (title + journal).lower() for kw in [
+            "iucn", "red list", "conservation", "endangered",
+            "threatened", "vulnerable", "protected", "cites",
+            "保护", "红色名录", "濒危", "重点保护",
+        ])
+
+        if is_conservation and p.get("trust_score", 0) >= 50:
+            conservation_claims.append({
+                "source": source,
+                "status": _infer_conservation_status(title, journal),
+                "year": p.get("year"),
+                "region": p.get("region", region),
+            })
+
+    # Step 3: Arbitrate if conservation claims found
+    arbitration = None
+    if conservation_claims and species:
+        arbitration = arbitrate_conservation(
+            species=species,
+            claims=conservation_claims,
+            region=region,
+        )
+
+    result = {
+        "validation": {
+            "total": validation.stats["total"],
+            "verified": validation.stats["verified_count"],
+            "tentative": validation.stats["tentative_count"],
+            "rejected": validation.stats["rejected_count"],
+            "independence_passed": validation.stats["independence_passed"],
+            "unique_sources": validation.stats["unique_sources"],
+            "unique_projects": validation.stats["unique_projects"],
+            "violations": [v["violation"] for v in validation.independence_violations],
+        },
+        "arbitration": arbitration,
+        "pipeline": "V1(validator) + C(conflict-arbiter)",
+    }
+    return result
+
+
+def _infer_conservation_status(title: str, journal: str) -> str:
+    """Infer conservation status from paper title/journal."""
+    text = (title + " " + journal).lower()
+    if "critically endangered" in text or "极危" in text:
+        return "CR"
+    if "endangered" in text or "濒危" in text:
+        return "EN"
+    if "vulnerable" in text or "易危" in text:
+        return "VU"
+    if "near threatened" in text or "近危" in text:
+        return "NT"
+    if "least concern" in text or "无危" in text:
+        return "LC"
+    if "国家一级" in text or "first class" in text:
+        return "国家一级保护"
+    if "国家二级" in text or "second class" in text:
+        return "国家二级保护"
+    if "cites appendix i" in text:
+        return "CITES Appendix I"
+    if "cites appendix ii" in text:
+        return "CITES Appendix II"
+    return "unknown"
