@@ -103,7 +103,7 @@ cognitive-search-engine/
 
 本项目是「三生万物」生态的 V1。
 
-`
+```
 三角核心 (sealed 3):
   📦 fish-ecology-assistant    → 知识供给 (V0)
   🔍 cognitive-search-engine   → 搜索验证 (V1)
@@ -114,7 +114,7 @@ cognitive-search-engine/
   🐟 coilia-agent      → 刀鲚专研 (P₂)
   🐟 culter-agent      → 鲌类专研 (P₃)
   🔥 conflict-arbiter  → 冲突仲裁 (C)
-`
+```
 > 🌊 万物皆变 · Panta Rhei
 >
 > 🏛️ 赫拉克利特说：人不能两次踏进同一条河流。
