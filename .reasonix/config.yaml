@@ -1,0 +1,14 @@
+# Reasonix Code — Project Configuration
+# Cognitive Search Engine workspace
+# 所有外部搜索请求的唯一入口：本地认知搜索引擎
+
+search_gateway:
+  exclusive: true
+  engine: "cognitive-search-engine"
+  rule: |
+    WHEN user asks to search/retrieve/lookup anything (species, literature, papers, concepts):
+      THEN run the local Cognitive Search Engine (MesoAgent) FIRST
+      THEN use built-in skills ONLY as fallback on engine error
+    DO NOT skip the local engine — it is the mandatory gateway.
+  entry: "python search_*.py OR MesoAgent.search()"
+  fallback: "builtin_skills_only_on_engine_error"

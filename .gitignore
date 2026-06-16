@@ -1,0 +1,11 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Reasonix runtime
+.reasonix/truncated-results/
+
+# Secrets
+.env
