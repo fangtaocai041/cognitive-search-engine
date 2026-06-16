@@ -12,8 +12,6 @@ Capabilities:
 from __future__ import annotations
 
 import logging
-import os
-import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -35,34 +33,11 @@ class CognitiveSearchAdapter:
         self._init_engine()
 
     def _init_engine(self) -> None:
-        """Lazy-init the cognitive engine via DirectLoader."""
-        base = Path(__file__).resolve().parent.parent  # cognitive-search-engine root
-        engine_file = base / "src" / "meso_agent.py"
-
-        if not engine_file.is_file():
-            logger.warning(f"Cognitive engine not found at {engine_file}")
-            return
-
-        self._engine_root = base
-        proj_str = str(base)
-        if proj_str in sys.path:
-            sys.path.remove(proj_str)
-        sys.path.insert(0, proj_str)
-
+        """Lazy-init the cognitive engine via direct import."""
         try:
-            import importlib.util
-            spec = importlib.util.spec_from_file_location("cogsearch.meso", str(engine_file))
-            if spec and spec.loader:
-                mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)
-                factory = getattr(mod, "create_agent", None)
-                if factory:
-                    self._engine = factory(mode="http")
-                else:
-                    # Fallback: try MesoAgent class
-                    agent_cls = getattr(mod, "MesoAgent", None)
-                    if agent_cls:
-                        self._engine = agent_cls()
+            from src.meso_agent import create_agent
+            self._engine = create_agent(mode="http")
+            self._engine_root = Path(__file__).resolve().parent.parent
         except Exception as exc:
             logger.warning(f"Cognitive engine init failed: {exc}")
 

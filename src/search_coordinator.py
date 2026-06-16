@@ -38,10 +38,13 @@ try:
     from src.unified_search import (
         check_taxonomy, estimate_mode, is_incidental, classify_paper,
         cn_en_label, SearchMode, SearchDecision, SearchReport,
+        ENGINE_REGISTRY, ENGINE_GROUPS, EngineResult,
     )
     _HAVE_RULES = True
 except ImportError:
     _HAVE_RULES = False
+    ENGINE_REGISTRY = {}
+    ENGINE_GROUPS = {"quick": [], "standard": [], "full": [], "chinese": []}
 
 
 # ═══════════════════════════════════════════════════════
@@ -168,14 +171,13 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
     # 3. 多引擎并行搜索 — 直接调用 MCP 工具 (本会话可用)
     engine_results = _run_real_search(variants, group, limit)
 
-    # 4. 合并 + 去重
-    merged = aggregate_results(engine_results) if callable(aggregate_results) else {}
-    all_papers = merged.get("papers", [])
-    engine_stats = merged.get("stats", {})
-    if not engine_stats:
-        engine_stats = {"ok": 0, "degraded": 0, "error": 0}
-        for r in engine_results:
-            engine_stats[r.status] = engine_stats.get(r.status, 0) + 1
+    # 4. 合并 + 去重 (从 EngineResult 列表提取论文)
+    all_papers = []
+    engine_stats: Dict[str, int] = {}
+    for er in engine_results:
+        engine_stats[er.status] = engine_stats.get(er.status, 0) + 1
+        if er.results:
+            all_papers.extend(er.results)
 
     # 5. 规则分类 (unified_search §2-4)
     classified_papers = []
@@ -231,53 +233,107 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
 # ═══════════════════════════════════════════════════════
 
 def _run_real_search(variants: List[str], group: str, limit: int) -> List[EngineResult]:
-    """实际调用 MCP 工具执行搜索。
+    """实际调用搜索引擎执行搜索。
 
-    在 Reasonix 会话中, 所有 MCP 函数可直接调用 (globals()).
-    在离线环境, 返回 degraded 状态。
+    优先级:
+      1. MCP 工具函数 (在 Reasonix 会话中)
+      2. MesoAgent (BDI 管线, 支持 HTTP 直连)
+      3. ParallelSearch (纯 HTTP 并行搜索)
     """
     engines = ENGINE_GROUPS.get(group, ENGINE_GROUPS["full"])
     results = []
 
-    # 对每个变体×每个引擎依次调用
-    for variant in variants[:3]:  # 最多3个变体
-        for engine_id in engines:
-            info = ENGINE_REGISTRY.get(engine_id, {})
-            tool_name = info.get("tool", "")
-            if not tool_name:
-                continue
+    # ── 尝试 MCP 工具 ──
+    mcp_available = any(
+        globals().get(ENGINE_REGISTRY[e].get("tool", ""))
+        for e in engines if e in ENGINE_REGISTRY
+    )
+    if not mcp_available:
+        try:
+            mcp_available = any(
+                getattr(__builtins__, ENGINE_REGISTRY[e].get("tool", ""), None)
+                for e in engines if e in ENGINE_REGISTRY
+            )
+        except Exception:
+            mcp_available = False
 
+    if mcp_available:
+        for variant in variants[:3]:
+            for engine_id in engines:
+                info = ENGINE_REGISTRY.get(engine_id, {})
+                tool_name = info.get("tool", "")
+                if not tool_name:
+                    continue
+                t0 = time.perf_counter()
+                er = EngineResult(engine=engine_id, query=variant, tool=tool_name)
+                fn = globals().get(tool_name)
+                if fn is None:
+                    try:
+                        fn = getattr(__builtins__, tool_name, None)
+                    except Exception:
+                        fn = None
+                if fn is None:
+                    er.status = "degraded"
+                    er.error = f"MCP {tool_name}: not available"
+                else:
+                    try:
+                        result = _call_mcp(fn, variant, limit)
+                        if isinstance(result, list):
+                            er.results = result
+                        elif isinstance(result, dict):
+                            er.results = result.get("results", result.get("papers", [result]))
+                        else:
+                            er.results = [result]
+                        er.status = "ok"
+                    except Exception as e:
+                        er.status = "error"
+                        er.error = str(e)[:200]
+                er.elapsed_ms = (time.perf_counter() - t0) * 1000
+                results.append(er)
+        return results
+
+    # ── Fallback: MesoAgent (BDI 管线 + HTTP 直连) ──
+    try:
+        from src.meso_agent import MesoAgent, MesoConfig
+        agent = MesoAgent(MesoConfig(mode="http"))
+        for variant in variants[:2]:
             t0 = time.perf_counter()
-            er = EngineResult(engine=engine_id, query=variant, tool=tool_name)
-
-            # 尝试从 globals() 获取MCP函数并调用
-            fn = globals().get(tool_name)
-            if fn is None:
-                # 尝试 __builtins__
-                try:
-                    fn = getattr(__builtins__, tool_name, None)
-                except Exception:
-                    fn = None
-
-            if fn is None:
-                er.status = "degraded"
-                er.error = f"MCP {tool_name}: not available"
-            else:
-                try:
-                    result = _call_mcp(fn, variant, limit)
-                    if isinstance(result, list):
-                        er.results = result
-                    elif isinstance(result, dict):
-                        er.results = result.get("results", result.get("papers", [result]))
-                    else:
-                        er.results = [result]
-                    er.status = "ok"
-                except Exception as e:
-                    er.status = "error"
-                    er.error = str(e)[:200]
-
+            er = EngineResult(engine="meso_agent", query=variant, tool="MesoAgent.search")
+            try:
+                r = agent.search(variant.replace(" ", "_"))
+                papers = getattr(r, "papers", r.get("papers", [])) if isinstance(r, dict) else getattr(r, "papers", [])
+                er.results = papers[:limit]
+                er.status = "ok" if papers else "degraded"
+                er.error = "" if papers else "MesosAgent returned 0 papers"
+            except Exception as e:
+                er.status = "error"
+                er.error = str(e)[:200]
             er.elapsed_ms = (time.perf_counter() - t0) * 1000
             results.append(er)
+        if results:
+            return results
+    except Exception as e:
+        logger.debug("MesoAgent fallback failed: %s", e)
+
+    # ── Last resort: ParallelSearch (纯 HTTP) ──
+    try:
+        from src.parallel_search import ParallelSearch
+        searcher = ParallelSearch(max_workers=4)
+        for variant in variants[:2]:
+            t0 = time.perf_counter()
+            er = EngineResult(engine="parallel_search", query=variant, tool="ParallelSearch.search")
+            try:
+                stats = searcher.search(variant)
+                er.results = stats.new_papers[:limit]
+                er.status = "ok" if stats.new_papers else "degraded"
+            except Exception as e:
+                er.status = "error"
+                er.error = str(e)[:200]
+            er.elapsed_ms = (time.perf_counter() - t0) * 1000
+            results.append(er)
+        searcher.close()
+    except Exception as e:
+        logger.debug("ParallelSearch fallback failed: %s", e)
 
     return results
 
