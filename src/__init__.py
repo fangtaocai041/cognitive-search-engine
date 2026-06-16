@@ -7,6 +7,7 @@ from .meso_agent import create_agent, MesoAgent
 from .rule_engine import SearchRuleEngine
 from .mcp_client import McpClient, get_client
 from .world_model import WorldModel
+from .unified_search import check_taxonomy, detect_taxonomy_discrepancy, estimate_mode, classify_paper
 
 __all__ = [
     "CognitiveSearchAdapter",
@@ -16,5 +17,9 @@ __all__ = [
     "McpClient",
     "get_client",
     "WorldModel",
+    "check_taxonomy",
+    "detect_taxonomy_discrepancy",
+    "estimate_mode",
+    "classify_paper",
     "__version__",
 ]
