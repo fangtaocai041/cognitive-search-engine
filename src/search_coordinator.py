@@ -27,6 +27,8 @@ import logging
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
+from pathlib import Path
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -634,3 +636,93 @@ def continue_full_search(
     stage1_result.suggested_next = "done"
 
     return stage1_result
+
+# ═══════════════════════════════════════════════════════
+# Graph Traversal + Write-back helpers
+# ═══════════════════════════════════════════════════════
+
+def _load_species_graph() -> List[Dict[str, Any]]:
+    """Load species graph from YAML."""
+    try:
+        import yaml
+        path = Path(__file__).resolve().parent.parent / "config" / "species_graph.yaml"
+        if path.is_file():
+            data = yaml.safe_load(path.read_text(encoding="utf-8"))
+            return data.get("graph", {}).get("species", [])
+    except Exception as e:
+        logger.debug(f"Can't load species graph: {e}")
+    return []
+
+
+def _write_back_to_fish_kb(result: KbFirstSearchResult) -> bool:
+    """Write search results back to fish-ecology-assistant knowledge base.
+
+    This implements the V(cognitive)->S(fish) feedback loop:
+      - New papers found by C project -> append to fish KB
+      - Topology info (related species, family) -> update species graph
+
+    Args:
+        result: Completed KbFirstSearchResult with full_search populated.
+
+    Returns:
+        True if write succeeded, False otherwise.
+    """
+    if not result.full_search or not result.full_search.papers:
+        return False
+
+    try:
+        new_papers = result.full_search
+        species_name = result.species_name
+
+        # Path to fish KB species file
+        fish_kb_dir = Path(__file__).resolve().parent.parent.parent /             "fish-ecology-assistant" / "data" / "knowledge_base" / "species"
+        fish_kb_dir.mkdir(parents=True, exist_ok=True)
+        
+        kb_file = fish_kb_dir / f"{species_name.replace(chr(32), "_").lower()}.md"
+
+        if not kb_file.is_file():
+            # Create new KB entry
+            content = [
+                f"# {species_name} — 物种知识库",
+                f"",
+                f"## 基本信息",
+                f"- 物种: {species_name}",
+                f"- 来源: 认知搜索引擎 v5.8 全量搜索",
+                f"- 搜索时间: {time.strftime('%Y-%m-%d %H:%M')}",
+                f"- 引擎组: full (15引擎)",
+                f"",
+                f"## 文献列表 ({len(new_papers.papers)} 篇)",
+            ]
+            for i, p in enumerate(new_papers.papers[:50], 1):
+                title = p.get("title", "").strip()
+                if title:
+                    doi = p.get("doi", "")
+                    doi_str = f" DOI:{doi}" if doi else ""
+                    authors = p.get("authors", [])
+                    author_str = f", {chr(44).join(authors[:3])}" if authors else ""
+                    year = p.get("year", "")
+                    journal = p.get("journal", "")
+                    content.append(f"  {i}. {title}{author_str} ({year}) {journal}{doi_str}")
+            content.append("")
+            content.append("## 图谱拓扑")
+            content.append("- 同科近缘种: 见 species_graph.yaml")
+            kb_file.write_text(chr(10).join(content), encoding="utf-8")
+        else:
+            # Append new papers to existing KB
+            existing = kb_file.read_text(encoding="utf-8")
+            new_lines = []
+            for p in new_papers.papers[:30]:
+                title = p.get("title", "").strip()
+                if title and title not in existing:
+                    doi = p.get("doi", "")
+                    doi_str = f" DOI:{doi}" if doi else ""
+                    new_lines.append(f"  - {title}{doi_str}")
+            if new_lines:
+                with open(kb_file, "a", encoding="utf-8") as f:
+                    f.write(chr(10).join(["", "## 认知引擎补充文献", *new_lines, ""]))
+
+        logger.info(f"Written {len(new_papers.papers)} papers to fish KB: {kb_file}")
+        return True
+    except Exception as e:
+        logger.error(f"Write-back to fish KB failed: {e}")
+        return False
