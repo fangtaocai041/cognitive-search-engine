@@ -414,6 +414,297 @@ def _search_cnki_web(chinese_name: str, max_results: int = 10) -> List[Dict[str,
 
 # ═══════════════════════════════════════════════════════════════
 # Provider registry
+def _search_baidu_scholar(chinese_name: str, max_results: int = 10) -> List[Dict[str, Any]]:
+    """Search Baidu Scholar for Chinese academic papers.
+
+    Uses xueshu.baidu.com search with site scraping.
+    """
+    papers: List[Dict[str, Any]] = []
+    if not chinese_name:
+        return papers
+    try:
+        safe_q = urllib.parse.quote(chinese_name)
+        url = f"https://xueshu.baidu.com/s?wd={safe_q}&rsv_bp=0&tn=SE_baiduxueshu_c1g0"
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept-Language": "zh-CN,zh;q=0.9",
+        })
+        with urllib.request.urlopen(req, timeout=_TIMEOUT_S) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+
+        # Extract paper entries
+        entries = re.findall(
+            r'<div class="result[^"]*"(.*?)</div>\s*</div>\s*</div>\s*<div class="pager"',
+            html, re.DOTALL
+        ) or re.findall(r'<div class="sc_content"[^>]*>(.*?)</div>\s*<!--/sc_content-->', html, re.DOTALL)
+        
+        if not entries:
+            entries = re.findall(r'<h3[^>]*class="t"[^>]*>(.*?)</h3>', html, re.DOTALL)[:max_results]
+
+        for i, entry in enumerate(entries[:max_results]):
+            title_m = re.search(r'<a[^>]*>(.*?)</a>', entry, re.DOTALL)
+            title = re.sub(r'<.*?>', '', title_m.group(1)).strip() if title_m else ""
+            if not title:
+                title_m2 = re.search(r'class="t"[^>]*>(.*?)</a>', entry, re.DOTALL)
+                title = re.sub(r'<.*?>', '', title_m2.group(1)).strip() if title_m2 else ""
+
+            paper = {
+                "doi": "",
+                "title": title,
+                "authors": [],
+                "year": "",
+                "journal": "",
+                "abstract": "",
+                "source": "baidu_scholar",
+                "pmid": "", "pmcid": "",
+                "url": "",
+                "credibility_score": 35,
+                "_channel": "CN",
+            }
+            papers.append(paper)
+    except Exception as e:
+        logger.debug(f"Baidu Scholar search failed: {e}")
+    return papers
+
+
+# ═══════════════════════════════════════════════════════════════
+# Provider: Wanfang Data (中文)
+# ═══════════════════════════════════════════════════════════════
+
+def _search_wanfang_web(chinese_name: str, max_results: int = 10) -> List[Dict[str, Any]]:
+    """Search Wanfang Data via web interface for Chinese papers."""
+    papers: List[Dict[str, Any]] = []
+    if not chinese_name:
+        return papers
+    try:
+        safe_q = urllib.parse.quote(chinese_name)
+        url = f"https://s.wanfangdata.com.cn/paper?q={safe_q}&p=1&ps={max_results}"
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept-Language": "zh-CN,zh;q=0.9",
+        })
+        with urllib.request.urlopen(req, timeout=_TIMEOUT_S) as resp:
+            text = resp.read().decode("utf-8", errors="replace")
+
+        # Extract paper titles and metadata
+        titles = re.findall(r'<a[^>]*class="title"[^>]*>(.*?)</a>', text, re.DOTALL)[:max_results]
+        for title_html in titles:
+            title = re.sub(r'<.*?>', '', title_html).strip()
+            if not title:
+                continue
+            paper = {
+                "doi": "",
+                "title": title,
+                "authors": [],
+                "year": "",
+                "journal": "",
+                "abstract": "",
+                "source": "wanfang_web",
+                "pmid": "", "pmcid": "",
+                "url": "",
+                "credibility_score": 35,
+                "_channel": "CN",
+            }
+            papers.append(paper)
+    except Exception as e:
+        logger.debug(f"Wanfang web search failed: {e}")
+    return papers
+
+
+# ═══════════════════════════════════════════════════════════════
+# Provider: CrossRef Direct API
+# ═══════════════════════════════════════════════════════════════
+
+def _search_crossref_direct(query: str, max_results: int = 15) -> List[Dict[str, Any]]:
+    """Search CrossRef REST API directly (free, no key needed).
+
+    More flexible than the MCP article-mcp, with email-based polite pool.
+    """
+    papers: List[Dict[str, Any]] = []
+    try:
+        params = urllib.parse.urlencode({
+            "query": query,
+            "rows": min(max_results, 30),
+            "sort": "relevance",
+            "order": "desc",
+            "mailto": "fangtaocai041@gmail.com",  # polite pool
+        })
+        url = f"https://api.crossref.org/works?{params}"
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "ReasonixCognitiveSearch/5.8 (fangtaocai041@gmail.com)",
+        })
+        with urllib.request.urlopen(req, timeout=_TIMEOUT_S) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+
+        items = data.get("message", {}).get("items", [])
+        for item in items[:max_results]:
+            title = (item.get("title") or [""])[0]
+            if not title:
+                continue
+            authors = []
+            for a in item.get("author", []):
+                given = a.get("given", "")
+                family = a.get("family", "")
+                authors.append(f"{given} {family}".strip())
+            doi = item.get("DOI", "")
+            year = ""
+            if item.get("published-print"):
+                year = str(item["published-print"].get("date-parts", [[None]])[0][0] or "")
+            elif item.get("published-online"):
+                year = str(item["published-online"].get("date-parts", [[None]])[0][0] or "")
+            journal = (item.get("container-title") or [""])[0]
+
+            papers.append({
+                "doi": doi,
+                "title": title,
+                "authors": authors,
+                "year": year,
+                "journal": journal,
+                "abstract": "",
+                "source": "crossref_direct",
+                "pmid": "", "pmcid": "",
+                "url": f"https://doi.org/{doi}" if doi else "",
+                "credibility_score": 60,
+            })
+    except Exception as e:
+        logger.debug(f"CrossRef direct search failed: {e}")
+    return papers
+
+
+# ═══════════════════════════════════════════════════════════════
+# Provider: Semantic Scholar API
+# ═══════════════════════════════════════════════════════════════
+
+def _search_semantic_scholar(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
+    """Search Semantic Scholar API (free, no key for basic)."""
+    papers: List[Dict[str, Any]] = []
+    try:
+        params = urllib.parse.urlencode({
+            "query": query,
+            "limit": min(max_results, 50),
+            "fields": "title,authors,year,journal,externalIds,abstract,url",
+        })
+        url = f"https://api.semanticscholar.org/graph/v1/paper/search?{params}"
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "ReasonixCognitiveSearch/5.8 (fangtaocai041@gmail.com)",
+        })
+        with urllib.request.urlopen(req, timeout=_TIMEOUT_S) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+
+        for p in data.get("data", [])[:max_results]:
+            title = p.get("title", "")
+            if not title:
+                continue
+            authors = [a.get("name", "") for a in p.get("authors", []) if a.get("name")]
+            year = str(p.get("year", ""))
+            journal = (p.get("journal", {}) or {}).get("name", "")
+            ext_ids = p.get("externalIds", {}) or {}
+            doi = ext_ids.get("DOI", "")
+            pmid = ext_ids.get("PubMed", "")
+
+            papers.append({
+                "doi": doi,
+                "title": title,
+                "authors": authors,
+                "year": year,
+                "journal": journal,
+                "abstract": p.get("abstract", ""),
+                "source": "semantic_scholar",
+                "pmid": pmid,
+                "pmcid": "",
+                "url": p.get("url", f"https://doi.org/{doi}" if doi else ""),
+                "credibility_score": 65,
+            })
+    except Exception as e:
+        logger.debug(f"Semantic Scholar search failed: {e}")
+    return papers
+
+
+# ═══════════════════════════════════════════════════════════════
+# Provider: bioRxiv / medRxiv (预印本)
+# ═══════════════════════════════════════════════════════════════
+
+def _search_biorxiv_medrxiv(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
+    """Search bioRxiv/medRxiv API for preprints."""
+    papers: List[Dict[str, Any]] = []
+    try:
+        for server in ["biorxiv", "medrxiv"]:
+            params = urllib.parse.urlencode({"q": query})
+            url = f"https://api.biorxiv.org/details/{server}/2020-01-01/2030-12-31/0/{max_results}?{params}"
+            try:
+                req = urllib.request.Request(url, headers={
+                    "User-Agent": "ReasonixCognitiveSearch/5.8",
+                })
+                with urllib.request.urlopen(req, timeout=_TIMEOUT_S) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                for item in data.get("collection", [])[:max_results]:
+                    title = item.get("title", "")
+                    if not title or query.lower() not in title.lower():
+                        continue
+                    papers.append({
+                        "doi": item.get("doi", ""),
+                        "title": title,
+                        "authors": [item.get("author", "")],
+                        "year": str(item.get("date", "")[:4]),
+                        "journal": f"{server} preprint",
+                        "abstract": item.get("abstract", ""),
+                        "source": server,
+                        "pmid": "", "pmcid": "",
+                        "url": f"https://doi.org/{item.get('doi', '')}" if item.get('doi') else "",
+                        "credibility_score": 40,
+                    })
+            except Exception:
+                continue
+    except Exception as e:
+        logger.debug(f"bioRxiv/medRxiv search failed: {e}")
+    return papers
+
+
+# ═══════════════════════════════════════════════════════════════
+# Provider: ResearchGate (web scrape)
+# ═══════════════════════════════════════════════════════════════
+
+def _search_researchgate(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
+    """Search ResearchGate via public web search.
+
+    ResearchGate has no public API, so uses Bing site: search as fallback.
+    """
+    papers: List[Dict[str, Any]] = []
+    try:
+        safe_q = urllib.parse.quote(f"{query} site:researchgate.net/publication")
+        bing_url = (
+            "https://www.bing.com/search?"
+            + urllib.parse.urlencode({"q": f"{query} researchgate publication", "count": max_results})
+        )
+        req = urllib.request.Request(bing_url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        })
+        with urllib.request.urlopen(req, timeout=_TIMEOUT_S) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+
+        snippets = re.findall(r'<li class="b_algo"(.*?)</li>', html, re.DOTALL)
+        for sn in snippets[:max_results]:
+            title_m = re.search(r'<h2>.*?<a[^>]*>(.*?)</a>', sn, re.DOTALL)
+            title = re.sub(r'<.*?>', '', title_m.group(1)).strip() if title_m else ""
+            if not title:
+                continue
+            papers.append({
+                "doi": "",
+                "title": title,
+                "authors": [],
+                "year": "",
+                "journal": "",
+                "abstract": "",
+                "source": "researchgate",
+                "pmid": "", "pmcid": "",
+                "url": "",
+                "credibility_score": 30,
+            })
+    except Exception as e:
+        logger.debug(f"ResearchGate search failed: {e}")
+    return papers
+
+
 # ═══════════════════════════════════════════════════════════════
 
 _PROVIDERS: Dict[str, Tuple[Callable, int]] = {
@@ -422,11 +713,17 @@ _PROVIDERS: Dict[str, Tuple[Callable, int]] = {
     "crossref": (_search_crossref, 20),
     "openalex": (_search_openalex, 20),
     "arxiv": (_search_arxiv, 10),
+    "crossref_direct": (_search_crossref_direct, 15),
+    "semantic_scholar": (_search_semantic_scholar, 10),
+    "biorxiv_medrxiv": (_search_biorxiv_medrxiv, 10),
+    "researchgate": (_search_researchgate, 10),
 }
 
 # Chinese providers run separately with chinese_name
 _CN_PROVIDERS: Dict[str, Tuple[Callable, int]] = {
     "cnki_web": (_search_cnki_web, 10),
+    "baidu_scholar": (_search_baidu_scholar, 10),
+    "wanfang_web": (_search_wanfang_web, 10),
 }
 
 
@@ -651,3 +948,8 @@ class ParallelSearch:
 
     def __exit__(self, *args) -> None:
         self.close()
+
+# ═══════════════════════════════════════════════════════════════
+# Provider: Baidu Scholar (中文)
+# ═══════════════════════════════════════════════════════════════
+

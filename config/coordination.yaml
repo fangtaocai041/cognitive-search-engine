@@ -50,9 +50,12 @@ search_engines:
     loader: "DirectLoader (importlib)"
 
   engine_groups:
+    # 19 引擎 (7 MCP + 5 中文原生 + 2 预印本 + 2 语义 + 3 内置)
     quick: ["scholar_graph", "ncbi_esearch", "web_search"]
     standard: ["scholar_graph", "ncbi_esearch", "crossref_article", "web_search", "tavily_search"]
-    full: ["scholar_graph", "ncbi_esearch", "crossref_article", "scholarly_multi", "tavily_search", "exa_search", "web_search"]
+    full: ["scholar_graph", "ncbi_esearch", "crossref_article", "scholarly_multi", "baidu_scholar", "tavily_search", "exa_search", "biorxiv_api", "web_search"]
+    chinese: ["baidu_scholar", "cnki_web", "wanfang_web", "cas_web", "scholar_graph", "ncbi_esearch", "chinese_sweep"]
+    preprint: ["biorxiv_api", "researchgate_web", "scholar_graph"]
 
 # ═══════════════════════════════════════════════════════
 # 共享日志格式

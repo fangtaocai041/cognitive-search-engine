@@ -8,9 +8,9 @@
 
 ## 🔺 Triangle Core Role: **V1 (Validation)**
 
-> **Part of Triangle Core**, coordinated by [eon-core](https://github.com/fangtaocai041/eon-core).
-> **Triangle Core**: fish(V0) + cognitive(V1) + eon-core(Coordinator)
-> **Derived (三生万物)**: P₁(porpoise) · P₂(coilia) · ...
+> **Part of Triangle Core (三角闭环)**, coordinated by [eon-core](https://github.com/fangtaocai041/eon-core).
+> **三角闭环 (Triangle Core)**: fish(V0知识库) + cognitive(V1验证) + eon-core(协调器) — 缺一不可
+> **三生万物 (Derived)**: P₁(porpoise) · P₂(coilia) · 无限衍生
 >
 > Validates search results, authority credibility scoring, enforces triangulation (≥3 sources, ≥2 projects).
 > **DirectLoader**: `importlib` zero MCP process. **Triangulation**: ≥3 sources, ≥2 independent projects.

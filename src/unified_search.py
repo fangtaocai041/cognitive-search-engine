@@ -577,11 +577,21 @@ ENGINE_REGISTRY = {
     "scholar_advanced": {"tool": "scholar_search_google_scholar_advanced", "category": "academic", "priority": 2},
     "ncbi_esearch":     {"tool": "ncbi_ncbi_esearch", "category": "academic", "priority": 1},
     "crossref_article": {"tool": "article_search_literature", "category": "academic", "priority": 2},
+    "crossref_direct":  {"tool": "crossref_direct", "category": "academic", "priority": 2},
     "scholarly_multi":  {"tool": "scholarly_research_search", "category": "academic", "priority": 3},
+    "semantic_scholar": {"tool": "semantic_scholar", "category": "academic", "priority": 2},
+    # 中文学术搜索 (Priority 2)
+    "baidu_scholar":    {"tool": "baidu_scholar", "category": "chinese", "priority": 2},
+    "cnki_web":         {"tool": "cnki_web", "category": "chinese", "priority": 2},
+    "wanfang_web":      {"tool": "wanfang_web", "category": "chinese", "priority": 3},
+    # 预印本 (Priority 3)
+    "biorxiv_medrxiv":  {"tool": "biorxiv_medrxiv", "category": "preprint", "priority": 3},
     # 语义/深度搜索 (Priority 4-5)
     "tavily_search":    {"tool": "tavily_tavily_search", "category": "semantic", "priority": 4},
     "tavily_research":  {"tool": "tavily_tavily_research", "category": "semantic", "priority": 5},
     "exa_search":       {"tool": "exa_web_search_exa", "category": "semantic", "priority": 4},
+    # 全文/社交搜索 (Priority 5)
+    "researchgate":     {"tool": "researchgate", "category": "fulltext", "priority": 5},
     # 内置搜索 (Priority 6)
     "web_search":       {"tool": "web_search", "category": "web", "priority": 6},
     # 引用/关系 (Priority 7)
@@ -592,10 +602,14 @@ ENGINE_REGISTRY = {
 # 默认搜索引擎组 (按场景)
 ENGINE_GROUPS = {
     "quick":    ["scholar_graph", "ncbi_esearch", "web_search"],
-    "standard": ["scholar_graph", "ncbi_esearch", "crossref_article", "web_search", "tavily_search"],
-    "full":     ["scholar_graph", "ncbi_esearch", "crossref_article", "scholarly_multi",
-                 "tavily_search", "exa_search", "web_search"],
-    "chinese":  ["scholar_graph", "ncbi_esearch", "web_search"],
+    "standard": ["scholar_graph", "ncbi_esearch", "crossref_article", "scholarly_multi",
+                 "tavily_search", "web_search"],
+    "full":     ["scholar_graph", "ncbi_esearch", "crossref_article", "crossref_direct",
+                 "scholarly_multi", "semantic_scholar", "tavily_search", "tavily_research",
+                 "exa_search", "baidu_scholar", "cnki_web", "wanfang_web",
+                 "biorxiv_medrxiv", "researchgate", "web_search"],
+    "chinese":  ["scholar_graph", "ncbi_esearch", "baidu_scholar", "cnki_web", "wanfang_web",
+                 "crossref_article", "web_search"],
 }
 
 
