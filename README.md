@@ -65,7 +65,7 @@ result = adapter.search("珠星三块鱼", mode="adaptive")
 
 ## How It Works
 
-### 6+ Search Channels (MCP + HTTP)
+### 19 Search Engines (7 MCP + 12 Native HTTP)
 
 ```
 MCP (requires npx/node):
@@ -76,13 +76,38 @@ MCP (requires npx/node):
   ncbi       → PubMed E-utilities direct
   scholarly  → OpenAlex + Semantic Scholar
 
-HTTP (no dependencies):
-  pubmed     → NCBI E-utilities REST
-  crossref   → Crossref REST API
-  openalex   → OpenAlex REST API
-  arxiv      → arXiv API
-  europe_pmc → Europe PMC REST API
-  cnki       → Bing Chinese literature search
+Native HTTP (no external processes):
+  pubmed       → NCBI E-utilities REST
+  crossref     → Crossref REST API
+  openalex     → OpenAlex REST API
+  arxiv        → arXiv API
+  europe_pmc   → Europe PMC REST API
+  baidu_scholar→ Baidu Academic (Chinese)
+  cnki_web     → CNKI via Bing site:cnki.net
+  wanfang_web  → Wanfang Data via Bing
+  cas_web      → CAS/IHC via Bing
+  biorxiv_api  → bioRxiv/medRxiv preprints
+  researchgate → ResearchGate via Bing
+  web_search   → Bing general web search
+```
+
+### KB-First Two-Stage Search
+
+Before blasting 19 engines, it checks the fish-ecology-assistant KB:
+
+```python
+from src.search_coordinator import kb_first, continue_full_search
+
+# Stage 1: KB check (fast, no external API)
+result = kb_first("珠星三块鱼")
+# → KbFirstSearchResult { stage: "kb_check", kb_found: True, ... }
+
+print(result.ask_user_prompt())
+# → "📚 f项目知识库已收录… 留步 or 继续搜索?"
+
+# Stage 2: full search (only if user continues)
+result = continue_full_search(result, group="full")
+# → KbFirstSearchResult { full_search: CoordinatedSearchResult }
 ```
 
 Auto-generates OCR spelling variants (`Ochetobius` → `Ochetobibus`, `Ocheotbius`…), preventing typo misses.

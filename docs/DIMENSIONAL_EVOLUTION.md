@@ -1,7 +1,8 @@
-# 🌐 Unified Dimensional Evolution — 点线面体全场景矩阵
+# 🌐 三角闭环维度进化 — 点线面体全场景矩阵
 
-> **来源**: Gemini 全场景矩阵 + DeepSeek 三角法则
-> **目标**: 三个项目分别占据 D₁→D₂→D₃，编织为 S-T-V 闭环体
+> **三角闭环**: fish(V0) + cognitive(V1) + eon-core(Coord)
+> **三生万物**: P₁(porpoise) · P₂(coilia) · ... 从三角衍生
+> **维度**: 三个项目分别占据 D₁→D₂→D₃，编织为三角闭环体
 
 ---
 
@@ -149,6 +150,6 @@ class WorldModel:
 
 > **"点动成线，线动成面，面动成体。"**
 > D₁(fish 线) → D₂(fish 面+porpoise 面) → D₃(porpoise 体+cognitive 体)
-> 三个项目沿 S-T-V 轨迹运动，从线性流水线进化为三维闭环生态系统。
+> 三个项目沿三角闭环轨迹运动，从线性流水线进化为三维闭环生态系统。
 
 **Last updated: 2026-06-06**

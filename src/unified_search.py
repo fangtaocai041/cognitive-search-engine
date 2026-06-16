@@ -17,9 +17,18 @@ from __future__ import annotations
 
 import concurrent.futures
 import time
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
+
+# HTTP fallback engines (from parallel_search)
+from src.parallel_search import (
+    _search_pubmed, _search_europe_pmc, _search_crossref, _search_openalex, _search_arxiv,
+    _search_crossref_direct, _search_semantic_scholar,
+    _search_biorxiv_medrxiv, _search_researchgate,
+    _search_baidu_scholar, _search_cnki_web, _search_wanfang_web,
+)
 
 
 # ═══════════════════════════════════════════════════════
@@ -613,6 +622,28 @@ ENGINE_GROUPS = {
 }
 
 
+# HTTP fallback dispatch — MCP 不可用时用 HTTP provider 兜底
+# 键: 引擎 ID  → 值: (HTTP函数, 是否需要中文名)
+HTTP_ENGINES: Dict[str, tuple] = {
+    # 国际学术
+    "pubmed":         (_search_pubmed, False),
+    "europe_pmc":     (_search_europe_pmc, False),
+    "crossref":       (_search_crossref, False),
+    "crossref_direct": (_search_crossref_direct, False),
+    "openalex":       (_search_openalex, False),
+    "arxiv":          (_search_arxiv, False),
+    "semantic_scholar": (_search_semantic_scholar, False),
+    # 中文
+    "baidu_scholar":  (_search_baidu_scholar, True),
+    "cnki_web":       (_search_cnki_web, True),
+    "wanfang_web":    (_search_wanfang_web, True),
+    # 预印本
+    "biorxiv_medrxiv": (_search_biorxiv_medrxiv, False),
+    # 全文
+    "researchgate":   (_search_researchgate, False),
+}
+
+
 @dataclass
 class EngineResult:
     engine: str
@@ -640,8 +671,8 @@ def search_streaming(
     engines: List[str] = None,
     group: str = "standard",
     limit: int = 10,
-    max_retries: int = 3,
-    per_engine_timeout_s: float = 30.0,
+    max_retries: int = 5,
+    per_engine_timeout_s: float = 60.0,
     on_result: Callable = None,
 ) -> List[EngineResult]:
     """
@@ -671,7 +702,7 @@ def search_streaming(
     results: List[EngineResult] = []
     total_papers = 0
 
-    # 对每个查询×每个引擎依次调用
+    # 混合调度: 每引擎先 MCP → 失败后 HTTP 兜底
     for query in queries[:3]:
         for engine_id in engines:
             info = ENGINE_REGISTRY.get(engine_id, {})
@@ -682,38 +713,61 @@ def search_streaming(
             t0 = time.perf_counter()
             er = EngineResult(engine=engine_id, query=query, tool=tool_name)
 
-            # 尝试调用 MCP 函数 (在 Reasonix 会话中可用)
+            # === Phase 1: 尝试 MCP (Reasonix 内建工具) ===
             fn = globals().get(tool_name)
-            if fn is None:
-                er.status = "degraded"
-                er.error = "MCP function not available"
-                er.elapsed_ms = (time.perf_counter() - t0) * 1000
-                results.append(er)
-                continue
+            if fn is not None:
+                for attempt in range(max_retries):
+                    try:
+                        response = fn(query=query, limit=limit)
+                        if isinstance(response, list):
+                            er.results = response
+                            er.status = "ok"
+                        elif response:
+                            er.results = [response]
+                            er.status = "ok"
+                        else:
+                            er.status = "empty"
+                        break
+                    except Exception as e:
+                        er.retries = attempt + 1
+                        er.error = str(e)
+                        er.status = "mcp_error"
+                        if attempt < max_retries - 1:
+                            time.sleep(2.0)
 
-            # 执行搜索 (带重试)
-            for attempt in range(max_retries):
-                try:
-                    response = fn(query=query, limit=limit)
-                    if isinstance(response, list):
-                        er.results = response
-                        er.status = "ok"
-                    else:
-                        er.results = [response] if response else []
-                        er.status = "ok"
-                    break
-                except Exception as e:
-                    er.retries = attempt + 1
-                    er.error = str(e)
-                    er.status = "error"
-                    if attempt < max_retries - 1:
-                        time.sleep(1.0)
+            # === Phase 2: MCP 不可用/失败 → HTTP 兜底 ===
+            if er.status in ("pending", "mcp_error", "empty") or fn is None:
+                http_info = HTTP_ENGINES.get(engine_id)
+                if http_info:
+                    http_fn, needs_cn = http_info
+                    try:
+                        if needs_cn:
+                            # 中文引擎: 从 queries 找中文名
+                            cn_query = next((q for q in queries if re.search(r"[一-鿿]", q)), query)
+                            response = http_fn(cn_query, limit)
+                        else:
+                            response = http_fn(query, limit)
+                        if isinstance(response, list):
+                            er.results.extend(response)
+                        elif response:
+                            er.results.append(response)
+                        er.status = "http_ok"
+                        if er.error:
+                            er.error += "; then HTTP fallback succeeded"
+                        else:
+                            er.error = "MCP unavailable → HTTP fallback"
+                    except Exception as e2:
+                        er.status = "http_error"
+                        er.error = f"{er.error}; HTTP also failed: {e2}"
+                elif fn is None:
+                    er.status = "unavailable"
+                    er.error = "No MCP and no HTTP fallback"
 
             er.elapsed_ms = (time.perf_counter() - t0) * 1000
             results.append(er)
             total_papers += len(er.results)
 
-            # 回调
+            # 流式回调
             if on_result:
                 on_result(StreamEvent(
                     engine=engine_id,

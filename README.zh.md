@@ -65,7 +65,7 @@ result = adapter.search("珠星三块鱼", mode="adaptive")
 
 ## 它怎么工作的
 
-### 6+ 搜索通道 (MCP + HTTP)
+### 19 搜索引擎 (7 MCP + 12 Native HTTP)
 
 ```
 MCP 通道 (需 npx/node):
@@ -76,13 +76,38 @@ MCP 通道 (需 npx/node):
   ncbi       → PubMed E-utilities 直连
   scholarly  → OpenAlex + Semantic Scholar
 
-HTTP 通道 (无需装任何东西):
-  pubmed     → NCBI E-utilities REST
-  crossref   → Crossref REST API
-  openalex   → OpenAlex REST API
-  arxiv      → arXiv API
-  europe_pmc → Europe PMC REST API
-  cnki       → Bing 中文文献搜索
+Native HTTP 通道 (无需额外进程):
+  pubmed       → NCBI E-utilities REST
+  crossref     → Crossref REST API
+  openalex     → OpenAlex REST API
+  arxiv        → arXiv API
+  europe_pmc   → Europe PMC REST API
+  baidu_scholar→ 百度学术 (中文论文)
+  cnki_web     → 中国知网 site:cnki.net
+  wanfang_web  → 万方数据 site:wanfangdata.com.cn
+  cas_web      → 中科院 site:cas.cn / ihb.ac.cn
+  biorxiv_api  → bioRxiv/medRxiv 预印本
+  researchgate → ResearchGate site:researchgate.net
+  web_search   → Bing 通用网络搜索
+```
+
+### KB-First 两阶段搜索
+
+在启动 19 引擎之前，先查 f项目知识库：
+
+```python
+from src.search_coordinator import kb_first, continue_full_search
+
+# 阶段 1: KB 查询 (快速，无外部 API)
+result = kb_first("珠星三块鱼")
+# → KbFirstSearchResult { stage: "kb_check", kb_found: True, ... }
+
+print(result.ask_user_prompt())
+# → "📚 f项目知识库已收录… 留步 or 继续搜索?"
+
+# 阶段 2: 全量搜索 (仅当用户选择继续)
+result = continue_full_search(result, group="full")
+# → KbFirstSearchResult { full_search: CoordinatedSearchResult }
 ```
 
 搜不到的时候还会自动生成 OCR 拼写变体（`Ochetobius` → `Ochetobibus`、`Ocheotbius`……），防止打字错误漏论文。

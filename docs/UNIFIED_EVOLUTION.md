@@ -1,8 +1,8 @@
-# 🧬 Eon-Taiji 五项目进化全量图谱
+# 🧬 三角闭环进化全量图谱
 
 > **道→一→二→三→万物**: 五项目活系统协同进化
-> **三角形**: fish(S/V0) + cognitive(V/V1) + eon-core(Coordinator)
-> **万物**: P₁(porpoise) + P₂(coilia) + ...Pₙ — 三角派生领域专精模板
+> **三角闭环**: fish(V0知识库) + cognitive(V1验证) + eon-core(协调器) — 缺一不可
+> **三生万物**: P₁(porpoise) + P₂(coilia) + ...Pₙ — 从三角闭环无限衍生
 > **通路**: P1(fish↔cognitive) P2(cognitive→fish) P3(cognitive→P₁/P₂) P4(health→eon-core)
 
 ---
