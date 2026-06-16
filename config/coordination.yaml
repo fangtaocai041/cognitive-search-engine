@@ -53,12 +53,13 @@ search_engines:
     loader: "DirectLoader (importlib)"
 
   engine_groups:
-    # 19 引擎 (7 MCP + 5 中文原生 + 2 预印本 + 2 语义 + 3 内置)
-    quick: ["scholar_graph", "ncbi_esearch", "web_search"]
-    standard: ["scholar_graph", "ncbi_esearch", "crossref_article", "web_search", "tavily_search"]
-    full: ["scholar_graph", "ncbi_esearch", "crossref_article", "scholarly_multi", "baidu_scholar", "tavily_search", "exa_search", "biorxiv_api", "web_search"]
+    # 23 引擎 (7 MCP + 10 Native HTTP + 4 物种百科 + 2 语义)
+    quick: ["scholar_graph", "ncbi_esearch", "web_search", "wikipedia"]
+    standard: ["scholar_graph", "ncbi_esearch", "crossref_article", "web_search", "tavily_search", "wikipedia"]
+    full: ["scholar_graph", "ncbi_esearch", "crossref_article", "scholarly_multi", "baidu_scholar", "tavily_search", "exa_search", "biorxiv_api", "web_search", "wikipedia", "duckduckgo", "gbif", "core"]
     chinese: ["baidu_scholar", "cnki_web", "wanfang_web", "cas_web", "scholar_graph", "ncbi_esearch", "chinese_sweep"]
     preprint: ["biorxiv_api", "researchgate_web", "scholar_graph"]
+    species: ["wikipedia", "gbif", "web_search", "duckduckgo"]
 
 # ═══════════════════════════════════════════════════════
 # 共享日志格式
