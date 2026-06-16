@@ -205,22 +205,45 @@ class CognitiveSearchAdapter:
     # ── Domain methods ──
 
     def graph_lookup(self, species_id: str) -> Dict[str, Any]:
-        """Look up species in the knowledge graph."""
-        return {
-            "status": "ok",
-            "species_id": species_id,
-            "graph_nodes": [],
-            "engine": "cognitive-search-engine",
-        }
+        """Look up species in the knowledge graph (species_graph.yaml).
+
+        Delegates to graph_updater.load_species_graph() if available.
+        """
+        try:
+            from src.graph_updater import load_species_graph
+            papers = load_species_graph(species_id)
+            return {
+                "status": "ok",
+                "species_id": species_id,
+                "graph_nodes": papers,
+                "node_count": len(papers),
+                "engine": "cognitive-search-engine",
+            }
+        except ImportError:
+            return {"status": "degraded", "species_id": species_id,
+                    "graph_nodes": [], "note": "graph_updater not available"}
 
     def verify_claims(self, claims: List[str]) -> Dict[str, Any]:
-        """Verify claims via multi-model debate."""
-        return {
-            "status": "ok",
-            "claims_count": len(claims),
-            "verified": [],
-            "engine": "cognitive-search-engine",
-        }
+        """Verify claims via cross-project validator.
+
+        Delegates to validator.validate_papers() if available.
+        """
+        try:
+            from src.validator import validate_papers
+            # Convert claims to minimal paper dicts for validation
+            papers = [{"title": c, "source": "claim"} for c in claims]
+            result = validate_papers(papers, min_sources=2, min_projects=1)
+            stats = getattr(result, "stats", {}) or {}
+            return {
+                "status": "ok",
+                "claims_count": len(claims),
+                "verified": stats.get("verified_count", 0) if isinstance(stats, dict) else 0,
+                "independence_passed": stats.get("independence_passed", False) if isinstance(stats, dict) else False,
+                "engine": "cognitive-search-engine",
+            }
+        except ImportError:
+            return {"status": "degraded", "claims_count": len(claims),
+                    "verified": 0, "note": "validator not available"}
 
 
 def get_adapter() -> CognitiveSearchAdapter:
