@@ -1,3 +1,6 @@
+# PARTIAL RECOVERY — adapter code fragment (imports/class header lost)
+# See CognitiveSearchAdapter in session logs for full version
+
             "capabilities": [
                 "species_search",
                 "graph_traversal",

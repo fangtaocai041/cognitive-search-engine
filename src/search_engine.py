@@ -1,4 +1,4 @@
-﻿"""CognitiveSearchEngine — 多源并行搜索编排器。"""
+"""CognitiveSearchEngine — 多源并行搜索编排器。"""
 
 from __future__ import annotations
 

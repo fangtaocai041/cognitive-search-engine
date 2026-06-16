@@ -1,3 +1,6 @@
+# PARTIAL RECOVERY — MesoAgent code fragment
+# Method body recovered, class header lost
+
     def _estimate_volume(self, species_id: str) -> int:
         """Estimate literature volume using multi-source (PubMed/Scholar/Web) or graph fallback.
 

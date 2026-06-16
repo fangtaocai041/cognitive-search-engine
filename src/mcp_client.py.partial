@@ -1,3 +1,6 @@
+# PARTIAL RECOVERY — MCP client code fragment
+# Core method recovered, imports/class wrapper lost
+
     def call_tools_parallel(self, tool_calls: list[tuple[str, dict]],
                             timeout_s: int = 180,
                             on_result: callable = None) -> list[tuple[str, list[dict]]]:

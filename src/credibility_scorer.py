@@ -1,4 +1,4 @@
-﻿"""Paper credibility scoring based on journal whitelist and citation metrics."""
+"""Paper credibility scoring based on journal whitelist and citation metrics."""
 
 from __future__ import annotations
 

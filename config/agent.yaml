@@ -1,14 +1,59 @@
-  graph_path: "config/species_graph.yaml (shared across all three projects via submodule)"
+# Cognitive Search Engine — Agent Configuration
+# 能效优化 + 图谱搜索
 
-# ══════════════════════════════════════════════════════════════════
-# 超时/重连/并行 配置 (v2.0 新增)
-# ══════════════════════════════════════════════════════════════════
-timeout:
-  http_retry_max_s: 60             # HTTP 重试总窗口 (1分钟内均可重连)
-  http_retry_attempts: 5            # 最多重试 5 次
-  http_per_call_timeout_s: 15       # 单次 HTTP 请求超时
-  mcp_parallel_timeout_s: 180       # MCP 并行总超时 (3分钟)
-  mcp_per_call_timeout_s: 30        # MCP 单次调用超时
-  mcp_parallel_max_workers: 7       # MCP 并行最大连接数 (7 搜索引擎)
+agent:
+  name: "Cognitive Search Engine"
+  version: "4.0.0"
+  description: "Frontier species literature search — semiotics + graph traversal + energy-efficient"
 
-# DeepSeek 标准配置 (YAML 1.2)
+search:
+  # 能效优化 (Energy Efficiency)
+  energy:
+    max_total_tokens: 50000         # 单次搜索最大 token 预算
+    min_papers_satisfice: 8         # 找到 8 篇即满足 (satisfice)
+    max_papers_target: 20           # 理想目标
+    stop_on_diminishing: true       # 边际收益递减时停止
+
+  # 渐进深化 (Progressive Deepening)
+  progressive:
+    cheap_layers_first: true        # 先跑便宜的层
+    cost_per_layer:                 # 每层估算 token 成本
+      exact: 500
+      variant: 1500
+      author: 2000
+      citation: 1000
+      phonetic: 800
+      llm_expansion: 3000
+      journal_scan: 1200
+
+  # 图谱搜索 (Graph Traversal)
+  graph:
+    enabled: true
+    max_depth: 3                    # 最大遍历深度
+    max_branching: 5                # 每节点最大分支数
+    edge_types:                     # 关系类型
+      - cites                        # A 引用 B
+      - cited_by                     # A 被 B 引用
+      - co_author                    # A 和 B 有共同作者
+      - same_journal                 # A 和 B 发表在同一期刊
+      - same_species                 # A 和 B 关于同一物种
+
+  # 信息增益/Token 优化
+  info_gain:
+    track_per_layer: true           # 追踪每层 IG/token
+    reorder_on_fly: true            # 根据实际 IG 动态重排
+    prune_low_ig: true              # 低 IG 层自动剪枝
+    ig_threshold: 0.005             # IG < 0.005 → 停止该层
+
+# 符号学配置
+semiotics:
+  enabled: true
+  signifier_decomposition: true     # 能指分解 (词根+词缀)
+  ocr_error_model: true             # OCR 错误概率模型
+  ipa_transcription: true           # IPA 语音转录
+
+# 逻辑推理配置
+logic:
+  deductive_chain: true             # 演绎链 (作者→期刊→年份)
+  abductive_inference: true         # 溯因推理 (最佳解释)
+  inductive_pattern: true           # 归纳模式 (typo 率统计)

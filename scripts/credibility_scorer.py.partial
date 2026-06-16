@@ -1,3 +1,6 @@
+# PARTIAL RECOVERY — credibility_scorer code fragment
+# Scoring logic recovered, function wrapper lost
+
     if score >= 75:
         label = "高"
         flag = "🟢"

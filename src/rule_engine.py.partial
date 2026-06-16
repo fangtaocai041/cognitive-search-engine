@@ -1,3 +1,6 @@
+# PARTIAL RECOVERY — rule_engine code fragment
+# Utility functions recovered, module header lost
+
     # ── 重连/重试工具 ──
 
     def _http_retry(self, url_fn, label="http"):
