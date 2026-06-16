@@ -393,6 +393,72 @@ graph:
     - ochetobius_elongatus
     category: conservation
     authors: []
+  - doi: 10.3390/ani15192870
+    title: Revealing Phenotypic Differentiation in Ochetobius elongatus from the Middle Yangtze River Through Geometric Morphometrics
+    year: 2025
+    journal: Animals
+    species:
+    - ochetobius_elongatus
+    category: morphology
+    authors:
+    - Cai F
+    - Qi Z
+    - Hu Z
+    - Zhai D
+    - Chen Y
+    - Xiong F
+    - Liu H
+  - doi: 10.3390/ani16091369
+    title: Analysis of Ochetobibus elongatus (Kner) Dietary Habits Based on Digestive System Morphology, Histology, and Intestinal Content Sequencing Technology
+    year: 2026
+    journal: Animals
+    species:
+    - ochetobius_elongatus
+    category: diet_physiology
+    authors:
+    - Gao F
+    - Zuo Z
+    - Wu Q
+    - Xiao H
+    - Peng Z
+    - Zou L
+    - Jiang G
+    - Tian X
+    - Feng Z
+    - Xie X
+    - Tian L
+  - doi: 10.1016/j.watbs.2025.100378
+    title: Non-native aquatic species in the Dongting Lake basin, China
+    year: 2025
+    journal: Water Biology and Security
+    species:
+    - ochetobius_elongatus
+    category: conservation
+    authors:
+    - Xiong W
+    - Zhang W
+    - Cai L
+    - Bowler PA
+    - Chao C
+    - Wang B
+  - doi: 10.17520/biods.2025136
+    title: 长江中下游鳤不同群体的多变量形态学特征
+    year: 2025
+    journal: Biodiversity Science
+    species:
+    - ochetobius_elongatus
+    category: morphology
+    authors_zh:
+    - 蔡方陶
+    - 王生
+    - 胡兴坤
+    - 袁希平
+    - 翟东东
+    - 陈媛媛
+    - 阙延福
+    - 熊飞
+    - 刘红艳
+    - 段辛斌
   - doi: 10.3390/ani15172603
     title: Tetranucleotide Repeat Microsatellite Markers in Yangtze Finless Porpoise
     year: 2025
