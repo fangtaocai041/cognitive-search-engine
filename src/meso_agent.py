@@ -352,12 +352,58 @@ class MesoAgent:
 
     # ── BDI: Intention — search execution ─────────────────────────
 
-    def _execute_search(self, species_id: str, plan: Dict[str, Any],
-                        mcp: Any) -> Tuple[List[Dict[str, Any]], int, List[str]]:
-        """执行多阶段搜索 (Intention 阶段).
+    def _execute_search_http(self, species_id: str, plan: Dict[str, Any]
+                             ) -> Tuple[List[Dict[str, Any]], int, List[str]]:
+        """HTTP 直连搜索（parallel_search）— 通用方案，不依赖 MCP/npx。
 
-        Returns:
-            (papers, total_cost, errors)
+        使用 PubMed E-utilities + Crossref + Europe PMC + OpenAlex + arXiv + Bing
+        并行搜索，所有源通过标准 HTTP API 访问。
+        """
+        papers: List[Dict[str, Any]] = []
+        total_cost = 0
+        errors: List[str] = []
+        species_info = self._species_map.get(species_id, {})
+        scientific_name = species_info.get("name", species_id.replace("_", " "))
+        chinese_name = species_info.get("chinese", "")
+        variants = species_info.get("variants", [])
+        min_satisfice = self.config.min_papers_satisfice
+
+        # Phase 1: Graph lookup (FREE)
+        known = self._load_known(species_id)
+        for k in known:
+            k["_phase"] = "graph_lookup"
+            papers.append(k)
+
+        # Phase 2: HTTP parallel search
+        try:
+            from src.parallel_search import ParallelSearch
+            search_queries = [scientific_name]
+            search_queries.extend(variants[:2])
+            if chinese_name:
+                search_queries.append(chinese_name)
+
+            with ParallelSearch(max_workers=4) as ps:
+                stats = ps.search_all(search_queries, max_per_query=15)
+
+            for p in stats.new_papers:
+                p["_phase"] = "http_search"
+                papers.append(p)
+
+            total_cost += len(stats.new_papers) * 50
+            logger.info(f"HTTP search: {stats.total_raw} raw → {stats.total_merged} merged "
+                        f"({stats.providers_succeeded}/{stats.providers_succeeded + stats.providers_failed} providers)")
+        except Exception as e:
+            errors.append(f"HTTP search failed: {e}")
+
+        papers = _dedup_papers(papers)
+        return papers[:self.config.max_papers], total_cost, errors
+
+    def _execute_search_mcp(self, species_id: str, plan: Dict[str, Any],
+                            mcp: Any) -> Tuple[List[Dict[str, Any]], int, List[str]]:
+        """MCP 子进程搜索 — 使用 subprocess 启动 npx MCP 服务器。
+
+        在 Reasonix Desktop 中 MCP 工具已注入，此模式用于 CLI/standalone。
+        如果 McpClient 无法启动，自动回退到 HTTP 搜索。
         """
         papers: List[Dict[str, Any]] = []
         total_cost = 0
@@ -369,126 +415,87 @@ class MesoAgent:
         variants = species_info.get("variants", [])
         min_satisfice = self.config.min_papers_satisfice
 
-        # ── Phase 1: Graph lookup (FREE) ──
+        # Phase 1: Graph lookup (FREE)
         known = self._load_known(species_id)
         for k in known:
             k["_phase"] = "graph_lookup"
             papers.append(k)
-        logger.info(f"Phase 1 graph_lookup: {len(known)} known items")
 
         if len(papers) >= min_satisfice and mode != "exhaustive":
             return papers[:self.config.max_papers], total_cost, errors
 
-        # ── Phase 2: Exact search via MCP ──
+        # Phase 2: Exact search via MCP tools
         if mcp and len(papers) < min_satisfice:
             try:
-                # 2a. Scholar search (scientific name)
-                scholar_results = mcp.search_scholar(scientific_name, limit=10)
-                for item in _extract_papers(scholar_results, "scholar"):
+                sr = mcp.search_scholar(scientific_name, limit=10)
+                for item in _extract_papers(sr, "scholar"):
                     item["_phase"] = "exact_search"
                     papers.append(item)
-                total_cost += 500
-
-                # 2b. Article search (scientific name)
-                article_results = mcp.search_article(scientific_name, max_results=10)
-                for item in _extract_papers(article_results, "article"):
-                    item["_phase"] = "exact_search"
-                    papers.append(item)
-                total_cost += 500
-
-                # 2c. Tavily web search
-                if chinese_name:
-                    tavily_results = mcp.search_tavily(
-                        f"{chinese_name} {scientific_name} 鱼类 研究 论文",
-                        max_results=5,
-                    )
-                    for item in _extract_papers(tavily_results, "tavily"):
-                        item["_phase"] = "exact_search"
-                        papers.append(item)
-                    total_cost += 300
+                total_cost += 300
             except Exception as e:
-                errors.append(f"Phase 2 exact_search: {e}")
+                errors.append(f"scholar: {e}")
 
-        papers = _dedup_papers(papers)
-        if len(papers) >= min_satisfice and mode != "exhaustive":
-            return papers[:self.config.max_papers], total_cost, errors
-
-        # ── Phase 3: Variant search ──
-        if mcp and variants and len(papers) < min_satisfice:
             try:
-                for variant in variants:
-                    vr = mcp.search_scholar(variant, limit=5)
-                    for item in _extract_papers(vr, "scholar_variant"):
-                        item["_phase"] = "variant_search"
+                ar = mcp.search_article(scientific_name, max_results=10)
+                for item in _extract_papers(ar, "article"):
+                    item["_phase"] = "exact_search"
+                    papers.append(item)
+                total_cost += 300
+            except Exception as e:
+                errors.append(f"article: {e}")
+
+            try:
+                if chinese_name:
+                    tv = mcp.search_tavily(f"{chinese_name} {scientific_name} 鱼类 研究 论文", max_results=5)
+                    for item in _extract_papers(tv, "tavily"):
+                        item["_phase"] = "exact_search"
                         papers.append(item)
                     total_cost += 200
             except Exception as e:
-                errors.append(f"Phase 3 variant_search: {e}")
+                errors.append(f"tavily: {e}")
 
         papers = _dedup_papers(papers)
         if len(papers) >= min_satisfice:
             return papers[:self.config.max_papers], total_cost, errors
 
-        # ── Phase 4: Citation traversal (if we have DOIs) ──
-        papers_with_doi = [p for p in papers if p.get("doi")]
-        if mcp and len(papers_with_doi) >= 3 and len(papers) < min_satisfice:
-            try:
-                for p in papers_with_doi[:3]:
-                    refs = mcp.call_tool("article", {
-                        "identifier": p["doi"],
-                        "id_type": "doi",
-                        "max_results": 10,
-                        "sources": ["crossref", "pubmed"],
-                    })
-                    for item in _extract_papers(refs, "citation"):
-                        item["_phase"] = "citation_traversal"
+        # Phase 3: Variant search
+        if mcp and variants and len(papers) < min_satisfice:
+            for variant in variants[:3]:
+                try:
+                    vr = mcp.search_scholar(variant, limit=5)
+                    for item in _extract_papers(vr, "scholar_variant"):
+                        item["_phase"] = "variant_search"
                         papers.append(item)
-                    total_cost += 300
-            except Exception as e:
-                errors.append(f"Phase 4 citation_traversal: {e}")
-
-        papers = _dedup_papers(papers)
-
-        # ── Phase 5: Author cross-reference ──
-        if len(papers) < min_satisfice and len(papers) >= 2:
-            try:
-                known_authors = set()
-                for p in papers:
-                    for a in p.get("authors", []):
-                        if isinstance(a, str) and len(a) > 3:
-                            known_authors.add(a)
-                # Search by top authors via Tavily/Exa
-                top_authors = list(known_authors)[:5]
-                if top_authors and mcp:
-                    author_query = f"{' '.join(top_authors[:3])} {scientific_name}"
-                    ar = mcp.search_tavily(author_query, max_results=5)
-                    for item in _extract_papers(ar, "author_crossref"):
-                        item["_phase"] = "author_crossref"
-                        papers.append(item)
-                    total_cost += 500
-            except Exception as e:
-                errors.append(f"Phase 5 author_crossref: {e}")
-
-        papers = _dedup_papers(papers)
-
-        # ── Phase 6: Chinese journal search ──
-        if chinese_name and len(papers) < min_satisfice and mcp:
-            try:
-                # Search in Chinese via Tavily
-                cn_results = mcp.search_tavily(
-                    f"{chinese_name} 研究 论文 期刊 水产 生物",
-                    max_results=5,
-                )
-                for item in _extract_papers(cn_results, "chinese_journal"):
-                    item["_phase"] = "journal_scan"
-                    item["_channel"] = "CN"
-                    papers.append(item)
-                total_cost += 400
-            except Exception as e:
-                errors.append(f"Phase 6 journal_scan: {e}")
+                    total_cost += 150
+                except Exception:
+                    pass
 
         papers = _dedup_papers(papers)
         return papers[:self.config.max_papers], total_cost, errors
+
+    def _execute_search(self, species_id: str, plan: Dict[str, Any],
+                        mcp: Any) -> Tuple[List[Dict[str, Any]], int, List[str]]:
+        """执行多阶段搜索 — 自动选择 MCP 或 HTTP 通道。
+
+        优先级:
+          1. MCP 子进程 (如果有 npx+node 环境)
+          2. HTTP 并行搜索 (parallel_search, 通用方案)
+        """
+        papers, cost, errors = self._execute_search_mcp(species_id, plan, mcp)
+
+        # 如果 MCP 只找到很少的论文 (说明 MCP 进程可能不可用)，用 HTTP 补充
+        if len(papers) < self.config.min_papers_satisfice:
+            http_papers, http_cost, http_errors = self._execute_search_http(species_id, plan)
+            # Merge: HTTP 结果 + MCP 结果
+            all_papers = papers + http_papers
+            merged = _dedup_papers(all_papers)
+            if len(merged) > len(papers):
+                logger.info(f"HTTP search added {len(merged) - len(papers)} papers")
+                papers = merged
+                cost += http_cost
+                errors.extend(http_errors)
+
+        return papers[:self.config.max_papers], cost, errors
 
     # ── Post-processing ───────────────────────────────────────────
 
