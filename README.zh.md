@@ -2,7 +2,7 @@
 
 **它聪明地搜索物种文献，不遗漏一篇该看的论文，也不浪费一分钱搜无关的。**
 
-[English](README.md) · [更新日志](CHANGELOG.md) · [怎么参与](CONTRIBUTING.md)
+[English](README.md) · [更新日志](CHANGELOG.md) · [路线图](ROADMAP.zh.md) · [怎么参与](CONTRIBUTING.md)
 
 ---
 
