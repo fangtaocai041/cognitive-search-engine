@@ -103,7 +103,7 @@ class CognitiveSearchAdapter:
     def check_fish_knowledge_base(self, species_id: str) -> Dict[str, Any]:
         """搜索前检查 fish-ecology-assistant 知识库已有内容.
 
-        S-T-V 闭环: S(fish) → V(cognitive) 状态同步.
+        三角闭环: V0(fish) → V1(cognitive) 状态同步.
         避免重复搜索已知文献.
 
         Returns:
@@ -142,13 +142,13 @@ class CognitiveSearchAdapter:
             "note": None if total_papers > 0 else "知识库文件存在但未解析出论文条目",
         }
 
-    # ── S-T-V 状态同步 ──
+    # ── 三角闭环状态同步 ──
 
     def sync_stv_state(self, species_id: str,
                        state_vector: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """S-T-V 闭环状态同步.
+        """三角闭环状态同步.
 
-        从 S(fish) 接收 state_vector, 返回 V(cognitive) 的验证状态.
+        从 V0(fish) 接收 state_vector, 返回 V1(cognitive) 的验证状态.
 
         Args:
             species_id: 物种 ID

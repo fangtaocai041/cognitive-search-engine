@@ -1,7 +1,7 @@
 """
 Evolution Executor — Unified trigger detection and parameter adaptation engine.
 
-Unifies the 7 evolution triggers across all three S-T-V projects.
+Unifies the 7 evolution triggers across the Triangle Core (fish+cognitive+eon-core).
 Reads per-project evolution.yaml configs, evaluates trigger conditions,
 and writes back adapted parameters.
 

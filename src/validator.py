@@ -9,7 +9,7 @@ Provides:
   4. validate_papers()       — Batch validation with independence enforcement
 
 Design: This module is SEPARATE from search logic (rule_engine.py).
-        It can be imported independently by any project in the S-T-V triangle.
+        It can be imported independently by any project in the Triangle Core (三角闭环).
 
 Usage:
     from src.validator import validate_papers, credibility_score, enforce_independence
@@ -268,7 +268,7 @@ def enforce_independence(papers: list[Paper | dict],
                           min_projects: int = 2) -> tuple[bool, list[str], dict]:
     """Enforce cross-project source independence for triangulation.
 
-    Requirements (from S-T-V triangle protocol):
+    Requirements (from 三角闭环 protocol):
       - Core claims MUST have >= min_sources (default 3) independent sources
       - At least min_projects (default 2) DIFFERENT projects/databases
       - Same project counted once regardless of how many papers from it
