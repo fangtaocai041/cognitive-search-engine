@@ -1,197 +1,74 @@
-# 🕸️ Cognitive Search Engine
+# Cognitive Search Engine 🕸️
 
-**它聪明地搜索物种文献，不遗漏一篇该看的论文，也不浪费一分钱搜无关的。**
+**三角核心 V/V1 层** — 多源并行搜索 · 分类学验证 · 可信度评分。
 
-[English](README.md) · [更新日志](CHANGELOG.md) · [路线图](ROADMAP.zh.md) · [怎么参与](CONTRIBUTING.md)
-
----
-
-## 🔺 三角闭环角色: **V1 (验证)**
-
-> **三角闭环 (V1/验证)**，由 [eon-core](https://github.com/fangtaocai041/eon-core) 协调。
-> **三角闭环**: fish(V0知识库) + cognitive(V1验证) + eon-core(协调器) — 缺一不可
-> **三生万物**: P₁(porpoise) · P₂(coilia) · 无限衍生
+> 万物皆变 · Panta Rhei
 >
-> 搜索验证、权威可信度评分、多重三角验证 (≥3源, ≥2项目独立验证)。
-> **DirectLoader**: `importlib` 零 MCP 进程。**三角验证**: ≥3 来源, ≥2 独立项目。
+> 搜索不是一次性的查询——它是持续的验证循环。
+
+[English](README.md) · [更新日志](CHANGELOG.md)
 
 ---
 
-## 这引擎能干嘛？
+## 核心哲学
 
-你输入一个物种名，它能：
+> 世界是动态的，知识是暂时的，涌现是常态。
 
-1. **猜你要搜多少文献** — 先查 PubMed、Crossref、OpenAlex 估算文献量
-2. **决定怎么搜** — 文献少就穷举，多就分类，太多了就综述锚定
-3. **并行搜 21 个引擎** — SerpAPI·Exa·Europe PMC·NCBI·OpenAlex·Semantic Scholar·CNKI·更多
-4. **去重打分** — 按期刊权威性给每篇论文打分（0~100）
-5. **检测缺口** — 看看哪些方向还没人研究
-6. **自我进化** — 搜得越多，参数越准
+这是三角之 **V（验证）**。S（知识）提出主张，V 负责验证——通过多源并行搜索、跨项目比对、三角验证评分，确保每一条写入知识库的信息都经过 ≥3 个独立来源的检验。
 
-**关键词**: 物种 · 文献 · 多源搜索 · 可信度评分 · BDI 认知循环
+### 在三角中的角色
 
----
-
-## 怎么用
-
-### 一行代码搜物种
-
-```python
-from src.meso_agent import create_agent
-
-agent = create_agent(mode="http")
-result = agent.search("Ochetobius_elongatus")
-
-print(f"{len(result.papers)} 篇论文，耗时 {result.elapsed_s:.1f} 秒")
+```
+三生万物架构：
+  S/V0  fish-ecology-assistant    → 知识供给（阴·静）
+  V/V1  cognitive-search-engine   → 搜索验证（阳·动） ← 你在这里
+  Coord eon-core                  → 协调内核（太极点）
 ```
 
-### 命令行搜
+---
+
+## 这个项目是什么
+
+它是一个搜索验证引擎。不存储知识，而是验证知识。
+
+当 S 层说"鳤的科是鲤科"，V 层会去问 PubMed、Crossref、中文期刊、Google Scholar——它们都这么说吗？有没有不一致？如果有，谁是对的？
+
+> 赫拉克利特说：人不能两次踏进同一条河流。
+>
+> 我们说：你也不能用昨天的搜索回答今天的问题。
+
+---
+
+## 快速上手
 
 ```bash
-python scripts/search_api.py --species "鳤"
-python scripts/search_api.py --species "Pseudaspius hakonensis" --max 20
-```
+# 搜索物种
+python scripts/search_api.py --species "Ochetobius elongatus"
 
-### 给其他项目调用
+# 分类学不一致检测
+python scripts/search_api.py --species "Ochetobius elongatus" --check-taxonomy
 
-```python
-from src.adapter import CognitiveSearchAdapter
-
-adapter = CognitiveSearchAdapter()
-result = adapter.search("珠星三块鱼", mode="adaptive")
+# JSON 输出
+python scripts/search_api.py --species "鳤" --format json
 ```
 
 ---
 
-## 它怎么工作的
+## 核心能力
 
-### 19 搜索引擎 (7 MCP + 12 Native HTTP)
-
-```
-MCP 通道 (需 npx/node):
-  scholar    → 谷歌学术 / OpenAlex / Semantic Scholar
-  article    → Europe PMC / PubMed / Crossref 全文
-  tavily     → AI 深度网络搜索
-  exa        → 语义网络搜索
-  ncbi       → PubMed E-utilities 直连
-  scholarly  → OpenAlex + Semantic Scholar
-
-Native HTTP 通道 (无需额外进程):
-  pubmed       → NCBI E-utilities REST
-  crossref     → Crossref REST API
-  openalex     → OpenAlex REST API
-  arxiv        → arXiv API
-  europe_pmc   → Europe PMC REST API
-  baidu_scholar→ 百度学术 (中文论文)
-  cnki_web     → 中国知网 site:cnki.net
-  wanfang_web  → 万方数据 site:wanfangdata.com.cn
-  cas_web      → 中科院 site:cas.cn / ihb.ac.cn
-  biorxiv_api  → bioRxiv/medRxiv 预印本
-  researchgate → ResearchGate site:researchgate.net
-  web_search   → Bing 通用网络搜索
-```
-
-### KB-First 两阶段搜索
-
-在启动 19 引擎之前，先查 f项目知识库：
-
-```python
-from src.search_coordinator import kb_first, continue_full_search
-
-# 阶段 1: KB 查询 (快速，无外部 API)
-result = kb_first("珠星三块鱼")
-# → KbFirstSearchResult { stage: "kb_check", kb_found: True, ... }
-
-print(result.ask_user_prompt())
-# → "📚 f项目知识库已收录… 留步 or 继续搜索?"
-
-# 阶段 2: 全量搜索 (仅当用户选择继续)
-result = continue_full_search(result, group="full")
-# → KbFirstSearchResult { full_search: CoordinatedSearchResult }
-```
-
-搜不到的时候还会自动生成 OCR 拼写变体（`Ochetobius` → `Ochetobibus`、`Ocheotbius`……），防止打字错误漏论文。
-
-### 可信度评分
-
-```
-评分 = 50(基础) + 30(SCI期刊) + 25(CSCD核心) + 10(有DOI) + 10(有PMID)
-       - 30(预印本) - 100(掠夺性期刊)
-```
-
-| 分数 | 标记 | 含义 |
-|------|------|------|
-| ≥80 | 🟢 | 高可信度，SCI/Q1 期刊论文 |
-| 60–79 | 🟡 | 中等，一般同行评审期刊 |
-| 40–59 | 🟠 | 低可信度，预印本/学位论文 |
-| <40 | 🔴 | 不可信，掠夺性期刊 |
-
-### 项目文件
-
-```
-cognitive-search-engine/
-├── config/           # 配置文件（搜索规则、物种图谱、MCP 服务器）
-├── src/              # Python 源码
-│   ├── meso_agent.py       ← BDI 认知循环，搜索入口
-│   ├── mcp_client.py       ← MCP 子进程管理 + 工具发现
-│   ├── parallel_search.py  ← HTTP 直连搜索（6 源并行）
-│   ├── unified_search.py   ← 搜索协议 + 分类学服务 + 引擎注册表
-│   ├── search_coordinator.py ← 统一搜索协调器
-│   ├── validator.py        ← 论文验证
-│   ├── credibility_scorer.py ← 期刊白名单评分
-│   ├── variant_generator.py  ← OCR 拼写变体
-│   ├── inference_engine.py ← 推理增强（缺口检测）
-│   ├── evolution_executor.py ← 自进化参数调整
-│   ├── world_model.py      ← 预搜索仿真
-│   ├── adapter.py          ← 跨项目接口
-│   └── report_formatter.py ← 分类报告输出
-├── scripts/          # CLI 工具 (search_api, credibility_scorer, kb_to_graph_sync, self_evolve)
-├── skills/           # Reasonix AI 技能
-└── tests/
-```
+| 能力 | 说明 |
+|:-----|:------|
+| **多源并行** | tavily / exa / scholar / article / scholarly，11 引擎可配置 |
+| **分类学验证** | 跨项目比对 family/order，不一致自动标记 |
+| **三角验证评分** | 每篇论文 ≥2 独立源，journal whitelist 加权 |
+| **OCR 变体** | 学名 OCR 容错（u↔b, i↔l, n↔m） |
+| **引用回溯** | 从中文论文提取英文参考文献 |
+| **结果去重** | 按 DOI 精确去重，按标题模糊去重 |
+| **DirectLoader** | `importlib` 零进程加载 |
 
 ---
 
-## 和谁一起工作
-
-```
-三角闭环 + 衍生 (跨项目)
-├── V0  fish-ecology-assistant   → 知识库 + 数据 + 矛盾分析
-├── V1  cognitive-search-engine  → 搜索验证 ← 就是这个项目
-├── Coord  eon-core              → EventBus + DAG 路由
-│
-├── P₁  porpoise-agent           → 衍生: 江豚种群监测
-└── P₂  coilia-agent             → 衍生: 刀鲚洄游生态
-```
-
-本引擎是**整个工作区的唯一搜索网关**。所有外部搜索请求必须路由到此引擎。
-
----
-
-## 🧭 各项目未来优化方向
-
-| 项目 | 层级 | 近期 (3月) | 中期 (6月) | 远期 (12月) |
-|------|:----:|-----------|-----------|------------|
-| **cognitive-search-engine** | V1 | SerpAPI 百度/学术/DuckDuckGo 反爬突破 · Exa 语义扩展；目标：21→28引擎, p95延迟 25→15s | 跨语言检索 (中英双向) · 搜索即图谱实时更新；目标：零冷启动 | 自调优 MoE 路由 — 物种级动态引擎选择；目标：90%召回率 at 50% token 成本 |
-| **fish-ecology-assistant** | V0 | 文献自动分类 · 矛盾检测管线；目标：95% 自动归类 | 知识库-图谱双向同步 · 自动年度综述生成；目标：80% 综合自动化 | 多模态知识库 (文本+图像+基因组) · LLM 研究缺口推荐；目标：每物种推荐 3 个可执行方向 |
-| **eon-core** | Coord | EventBus 吞吐量优化 · 学习型 DAG 路由；目标：项目间延迟 <200ms | 跨项目资源感知调度 · 5+ Agent 分布式协调；目标：零配置新项目接入 | 自愈协调图 · 自主衍生项目生成 (三生万物自动 P₃/P₄…)；目标：新项目 5min 内搭好骨架 |
-| **porpoise-agent** | P₁ | 声学监测数据接入 · 种群趋势看板；目标：野外数据按月更新 | ML 威胁评估 (船舶+捕捞+污染) · 实时告警；目标：风险事件前 48h 预警 | 全数字孪生 — 管理方案模拟 · 政策影响预测；目标：推荐最优保护行动, 90% 置信度 |
-| **coilia-agent** | P₂ | 耳石微化学自动化管线 · 微量元素洄游路径重建；目标：80% 自动化 | 多年产卵场预测 · 气候变化情景模拟；目标：提前 2 年预测补充量 | 全生命周期数字孪生 (卵→成体) · 基因流集合种群模型；目标：指导放流, 85% 补充成功率 |
-| **culter-agent** | P₃ | 染色体级基因组组装管线 · 肠道微生物营养生态位推断；目标：基因组注释 <2周 | 群体基因组 — 适应性位点发现 · 鲌亚科物种形成基因组学；目标：发现 10+ 适应性位点 | 生态-进化模拟 — 预测物种对环境变化的响应 · 整合基因组+营养+分布数据；目标：5年种群预测, 80% 准确率 |
-
----
-
-## 先装啥
-
-```bash
-pip install pyyaml        # 配置文件读取
-pip install requests      # HTTP 搜索（可选，默认用 urllib）
-```
-
-Python 3.10+。Windows/Linux/macOS 都行。
-
----
-
-## 许可证
-
-MIT © 2026 fangtaocai041
+> 鱼在水里，你在岸上，代码在中间。
+> 愿搜索和河流一样不遗漏每一个角落。
+>
+> **最后更新: 2026-06-21 · Reasonix Code · DeepSeek 驱动**

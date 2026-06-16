@@ -1,5 +1,5 @@
 graph:
-  version: 3.0.0
+  version: 4.0.0
   species:
   - id: Ochetobius_elongatus
     name: Ochetobius elongatus
@@ -114,17 +114,17 @@ graph:
   - id: Cyprinus_carpio
     name: Cyprinus carpio
     chinese: 鲤
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
   - id: Carassius_auratus
     name: Carassius auratus
     chinese: 鲫
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
   - id: Hypophthalmichthys_molitrix
     name: Hypophthalmichthys molitrix
     chinese: 鲢
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
   - id: Pelteobagrus_fulvidraco
     name: Pelteobagrus fulvidraco
@@ -144,12 +144,12 @@ graph:
   - id: Saurogobio_dabryi
     name: Saurogobio dabryi
     chinese: 蛇鮈
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
   - id: Ctenopharyngodon_idellus
     name: Ctenopharyngodon idellus
     chinese: 草鱼
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
   - id: Pelteobagrus_nitidus
     name: Pelteobagrus nitidus
@@ -159,7 +159,7 @@ graph:
   - id: Hemiculter_leucisculus
     name: Hemiculter leucisculus
     chinese: 䱗
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
   - id: Siniperca_chuatsi
     name: Siniperca chuatsi
@@ -169,17 +169,17 @@ graph:
   - id: Coreius_heterodon
     name: Coreius heterodon
     chinese: 铜鱼
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
   - id: Parabramis_pekinensis
     name: Parabramis pekinensis
     chinese: 鳊
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
   - id: Aristichthys_nobilis
     name: Aristichthys nobilis
     chinese: 鳙
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
   - id: Acipenser_dabryanus
     name: Acipenser dabryanus
@@ -232,21 +232,21 @@ graph:
   - id: hemiculter_leucisculus
     name: Hemiculter leucisculus
     chinese: 䱗
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
     aliases: []
     variants: []
   - id: parabramis_pekinensis
     name: Parabramis pekinensis
     chinese: 鳊
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
     aliases: []
     variants: []
   - id: ochetobius_elongatus
     name: Ochetobius elongatus
     chinese: 鳤
-    family: 鲤科
+    family: Cyprinidae
     conservation: 无
     aliases: []
     variants: []
@@ -263,6 +263,2526 @@ graph:
     family: 鳀科 (Engraulidae)
     conservation: 濒危(EN)
     aliases: []
+    variants: []
+  - id: psephurus_gladius
+    name: Psephurus gladius
+    chinese: 白鲟
+    family: Polyodontidae
+    conservation: CR
+    variants: []
+  - id: acipenser_dabryanus
+    name: Acipenser dabryanus
+    chinese: 长江鲟
+    family: Acipenseridae
+    conservation: CR
+    variants: []
+  - id: acipenser_sinensis
+    name: Acipenser sinensis
+    chinese: 中华鲟
+    family: Acipenseridae
+    conservation: CR
+    variants: []
+  - id: acipenser_schrenckii
+    name: Acipenser schrenckii
+    chinese: 史氏鲟
+    family: Acipenseridae
+    conservation: NE
+    variants: []
+  - id: anguilla_japonica
+    name: Anguilla japonica
+    chinese: 鳗鲡
+    family: Anguillidae
+    conservation: NE
+    variants: []
+  - id: anguilla_mauritiana
+    name: Anguilla mauritiana
+    chinese: 花鳗鲡
+    family: Anguillidae
+    conservation: EN
+    variants: []
+  - id: coilia_mystus
+    name: Coilia mystus
+    chinese: 凤鲚
+    family: Engraulidae
+    conservation: LC
+    variants: []
+  - id: tenualosa_reevesii
+    name: Tenualosa reevesii
+    chinese: 鲥
+    family: Clupeidae
+    conservation: CR
+    variants: []
+  - id: konosirus_punctatus
+    name: Konosirus punctatus
+    chinese: 斑鰶
+    family: Dorosomatidae
+    conservation: NE
+    variants: []
+  - id: zacco_platypus
+    name: Zacco platypus
+    chinese: 宽鳍鱲
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: zacco_chengtui
+    name: Zacco chengtui
+    chinese: 成都鱲
+    family: Xenocyprididae
+    conservation: EN
+    variants: []
+  - id: opsariichthys_bidens
+    name: Opsariichthys bidens
+    chinese: 马口鱼
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: aphyocypris_chinensis
+    name: Aphyocypris chinensis
+    chinese: 中华细鲫
+    family: Xenocyprididae
+    conservation: NT
+    variants: []
+  - id: gobiocypris_rarus
+    name: Gobiocypris rarus
+    chinese: 稀有鲫
+    family: Xenocyprididae
+    conservation: EN
+    variants: []
+  - id: mylopharyngodon_piceus
+    name: Mylopharyngodon piceus
+    chinese: 青鱼
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: luciobrama_macrocephalus
+    name: Luciobrama macrocephalus
+    chinese: 鯮
+    family: Xenocyprididae
+    conservation: CR
+    variants: []
+  - id: ctenopharyngodon_idellus
+    name: Ctenopharyngodon idellus
+    chinese: 草鱼
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: atrilinea_macrolepis
+    name: Atrilinea macrolepis
+    chinese: 大鳞黑线䱗
+    family: Xenocyprididae
+    conservation: CR
+    variants: []
+  - id: atrilinea_roulei
+    name: Atrilinea roulei
+    chinese: 黑线䱗
+    family: Xenocyprididae
+    conservation: VU
+    variants: []
+  - id: rhynchocypris_oxycephalus
+    name: Rhynchocypris oxycephalus
+    chinese: 尖头大吻鱥
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: rhynchocypris_lagowskii
+    name: Rhynchocypris lagowskii
+    chinese: 拉氏大吻鱥
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: tinca_tinca
+    name: Tinca tinca
+    chinese: 丁鱥
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: squaliobarbus_curriculus
+    name: Squaliobarbus curriculus
+    chinese: 赤眼鳟
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: elopichthys_bambusa
+    name: Elopichthys bambusa
+    chinese: 鳡
+    family: Xenocyprididae
+    conservation: NT
+    variants: []
+  - id: pseudolaubuca_sinensis
+    name: Pseudolaubuca sinensis
+    chinese: 飘鱼
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: pseudolaubuca_engraulis
+    name: Pseudolaubuca engraulis
+    chinese: 寡鳞飘鱼
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: sinibrama_macrops
+    name: Sinibrama macrops
+    chinese: 大眼华鳊
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: sinibrama_taeniatus
+    name: Sinibrama taeniatus
+    chinese: 四川华鳊
+    family: Xenocyprididae
+    conservation: NT
+    variants: []
+  - id: sinibrama_wui
+    name: Sinibrama wui
+    chinese: 伍氏华鳊
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: sinibrama_longianalis
+    name: Sinibrama longianalis
+    chinese: 长臀华鳊
+    family: Xenocyprididae
+    conservation: DD
+    variants: []
+  - id: ancherythroculter_kurematsui
+    name: Ancherythroculter kurematsui
+    chinese: 高体近红鲌
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: ancherythroculter_wangi
+    name: Ancherythroculter wangi
+    chinese: 汪氏近红鲌
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: ancherythroculter_nigrocauda
+    name: Ancherythroculter nigrocauda
+    chinese: 黑尾近红鲌
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: anabarilius_liui
+    name: Anabarilius liui
+    chinese: 雅砻白鱼
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: anabarilius_qionghaiensis
+    name: Anabarilius qionghaiensis
+    chinese: 邛海白鱼
+    family: Xenocyprididae
+    conservation: CR
+    variants: []
+  - id: anabarilius_songmingensis
+    name: Anabarilius songmingensis
+    chinese: 嵩明白鱼
+    family: Xenocyprididae
+    conservation: NT
+    variants: []
+  - id: anabarilius_xundianensis
+    name: Anabarilius xundianensis
+    chinese: 寻甸白鱼
+    family: Xenocyprididae
+    conservation: NT
+    variants: []
+  - id: anabarilius_polylepis
+    name: Anabarilius polylepis
+    chinese: 多鳞白鱼
+    family: Xenocyprididae
+    conservation: EN
+    variants: []
+  - id: anabarilius_alburnops
+    name: Anabarilius alburnops
+    chinese: 银白鱼
+    family: Xenocyprididae
+    conservation: EN
+    variants: []
+  - id: anabarilius_brevianalis
+    name: Anabarilius brevianalis
+    chinese: 短臀白鱼
+    family: Xenocyprididae
+    conservation: VU
+    variants: []
+  - id: hemiculterella_sauvagei
+    name: Hemiculterella sauvagei
+    chinese: 半䱗
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: toxabramis_swinhonis
+    name: Toxabramis swinhonis
+    chinese: 似鱎
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: hemiculter_tchangi
+    name: Hemiculter tchangi
+    chinese: 张氏䱗
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: hemiculter_bleekeri
+    name: Hemiculter bleekeri
+    chinese: 贝氏䱗
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: pseudohemiculter_dispar
+    name: Pseudohemiculter dispar
+    chinese: 南方拟䱗
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: pseudohemiculter_hainanensis
+    name: Pseudohemiculter hainanensis
+    chinese: 海南拟䱗
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: pseudohemiculter_kweichowensis
+    name: Pseudohemiculter kweichowensis
+    chinese: 贵州拟䱗
+    family: Xenocyprididae
+    conservation: DD
+    variants: []
+  - id: cultrichthys_erythropterus
+    name: Cultrichthys erythropterus
+    chinese: 红鳍原鲌
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: culter_alburnus
+    name: Culter alburnus
+    chinese: 翘嘴鲌
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: culter_mongolicus
+    name: Culter mongolicus
+    chinese: 蒙古鲌
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: culter_oxycephalus
+    name: Culter oxycephalus
+    chinese: 尖头鲌
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: culter_dabryi
+    name: Culter dabryi
+    chinese: 达氏鲌
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: culter_oxycephaloides
+    name: Culter oxycephaloides
+    chinese: 拟尖头鲌
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: megalobrama_pellegrini
+    name: Megalobrama pellegrini
+    chinese: 厚颌鲂
+    family: Xenocyprididae
+    conservation: VU
+    variants: []
+  - id: megalobrama_elongata
+    name: Megalobrama elongata
+    chinese: 长体鲂
+    family: Xenocyprididae
+    conservation: DD
+    variants: []
+  - id: megalobrama_mantschuricus
+    name: Megalobrama mantschuricus
+    chinese: 鲂
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: megalobrama_amblycephala
+    name: Megalobrama amblycephala
+    chinese: 团头鲂
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: megalobrama_terminalis
+    name: Megalobrama terminalis
+    chinese: 三角鲂
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: xenocypris_argentea
+    name: Xenocypris argentea
+    chinese: 银鲴
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: xenocypris_davidi
+    name: Xenocypris davidi
+    chinese: 黄尾鲴
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: xenocypris_yunnanensis
+    name: Xenocypris yunnanensis
+    chinese: 云南鲴
+    family: Xenocyprididae
+    conservation: CR
+    variants: []
+  - id: xenocypris_fangi
+    name: Xenocypris fangi
+    chinese: 方氏鲴
+    family: Xenocyprididae
+    conservation: VU
+    variants: []
+  - id: xenocypris_microlepis
+    name: Xenocypris microlepis
+    chinese: 细鳞鲴
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: xenocypris_hupeinensis
+    name: Xenocypris hupeinensis
+    chinese: 湖北鲴
+    family: Xenocyprididae
+    conservation: DD
+    variants: []
+  - id: distoechodon_tumirostris
+    name: Distoechodon tumirostris
+    chinese: 圆吻鲴
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: distoechodon_macrophthalmus
+    name: Distoechodon macrophthalmus
+    chinese: 大眼圆吻鲴
+    family: Xenocyprididae
+    conservation: NE
+    variants: []
+  - id: pseudobrama_simoni
+    name: Pseudobrama simoni
+    chinese: 似鳊
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: aristichthys_nobilis
+    name: Aristichthys nobilis
+    chinese: 鳙
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: hypophthalmichthys_molitrix
+    name: Hypophthalmichthys molitrix
+    chinese: 鲢
+    family: Xenocyprididae
+    conservation: LC
+    variants: []
+  - id: hemibarbus_labeo
+    name: Hemibarbus labeo
+    chinese: 唇䱻
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: hemibarbus_maculatus
+    name: Hemibarbus maculatus
+    chinese: 花䱻
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: hemibarbus_medius
+    name: Hemibarbus medius
+    chinese: 间䱻
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: belligobio_nummifer
+    name: Belligobio nummifer
+    chinese: 似䱻
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: belligobio_pengxianensis
+    name: Belligobio pengxianensis
+    chinese: 彭县似䱻
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: pseudorasbora_parva
+    name: Pseudorasbora parva
+    chinese: 麦穗鱼
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: pseudorasbora_elongata
+    name: Pseudorasbora elongata
+    chinese: 长麦穗鱼
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: sarcocheilichthys_sinensis
+    name: Sarcocheilichthys sinensis
+    chinese: 华鳈
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: sarcocheilichthys_nigripinnis
+    name: Sarcocheilichthys nigripinnis
+    chinese: 黑鳍鳈
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: sarcocheilichthys_davidi
+    name: Sarcocheilichthys davidi
+    chinese: 川西鳈
+    family: Cyprinidae
+    conservation: NT
+    variants: []
+  - id: sarcocheilichthys_parvus
+    name: Sarcocheilichthys parvus
+    chinese: 小鳈
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: sarcocheilichthys_kiangsiensis
+    name: Sarcocheilichthys kiangsiensis
+    chinese: 江西鳈
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: gnathopogon_herzensteini
+    name: Gnathopogon herzensteini
+    chinese: 嘉陵颌须
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: gnathopogon_imberbis
+    name: Gnathopogon imberbis
+    chinese: 短须颌须
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: gnathopogon_nicholsi
+    name: Gnathopogon nicholsi
+    chinese: 隐须颌须
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: squalidus_argentatus
+    name: Squalidus argentatus
+    chinese: 银
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: squalidus_nitens
+    name: Squalidus nitens
+    chinese: 亮银
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: squalidus_wolterstorffi
+    name: Squalidus wolterstorffi
+    chinese: 点纹银
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: coreius_heterodon
+    name: Coreius heterodon
+    chinese: 铜鱼
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: coreius_guichenoti
+    name: Coreius guichenoti
+    chinese: 圆口铜鱼
+    family: Cyprinidae
+    conservation: CR
+    variants: []
+  - id: rhinogobio_typus
+    name: Rhinogobio typus
+    chinese: 吻
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: rhinogobio_cylindricus
+    name: Rhinogobio cylindricus
+    chinese: 圆筒吻
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: rhinogobio_ventralis
+    name: Rhinogobio ventralis
+    chinese: 长鳍吻
+    family: Cyprinidae
+    conservation: EN
+    variants: []
+  - id: rhinogobio_hunanensis
+    name: Rhinogobio hunanensis
+    chinese: 湖南吻
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: platysmacheilus_nudiventris
+    name: Platysmacheilus nudiventris
+    chinese: 裸腹片唇
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: platysmacheilus_longibarbatus
+    name: Platysmacheilus longibarbatus
+    chinese: 长须片唇
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: platysmacheilus_exiguus
+    name: Platysmacheilus exiguus
+    chinese: 片唇
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: platysmacheilus_zhenjiangensis
+    name: Platysmacheilus zhenjiangensis
+    chinese: 镇江片唇
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: abbottina_rivularis
+    name: Abbottina rivularis
+    chinese: 棒花鱼
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: abbottina_obtusirostris
+    name: Abbottina obtusirostris
+    chinese: 钝吻棒花鱼
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: microphysogobio_kiatingensis
+    name: Microphysogobio kiatingensis
+    chinese: 乐山小鳔
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: microphysogobio_fukiensis
+    name: Microphysogobio fukiensis
+    chinese: 福建小鳔
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: microphysogobio_microstomus
+    name: Microphysogobio microstomus
+    chinese: 小口小鳔
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: microphysogobio_tungtingensis
+    name: Microphysogobio tungtingensis
+    chinese: 洞庭小鳔
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: microphysogobio_nudiventris
+    name: Microphysogobio nudiventris
+    chinese: 裸腹小鳔
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: pseudogobio_vaillanti
+    name: Pseudogobio vaillanti
+    chinese: 似
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: paracanthobrama_guichenoti
+    name: Paracanthobrama guichenoti
+    chinese: 似刺鳊
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: saurogobio_dumerili
+    name: Saurogobio dumerili
+    chinese: 长蛇
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: saurogobio_dabryi
+    name: Saurogobio dabryi
+    chinese: 蛇
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: saurogobio_gymnocheilus
+    name: Saurogobio gymnocheilus
+    chinese: 光唇蛇
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: saurogobio_punctatus
+    name: Saurogobio punctatus
+    chinese: 斑点蛇
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: saurogobio_gracilicaudatus
+    name: Saurogobio gracilicaudatus
+    chinese: 细尾蛇
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: saurogobio_xiangjiangensis
+    name: Saurogobio xiangjiangensis
+    chinese: 湘江蛇
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: gobiobotia_abbreviata
+    name: Gobiobotia abbreviata
+    chinese: 短身鳅鮀
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: gobiobotia_filifer
+    name: Gobiobotia filifer
+    chinese: 宜昌鳅鮀
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: gobiobotia_meridionalis
+    name: Gobiobotia meridionalis
+    chinese: 南方鳅鮀
+    family: Cyprinidae
+    conservation: NT
+    variants: []
+  - id: gobiobotia_brevirostris
+    name: Gobiobotia brevirostris
+    chinese: 短吻鳅鮀
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: gobiobotia_tungi
+    name: Gobiobotia tungi
+    chinese: 董氏鳅鮀
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: xenophysogobio_boulengeri
+    name: Xenophysogobio boulengeri
+    chinese: 异鳔鳅鮀
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: xenophysogobio_nudicorpa
+    name: Xenophysogobio nudicorpa
+    chinese: 裸体异鳔鳅鮀
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: rhodeus_sinensis
+    name: Rhodeus sinensis
+    chinese: 中华鳑鲏
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: rhodeus_ocellatus
+    name: Rhodeus ocellatus
+    chinese: 高体鳑鲏
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: rhodeus_lighti
+    name: Rhodeus lighti
+    chinese: 彩石鳑鲏
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: rhodeus_fangi
+    name: Rhodeus fangi
+    chinese: 方氏鳑鲏
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: rhodeus_albomarginatus
+    name: Rhodeus albomarginatus
+    chinese: 白边鳑鲏
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: acheilognathus_macropterus
+    name: Acheilognathus macropterus
+    chinese: 大鳍鱊
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acheilognathus_elongatus
+    name: Acheilognathus elongatus
+    chinese: 长身鱊
+    family: Cyprinidae
+    conservation: CR
+    variants: []
+  - id: acheilognathus_omeiensis
+    name: Acheilognathus omeiensis
+    chinese: 峨嵋鱊
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acheilognathus_tonkinensis
+    name: Acheilognathus tonkinensis
+    chinese: 越南鱊
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: acheilognathus_barbtus
+    name: Acheilognathus barbtus
+    chinese: 须鱊
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acheilognathus_babatulus
+    name: Acheilognathus babatulus
+    chinese: 短须鱊
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acheilognathus_hypselonotus
+    name: Acheilognathus hypselonotus
+    chinese: 寡鳞鱊
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acheilognathus_gracilis
+    name: Acheilognathus gracilis
+    chinese: 无须鱊
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acheilognathus_chankaensis
+    name: Acheilognathus chankaensis
+    chinese: 兴凯鱊
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acheilognathus_taenianalis
+    name: Acheilognathus taenianalis
+    chinese: 斑条鱊
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: acheilognathus_tabira
+    name: Acheilognathus tabira
+    chinese: 巨口鱊
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: acheilognathus_polylepis
+    name: Acheilognathus polylepis
+    chinese: 多鳞鱊
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acheilognathus_striatus
+    name: Acheilognathus striatus
+    chinese: 条纹鱊
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: paracheilognathus_imberbis
+    name: Paracheilognathus imberbis
+    chinese: 彩副鱊
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: paracheilognathus_himantegus
+    name: Paracheilognathus himantegus
+    chinese: 革条副鱊
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: barbodes_polylepis
+    name: Barbodes polylepis
+    chinese: 多鳞四须鲃
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: linichthys_laticeps
+    name: Linichthys laticeps
+    chinese: 宽头林鲃
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: luciobarbus_capito
+    name: Luciobarbus capito
+    chinese: 大鳞鲃
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: spinibarbus_hollandi
+    name: Spinibarbus hollandi
+    chinese: 光倒刺鲃
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: spinibarbus_sinensis
+    name: Spinibarbus sinensis
+    chinese: 中华倒刺鲃
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: percocypris_pingi
+    name: Percocypris pingi
+    chinese: 鲈鲤
+    family: Cyprinidae
+    conservation: EN
+    variants: []
+  - id: percocypris_regani
+    name: Percocypris regani
+    chinese: 花鲈鲤
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: sinocyclocheilus_multipunctatus
+    name: Sinocyclocheilus multipunctatus
+    chinese: 多斑金线鲃
+    family: Cyprinidae
+    conservation: NT
+    variants: []
+  - id: sinocyclocheilus_grahami
+    name: Sinocyclocheilus grahami
+    chinese: 滇池金线鲃
+    family: Cyprinidae
+    conservation: CR
+    variants: []
+  - id: sinocyclocheilus_wumengshanensis
+    name: Sinocyclocheilus wumengshanensis
+    chinese: 乌蒙山金线鲃
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: sinocyclocheilus_huizeensis
+    name: Sinocyclocheilus huizeensis
+    chinese: 会泽金线鲃
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: acrossocheilus_monticolus
+    name: Acrossocheilus monticolus
+    chinese: 宽口光唇鱼
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acrossocheilus_yunnanensis
+    name: Acrossocheilus yunnanensis
+    chinese: 云南光唇鱼
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acrossocheilus_paradoxus
+    name: Acrossocheilus paradoxus
+    chinese: 台湾光唇鱼
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acrossocheilus_fasciatus
+    name: Acrossocheilus fasciatus
+    chinese: 光唇鱼
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acrossocheilus_jishouensis
+    name: Acrossocheilus jishouensis
+    chinese: 吉首光唇鱼
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: acrossocheilus_kreyenbergii
+    name: Acrossocheilus kreyenbergii
+    chinese: 薄颌光唇鱼
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: onychostoma_macrolepis
+    name: Onychostoma macrolepis
+    chinese: 多鳞白甲鱼
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: onychostoma_sima
+    name: Onychostoma sima
+    chinese: 白甲鱼
+    family: Cyprinidae
+    conservation: NT
+    variants: []
+  - id: onychostoma_angustistomata
+    name: Onychostoma angustistomata
+    chinese: 四川白甲鱼
+    family: Cyprinidae
+    conservation: EN
+    variants: []
+  - id: onychostoma_daduensis
+    name: Onychostoma daduensis
+    chinese: 大渡白甲鱼
+    family: Cyprinidae
+    conservation: CR
+    variants: []
+  - id: onychostoma_brevis
+    name: Onychostoma brevis
+    chinese: 短身白甲鱼
+    family: Cyprinidae
+    conservation: EN
+    variants: []
+  - id: onychostoma_barbata
+    name: Onychostoma barbata
+    chinese: 粗须白甲鱼
+    family: Cyprinidae
+    conservation: NT
+    variants: []
+  - id: onychostoma_rara
+    name: Onychostoma rara
+    chinese: 稀有白甲鱼
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: onychostoma_ovalis
+    name: Onychostoma ovalis
+    chinese: 珠江卵形白甲鱼
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: onychostoma_lini
+    name: Onychostoma lini
+    chinese: 小口白甲鱼
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: onychostoma_barbatula
+    name: Onychostoma barbatula
+    chinese: 台湾白甲鱼
+    family: Cyprinidae
+    conservation: NT
+    variants: []
+  - id: onychostoma_virgulatum
+    name: Onychostoma virgulatum
+    chinese: 侧纹白甲鱼
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: folifer_brevifilis
+    name: Folifer brevifilis
+    chinese: 瓣结鱼
+    family: Cyprinidae
+    conservation: NT
+    variants: []
+  - id: sinilabeo_hummeli
+    name: Sinilabeo hummeli
+    chinese: 赫氏华鲮
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: bangana_rendahli
+    name: Bangana rendahli
+    chinese: 伦氏孟加拉鲮
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: bangana_tungting
+    name: Bangana tungting
+    chinese: 洞庭孟加拉鲮
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: rectoris_luxiensis
+    name: Rectoris luxiensis
+    chinese: 泸溪直口鲮
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: rectoris_mutabilis
+    name: Rectoris mutabilis
+    chinese: 变形直口鲮
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: protolabeo_protolabeo
+    name: Protolabeo protolabeo
+    chinese: 原鲮
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: cirrhinus_molitorella
+    name: Cirrhinus molitorella
+    chinese: 鲮
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: cirrhhina_mrigala
+    name: Cirrhhina mrigala
+    chinese: 麦瑞加拉鲮
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: labeo_rohita
+    name: Labeo rohita
+    chinese: 露斯塔野鲮
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: paraqianlabeo_lineatus
+    name: Paraqianlabeo lineatus
+    chinese: 条纹异黔鲮
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: pseudogyrinocheilus_procheilus
+    name: Pseudogyrinocheilus procheilus
+    chinese: 泉水鱼
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: sinocrossocheilus_guizhouensis
+    name: Sinocrossocheilus guizhouensis
+    chinese: 华缨鱼
+    family: Cyprinidae
+    conservation: EN
+    variants: []
+  - id: sinocrossocheilus_labiata
+    name: Sinocrossocheilus labiata
+    chinese: 宽唇华缨鱼
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: garra_imberba
+    name: Garra imberba
+    chinese: 墨头鱼
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: discogobio_yunnanensis
+    name: Discogobio yunnanensis
+    chinese: 云南盘
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: discogobio_brachyphysallidos
+    name: Discogobio brachyphysallidos
+    chinese: 短鳔盘
+    family: Cyprinidae
+    conservation: NT
+    variants: []
+  - id: schizothorax_cryptolepis
+    name: Schizothorax cryptolepis
+    chinese: 隐鳞裂腹鱼
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: schizothorax_heterochilus
+    name: Schizothorax heterochilus
+    chinese: 异唇裂腹鱼
+    family: Cyprinidae
+    conservation: DD
+    variants: []
+  - id: schizothorax_pachycephalus
+    name: Schizothorax pachycephalus
+    chinese: 厚唇裂腹鱼
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: ptychobarbus_kaznakovi
+    name: Ptychobarbus kaznakovi
+    chinese: 裸腹叶须鱼
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: ptychobarbus_chungtienensis
+    name: Ptychobarbus chungtienensis
+    chinese: 中甸叶须鱼
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: gymnodiptychus_pachycheilus
+    name: Gymnodiptychus pachycheilus
+    chinese: 厚唇裸重唇鱼
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: gymnocypris_potanini
+    name: Gymnocypris potanini
+    chinese: 松潘裸鲤
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: schizopygopsis_malacanthus
+    name: Schizopygopsis malacanthus
+    chinese: 软刺裸裂尻鱼
+    family: Cyprinidae
+    conservation: NE
+    variants: []
+  - id: schizopygopsis_kialingensis
+    name: Schizopygopsis kialingensis
+    chinese: 嘉陵裸裂尻鱼
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: herzensteinia_microcephalus
+    name: Herzensteinia microcephalus
+    chinese: 小头高原鱼
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: procypris_rabaudi
+    name: Procypris rabaudi
+    chinese: 岩原鲤
+    family: Cyprinidae
+    conservation: VU
+    variants: []
+  - id: cyprinus_carpio
+    name: Cyprinus carpio
+    chinese: 鲤
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: cyprinus_multitaeniata
+    name: Cyprinus multitaeniata
+    chinese: 三角鲤
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: cyprinus_chilia
+    name: Cyprinus chilia
+    chinese: 杞麓鲤
+    family: Cyprinidae
+    conservation: EN
+    variants: []
+  - id: cyprinus_qionghaiensdis
+    name: Cyprinus qionghaiensdis
+    chinese: 邛海鲤
+    family: Cyprinidae
+    conservation: CR
+    variants: []
+  - id: carassius_auratus
+    name: Carassius auratus
+    chinese: 鲫
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: carassioides_acuminatus
+    name: Carassioides acuminatus
+    chinese: 须鲫
+    family: Cyprinidae
+    conservation: LC
+    variants: []
+  - id: myxocyprinus_asiaticus
+    name: Myxocyprinus asiaticus
+    chinese: 胭脂鱼
+    family: Catostomidae
+    conservation: CR
+    variants: []
+  - id: yunnanilus_pleurotaenia
+    name: Yunnanilus pleurotaenia
+    chinese: 侧纹云南鳅
+    family: Balitoridae
+    conservation: VU
+    variants: []
+  - id: yunnanilus_nigromaculatus
+    name: Yunnanilus nigromaculatus
+    chinese: 黑斑云南鳅
+    family: Balitoridae
+    conservation: EN
+    variants: []
+  - id: yunnanilus_longibulla
+    name: Yunnanilus longibulla
+    chinese: 长鳔云南鳅
+    family: Balitoridae
+    conservation: NT
+    variants: []
+  - id: yunnanilus_caohaiensis
+    name: Yunnanilus caohaiensis
+    chinese: 草海云南鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: yunnanilus_ganheensis
+    name: Yunnanilus ganheensis
+    chinese: 干河云南鳅
+    family: Balitoridae
+    conservation: VU
+    variants: []
+  - id: yunnanilus_niulanensis
+    name: Yunnanilus niulanensis
+    chinese: 牛栏云南鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: yunnanilus_spanisbripes
+    name: Yunnanilus spanisbripes
+    chinese: 横斑云南鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: yunnanilus_sichuanensis
+    name: Yunnanilus sichuanensis
+    chinese: 四川云南鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: paracobitis_variegatus
+    name: Paracobitis variegatus
+    chinese: 红尾副鳅
+    family: Balitoridae
+    conservation: NE
+    variants: []
+  - id: paracobitis_potanini
+    name: Paracobitis potanini
+    chinese: 短体副鳅
+    family: Balitoridae
+    conservation: NE
+    variants: []
+  - id: paracobitis_wujiangensis
+    name: Paracobitis wujiangensis
+    chinese: 乌江副鳅
+    family: Balitoridae
+    conservation: NE
+    variants: []
+  - id: schistura_fasciolata
+    name: Schistura fasciolata
+    chinese: 横纹南鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: schistura_pseudofasciolata
+    name: Schistura pseudofasciolata
+    chinese: 似横纹南鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: schistura_niulanjiangensis
+    name: Schistura niulanjiangensis
+    chinese: 牛栏江南鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: schistura_dabryi
+    name: Schistura dabryi
+    chinese: 小眼戴氏南鳅
+    family: Balitoridae
+    conservation: NE
+    variants: []
+  - id: nemacheilus_huapingensis
+    name: Nemacheilus huapingensis
+    chinese: 华坪条鳅
+    family: Balitoridae
+    conservation: NE
+    variants: []
+  - id: barbatula_nuda
+    name: Barbatula nuda
+    chinese: 北方须鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: triplophysa_robusta
+    name: Triplophysa robusta
+    chinese: 粗壮高原鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: triplophysa_orientalis
+    name: Triplophysa orientalis
+    chinese: 东方高原鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: triplophysa_tanggulaensis
+    name: Triplophysa tanggulaensis
+    chinese: 唐古拉高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_stewarti
+    name: Triplophysa stewarti
+    chinese: 异尾高原鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: triplophysa_microps
+    name: Triplophysa microps
+    chinese: 小眼高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_obscura
+    name: Triplophysa obscura
+    chinese: 黑体高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_grahami
+    name: Triplophysa grahami
+    chinese: 昆明高原鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: triplophysa_xichangensis
+    name: Triplophysa xichangensis
+    chinese: 西昌高原鳅
+    family: Balitoridae
+    conservation: NT
+    variants: []
+  - id: triplophysa_venusta
+    name: Triplophysa venusta
+    chinese: 秀丽高原鳅
+    family: Balitoridae
+    conservation: NT
+    variants: []
+  - id: triplophysa_daqiaoensis
+    name: Triplophysa daqiaoensis
+    chinese: 大桥高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_brevibarba
+    name: Triplophysa brevibarba
+    chinese: 短须高原鳅
+    family: Balitoridae
+    conservation: NT
+    variants: []
+  - id: triplophysa_pseudoscleroptera
+    name: Triplophysa pseudoscleroptera
+    chinese: 拟硬刺高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_angeli
+    name: Triplophysa angeli
+    chinese: 安氏高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_anterodorsalis
+    name: Triplophysa anterodorsalis
+    chinese: 前鳍高原鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: triplophysa_brevicauda
+    name: Triplophysa brevicauda
+    chinese: 短尾高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_bleekeri
+    name: Triplophysa bleekeri
+    chinese: 贝氏高原鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: triplophysa_leptosoma
+    name: Triplophysa leptosoma
+    chinese: 修长高原鳅
+    family: Balitoridae
+    conservation: NE
+    variants: []
+  - id: triplophysa_toliczkae
+    name: Triplophysa toliczkae
+    chinese: 斯氏高原鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: triplophysa_crassilabris
+    name: Triplophysa crassilabris
+    chinese: 粗唇高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_tenura
+    name: Triplophysa tenura
+    chinese: 细尾高原鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: triplophysa_yaopeizhii
+    name: Triplophysa yaopeizhii
+    chinese: 姚氏高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_ninglangensis
+    name: Triplophysa ninglangensis
+    chinese: 宁蒗高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_rotundiventris
+    name: Triplophysa rotundiventris
+    chinese: 圆腹高原鳅
+    family: Balitoridae
+    conservation: NE
+    variants: []
+  - id: triplophysa_polyfasciata
+    name: Triplophysa polyfasciata
+    chinese: 多带高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_pseudostenura
+    name: Triplophysa pseudostenura
+    chinese: 拟细尾高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_lixianensis
+    name: Triplophysa lixianensis
+    chinese: 理县高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_xiqiensis
+    name: Triplophysa xiqiensis
+    chinese: 西溪高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_daochengensis
+    name: Triplophysa daochengensis
+    chinese: 稻城高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: triplophysa_rosa
+    name: Triplophysa rosa
+    chinese: 玫瑰高原鳅
+    family: Balitoridae
+    conservation: VU
+    variants: []
+  - id: triplophysa_xiangxiensis
+    name: Triplophysa xiangxiensis
+    chinese: 湘西盲高原鳅
+    family: Balitoridae
+    conservation: VU
+    variants: []
+  - id: triplophysa_bashanensis
+    name: Triplophysa bashanensis
+    chinese: 巴山高原鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: sphaerophysa_dianchiensis
+    name: Sphaerophysa dianchiensis
+    chinese: 滇池球鳔鳅
+    family: Balitoridae
+    conservation: CR
+    variants: []
+  - id: botia_superciliaris
+    name: Botia superciliaris
+    chinese: 中华沙鳅
+    family: Cobitidae
+    conservation: VU
+    variants: []
+  - id: botia_reevesae
+    name: Botia reevesae
+    chinese: 宽体沙鳅
+    family: Cobitidae
+    conservation: NE
+    variants: []
+  - id: parabotia_fasciata
+    name: Parabotia fasciata
+    chinese: 花斑副沙鳅
+    family: Cobitidae
+    conservation: LC
+    variants: []
+  - id: parabotia_bimaculata
+    name: Parabotia bimaculata
+    chinese: 双斑副沙鳅
+    family: Cobitidae
+    conservation: LC
+    variants: []
+  - id: parabotia_maculosa
+    name: Parabotia maculosa
+    chinese: 点面副沙鳅
+    family: Cobitidae
+    conservation: LC
+    variants: []
+  - id: parabotia_banarescu
+    name: Parabotia banarescu
+    chinese: 武昌副沙鳅
+    family: Cobitidae
+    conservation: LC
+    variants: []
+  - id: leptobotia_elongata
+    name: Leptobotia elongata
+    chinese: 长薄鳅
+    family: Cobitidae
+    conservation: EN
+    variants: []
+  - id: leptobotia_taeniops
+    name: Leptobotia taeniops
+    chinese: 紫薄鳅
+    family: Cobitidae
+    conservation: VU
+    variants: []
+  - id: leptobotia_pellegrini
+    name: Leptobotia pellegrini
+    chinese: 薄鳅
+    family: Cobitidae
+    conservation: NE
+    variants: []
+  - id: leptobotia_microphthalma
+    name: Leptobotia microphthalma
+    chinese: 小眼薄鳅
+    family: Cobitidae
+    conservation: VU
+    variants: []
+  - id: leptobotia_rubrilabris
+    name: Leptobotia rubrilabris
+    chinese: 红唇薄鳅
+    family: Cobitidae
+    conservation: VU
+    variants: []
+  - id: leptobotia_orientalis
+    name: Leptobotia orientalis
+    chinese: 东方薄鳅
+    family: Cobitidae
+    conservation: NT
+    variants: []
+  - id: leptobotia_tietaiensis
+    name: Leptobotia tietaiensis
+    chinese: 汉水扁尾薄鳅
+    family: Cobitidae
+    conservation: NE
+    variants: []
+  - id: leptobotia_hengyangensis
+    name: Leptobotia hengyangensis
+    chinese: 衡阳薄鳅
+    family: Cobitidae
+    conservation: VU
+    variants: []
+  - id: cobitis_sinensis
+    name: Cobitis sinensis
+    chinese: 中华花鳅
+    family: Cobitidae
+    conservation: LC
+    variants: []
+  - id: cobitis_sibirica
+    name: Cobitis sibirica
+    chinese: 北方花鳅
+    family: Cobitidae
+    conservation: LC
+    variants: []
+  - id: cobitis_macrostigma
+    name: Cobitis macrostigma
+    chinese: 大斑花鳅
+    family: Cobitidae
+    conservation: LC
+    variants: []
+  - id: cobitis_rarus
+    name: Cobitis rarus
+    chinese: 稀有花鳅
+    family: Cobitidae
+    conservation: LC
+    variants: []
+  - id: misgurnus_anguillicaudatus
+    name: Misgurnus anguillicaudatus
+    chinese: 泥鳅
+    family: Cobitidae
+    conservation: LC
+    variants: []
+  - id: misgurnus_mohoity
+    name: Misgurnus mohoity
+    chinese: 北方泥鳅
+    family: Cobitidae
+    conservation: LC
+    variants: []
+  - id: paramisgurnus_dabryanus
+    name: Paramisgurnus dabryanus
+    chinese: 大鳞副泥鳅
+    family: Cobitidae
+    conservation: NE
+    variants: []
+  - id: vanmanenia_pseudoatriata
+    name: Vanmanenia pseudoatriata
+    chinese: 拟横斑原缨口鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: vanmanenia_maculata
+    name: Vanmanenia maculata
+    chinese: 大斑原缨口鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: vanmanenia_pingchowensis
+    name: Vanmanenia pingchowensis
+    chinese: 平舟原缨口鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: vanmanenia_stenosoma
+    name: Vanmanenia stenosoma
+    chinese: 原缨口鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: paraprotomyzon_mutlifasciatus
+    name: Paraprotomyzon mutlifasciatus
+    chinese: 似原吸鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: paraprotomyzon_lungkowensis
+    name: Paraprotomyzon lungkowensis
+    chinese: 龙口似原吸鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: pseudogastromyzon_fangi
+    name: Pseudogastromyzon fangi
+    chinese: 珠江拟腹吸鳅
+    family: Balitoridae
+    conservation: NE
+    variants: []
+  - id: beaufortia_liui
+    name: Beaufortia liui
+    chinese: 侧沟爬岩鳅
+    family: Balitoridae
+    conservation: NT
+    variants: []
+  - id: beaufortia_szechuanensis
+    name: Beaufortia szechuanensis
+    chinese: 四川爬岩鳅
+    family: Balitoridae
+    conservation: NT
+    variants: []
+  - id: beaufortia_niulanensis
+    name: Beaufortia niulanensis
+    chinese: 牛栏爬岩鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: lepturichthys_fimbriata
+    name: Lepturichthys fimbriata
+    chinese: 犁头鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: hemimyzon_yaotanensis
+    name: Hemimyzon yaotanensis
+    chinese: 窑滩间吸鳅
+    family: Balitoridae
+    conservation: VU
+    variants: []
+  - id: jinshaia_abbreviata
+    name: Jinshaia abbreviata
+    chinese: 短身金沙鳅
+    family: Balitoridae
+    conservation: NT
+    variants: []
+  - id: jinshaia_sinensis
+    name: Jinshaia sinensis
+    chinese: 中华金沙鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: sinogastromyzon_sichangensis
+    name: Sinogastromyzon sichangensis
+    chinese: 西昌华吸鳅
+    family: Balitoridae
+    conservation: LC
+    variants: []
+  - id: sinogastromyzon_szechuanensis
+    name: Sinogastromyzon szechuanensis
+    chinese: 四川华吸鳅
+    family: Balitoridae
+    conservation: NE
+    variants: []
+  - id: sinogastromyzon_hsiashiensis
+    name: Sinogastromyzon hsiashiensis
+    chinese: 下司华吸鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: sinogastromyzon_dezeensis
+    name: Sinogastromyzon dezeensis
+    chinese: 德泽华吸鳅
+    family: Balitoridae
+    conservation: DD
+    variants: []
+  - id: metahomaloptera_omeiensis
+    name: Metahomaloptera omeiensis
+    chinese: 汉水后平鳅
+    family: Balitoridae
+    conservation: NE
+    variants: []
+  - id: piaractus_brachypomus
+    name: Piaractus brachypomus
+    chinese: 短盖巨脂鲤
+    family: Serrasalmidae
+    conservation: NE
+    variants: []
+  - id: hypostomus_plecostomus
+    name: Hypostomus plecostomus
+    chinese: 下口鲇
+    family: Loricariidae
+    conservation: NE
+    variants: []
+  - id: silurus_asotus
+    name: Silurus asotus
+    chinese: 鲇
+    family: Siluridae
+    conservation: LC
+    variants: []
+  - id: silurus_mento
+    name: Silurus mento
+    chinese: 昆明鲇
+    family: Siluridae
+    conservation: CR
+    variants: []
+  - id: silurus_meridionalis
+    name: Silurus meridionalis
+    chinese: 南方鲇
+    family: Siluridae
+    conservation: NE
+    variants: []
+  - id: pelteobagrus_fulvidraco
+    name: Pelteobagrus fulvidraco
+    chinese: 黄颡鱼
+    family: Bagridae
+    conservation: LC
+    variants: []
+  - id: pelteobagrus_eupogon
+    name: Pelteobagrus eupogon
+    chinese: 长须黄颡鱼
+    family: Bagridae
+    conservation: NE
+    variants: []
+  - id: pelteobagrus_vachelli
+    name: Pelteobagrus vachelli
+    chinese: 瓦氏黄颡鱼
+    family: Bagridae
+    conservation: NE
+    variants: []
+  - id: pelteobagrus_nitidus
+    name: Pelteobagrus nitidus
+    chinese: 光泽黄颡鱼
+    family: Bagridae
+    conservation: NE
+    variants: []
+  - id: leiocassis_longirostris
+    name: Leiocassis longirostris
+    chinese: 长吻鮠
+    family: Bagridae
+    conservation: NE
+    variants: []
+  - id: leiocassis_crassilabris
+    name: Leiocassis crassilabris
+    chinese: 粗唇鮠
+    family: Bagridae
+    conservation: NE
+    variants: []
+  - id: leiocassis_longibarbus
+    name: Leiocassis longibarbus
+    chinese: 长须鮠
+    family: Bagridae
+    conservation: NE
+    variants: []
+  - id: leiocassis_tenuifurcatus
+    name: Leiocassis tenuifurcatus
+    chinese: 叉尾鮠
+    family: Bagridae
+    conservation: NE
+    variants: []
+  - id: leiocassis_argentivittatus
+    name: Leiocassis argentivittatus
+    chinese: 纵带鮠
+    family: Bagridae
+    conservation: NE
+    variants: []
+  - id: pseudobagrus_tenuis
+    name: Pseudobagrus tenuis
+    chinese: 圆尾拟鲿
+    family: Bagridae
+    conservation: DD
+    variants: []
+  - id: pseudobagrus_ussuriensis
+    name: Pseudobagrus ussuriensis
+    chinese: 乌苏拟鲿
+    family: Bagridae
+    conservation: LC
+    variants: []
+  - id: pseudobagrus_medianalis
+    name: Pseudobagrus medianalis
+    chinese: 中臀拟鲿
+    family: Bagridae
+    conservation: CR
+    variants: []
+  - id: pseudobagrus_truncatus
+    name: Pseudobagrus truncatus
+    chinese: 切尾拟鲿
+    family: Bagridae
+    conservation: DD
+    variants: []
+  - id: pseudobagrus_emarginatus
+    name: Pseudobagrus emarginatus
+    chinese: 凹尾拟鲿
+    family: Bagridae
+    conservation: DD
+    variants: []
+  - id: pseudobagrus_pratti
+    name: Pseudobagrus pratti
+    chinese: 细体拟鲿
+    family: Bagridae
+    conservation: VU
+    variants: []
+  - id: pseudobagrus_brevicaudatus
+    name: Pseudobagrus brevicaudatus
+    chinese: 短尾拟鲿
+    family: Bagridae
+    conservation: DD
+    variants: []
+  - id: pseudobagrus_adiposalis
+    name: Pseudobagrus adiposalis
+    chinese: 长脂拟鲿
+    family: Bagridae
+    conservation: NE
+    variants: []
+  - id: pseudobagrus_styani
+    name: Pseudobagrus styani
+    chinese: 盎堂拟鲿
+    family: Bagridae
+    conservation: LC
+    variants: []
+  - id: pseudobagrus_albomarginatus
+    name: Pseudobagrus albomarginatus
+    chinese: 白边拟鲿
+    family: Bagridae
+    conservation: LC
+    variants: []
+  - id: pseudobagrus_analis
+    name: Pseudobagrus analis
+    chinese: 长臀拟鲿
+    family: Bagridae
+    conservation: DD
+    variants: []
+  - id: pseudobagrus_fui
+    name: Pseudobagrus fui
+    chinese: 富氏拟鲿
+    family: Bagridae
+    conservation: NE
+    variants: []
+  - id: mystus_macropterus
+    name: Mystus macropterus
+    chinese: 大鳍鳠
+    family: Bagridae
+    conservation: NE
+    variants: []
+  - id: liobagrus_marginatus
+    name: Liobagrus marginatus
+    chinese: 白缘䱀
+    family: Amblycipitidae
+    conservation: VU
+    variants: []
+  - id: liobagrus_kingi
+    name: Liobagrus kingi
+    chinese: 金氏䱀
+    family: Amblycipitidae
+    conservation: EN
+    variants: []
+  - id: liobagrus_nigricauda
+    name: Liobagrus nigricauda
+    chinese: 黑尾䱀
+    family: Amblycipitidae
+    conservation: CR
+    variants: []
+  - id: liobagrus_marginatoides
+    name: Liobagrus marginatoides
+    chinese: 拟缘䱀
+    family: Amblycipitidae
+    conservation: DD
+    variants: []
+  - id: liobagrus_styani
+    name: Liobagrus styani
+    chinese: 司氏䱀
+    family: Amblycipitidae
+    conservation: CR
+    variants: []
+  - id: liobagrus_anguillicauda
+    name: Liobagrus anguillicauda
+    chinese: 鳗尾䱀
+    family: Amblycipitidae
+    conservation: LC
+    variants: []
+  - id: glyptothorax_fokiensis
+    name: Glyptothorax fokiensis
+    chinese: 福建纹胸
+    family: Sisoridae
+    conservation: LC
+    variants: []
+  - id: glyptothorax_sinensis
+    name: Glyptothorax sinensis
+    chinese: 中华纹胸
+    family: Sisoridae
+    conservation: LC
+    variants: []
+  - id: euchiloglanis_kishinouyei
+    name: Euchiloglanis kishinouyei
+    chinese: 黄石爬
+    family: Sisoridae
+    conservation: EN
+    variants: []
+  - id: euchiloglanis_davidi
+    name: Euchiloglanis davidi
+    chinese: 青石爬
+    family: Sisoridae
+    conservation: EN
+    variants: []
+  - id: euchiloglanis_longibarbatus
+    name: Euchiloglanis longibarbatus
+    chinese: 长须石爬
+    family: Sisoridae
+    conservation: VU
+    variants: []
+  - id: pareuchiloglanis_sinensis
+    name: Pareuchiloglanis sinensis
+    chinese: 中华
+    family: Sisoridae
+    conservation: EN
+    variants: []
+  - id: pareuchiloglanis_anteanalis
+    name: Pareuchiloglanis anteanalis
+    chinese: 前臀
+    family: Sisoridae
+    conservation: NT
+    variants: []
+  - id: pareuchiloglanis_sichuanensis
+    name: Pareuchiloglanis sichuanensis
+    chinese: 四川
+    family: Sisoridae
+    conservation: NT
+    variants: []
+  - id: pareuchiloglanis_tianquanensis
+    name: Pareuchiloglanis tianquanensis
+    chinese: 天全
+    family: Sisoridae
+    conservation: DD
+    variants: []
+  - id: pareuchiloglanis_robustus
+    name: Pareuchiloglanis robustus
+    chinese: 壮体
+    family: Sisoridae
+    conservation: NT
+    variants: []
+  - id: pareuchiloglanis_feae
+    name: Pareuchiloglanis feae
+    chinese: 短鳍
+    family: Sisoridae
+    conservation: DD
+    variants: []
+  - id: paraeuchiloglanis_changyangensis
+    name: Paraeuchiloglanis changyangensis
+    chinese: 长阳
+    family: Sisoridae
+    conservation: NE
+    variants: []
+  - id: clarias_fusus
+    name: Clarias fusus
+    chinese: 胡子鲇
+    family: Clariidae
+    conservation: LC
+    variants: []
+  - id: clarias_batrachus
+    name: Clarias batrachus
+    chinese: 蟾胡子鲇
+    family: Clariidae
+    conservation: NE
+    variants: []
+  - id: clarias_gariepinus
+    name: Clarias gariepinus
+    chinese: 革胡子鲇
+    family: Clariidae
+    conservation: NE
+    variants: []
+  - id: ictalurus_punctatus
+    name: Ictalurus punctatus
+    chinese: 斑点叉尾鮰
+    family: Ictaluridae
+    conservation: NE
+    variants: []
+  - id: ameiurus_nebulosus
+    name: Ameiurus nebulosus
+    chinese: 云斑鮰
+    family: Ictaluridae
+    conservation: NE
+    variants: []
+  - id: phractocephalus_hemioliopterus
+    name: Phractocephalus hemioliopterus
+    chinese: 红尾护头鲿
+    family: Pimelodidae
+    conservation: NE
+    variants: []
+  - id: hucho_bleekeri
+    name: Hucho bleekeri
+    chinese: 川陕哲罗鲑
+    family: Salmonidae
+    conservation: CR
+    variants: []
+  - id: brachymystax_lenok
+    name: Brachymystax lenok
+    chinese: 秦岭细鳞鲑
+    family: Salmonidae
+    conservation: VU
+    variants: []
+  - id: plecoglossus_altivelis
+    name: Plecoglossus altivelis
+    chinese: 香鱼
+    family: Plecoglossidae
+    conservation: EN
+    variants: []
+  - id: protosalanx_hyalocranius
+    name: Protosalanx hyalocranius
+    chinese: 大银鱼
+    family: Salangidae
+    conservation: DD
+    variants: []
+  - id: hemisalanx_brachyrostralis
+    name: Hemisalanx brachyrostralis
+    chinese: 短吻间银鱼
+    family: Salangidae
+    conservation: VU
+    variants: []
+  - id: neosalanx_tangkahkeii
+    name: Neosalanx tangkahkeii
+    chinese: 陈氏新银鱼
+    family: Salangidae
+    conservation: DD
+    variants: []
+  - id: neosalanx_oligodontis
+    name: Neosalanx oligodontis
+    chinese: 寡齿新银鱼
+    family: Salangidae
+    conservation: DD
+    variants: []
+  - id: neosalanx_taihuensis
+    name: Neosalanx taihuensis
+    chinese: 太湖新银鱼
+    family: Salangidae
+    conservation: NE
+    variants: []
+  - id: neosalanx_anderssoni
+    name: Neosalanx anderssoni
+    chinese: 安氏新银鱼
+    family: Salangidae
+    conservation: NE
+    variants: []
+  - id: salanx_prognathus
+    name: Salanx prognathus
+    chinese: 前颌间银鱼
+    family: Salangidae
+    conservation: CR
+    variants: []
+  - id: salanx_ariakensis
+    name: Salanx ariakensis
+    chinese: 有明银鱼
+    family: Salangidae
+    conservation: NE
+    variants: []
+  - id: odontobutis_potamophila
+    name: Odontobutis potamophila
+    chinese: 河川沙塘鳢
+    family: Eleotridae
+    conservation: LC
+    variants: []
+  - id: bostrychus_sinensis
+    name: Bostrychus sinensis
+    chinese: 中华乌塘鳢
+    family: Eleotridae
+    conservation: LC
+    variants: []
+  - id: eleotris_oxycephala
+    name: Eleotris oxycephala
+    chinese: 尖头塘鳢
+    family: Eleotridae
+    conservation: LC
+    variants: []
+  - id: micropercops_swinhonis
+    name: Micropercops swinhonis
+    chinese: 小黄䱂鱼
+    family: Eleotridae
+    conservation: LC
+    variants: []
+  - id: rhinogobius_giurinus
+    name: Rhinogobius giurinus
+    chinese: 子陵吻虾虎鱼
+    family: Oxudercidae
+    conservation: LC
+    variants: []
+  - id: rhinogobius_brunneus
+    name: Rhinogobius brunneus
+    chinese: 褐吻虾虎鱼
+    family: Oxudercidae
+    conservation: DD
+    variants: []
+  - id: rhinogobius_szechuanensis
+    name: Rhinogobius szechuanensis
+    chinese: 四川吻虾虎鱼
+    family: Oxudercidae
+    conservation: VU
+    variants: []
+  - id: rhinogobius_cliffordpopei
+    name: Rhinogobius cliffordpopei
+    chinese: 波氏吻虾虎鱼
+    family: Oxudercidae
+    conservation: LC
+    variants: []
+  - id: rhinogobius_shennongensis
+    name: Rhinogobius shennongensis
+    chinese: 神农吻虾虎鱼
+    family: Oxudercidae
+    conservation: VU
+    variants: []
+  - id: rhinogobius_liui
+    name: Rhinogobius liui
+    chinese: 刘氏吻虾虎鱼
+    family: Oxudercidae
+    conservation: DD
+    variants: []
+  - id: rhinogobius_leavelli
+    name: Rhinogobius leavelli
+    chinese: 李氏吻虾虎鱼
+    family: Oxudercidae
+    conservation: LC
+    variants: []
+  - id: mugilogobius_myxodermus
+    name: Mugilogobius myxodermus
+    chinese: 粘皮鲻虾虎鱼
+    family: Oxudercidae
+    conservation: DD
+    variants: []
+  - id: mugilogobius_abei
+    name: Mugilogobius abei
+    chinese: 阿部鲻虾虎鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: acanthogobius_elongata
+    name: Acanthogobius elongata
+    chinese: 长体刺虾虎鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: acanthogobius_ommaturus
+    name: Acanthogobius ommaturus
+    chinese: 斑尾刺虾虎鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: chaeturichthys_stigmatias
+    name: Chaeturichthys stigmatias
+    chinese: 矛尾虾虎鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: glossogobius_giuris
+    name: Glossogobius giuris
+    chinese: 舌虾虎鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: tridentiger_trigonocephalus
+    name: Tridentiger trigonocephalus
+    chinese: 纹缟虾虎鱼
+    family: Oxudercidae
+    conservation: DD
+    variants: []
+  - id: tridentiger_barbatus
+    name: Tridentiger barbatus
+    chinese: 髭缟虾虎鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: taenioides_cirratus
+    name: Taenioides cirratus
+    chinese: 须鳗虾虎鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: trypauchen_vagina
+    name: Trypauchen vagina
+    chinese: 孔虾虎鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: boleophthalmus_pectinirostris
+    name: Boleophthalmus pectinirostris
+    chinese: 大弹涂鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: periophthalmus_magnuspinnatus
+    name: Periophthalmus magnuspinnatus
+    chinese: 大鳍弹涂鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: periophthalmus_modestus
+    name: Periophthalmus modestus
+    chinese: 弹涂鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: scartelaos_histophorus
+    name: Scartelaos histophorus
+    chinese: 青弹涂鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: luciogobius_guttatus
+    name: Luciogobius guttatus
+    chinese: 竿虾虎鱼
+    family: Oxudercidae
+    conservation: NE
+    variants: []
+  - id: mugil_cephalus
+    name: Mugil cephalus
+    chinese: 鲻
+    family: Mugilidae
+    conservation: NE
+    variants: []
+  - id: liza_haematocheila
+    name: Liza haematocheila
+    chinese: 鮻
+    family: Mugilidae
+    conservation: NE
+    variants: []
+  - id: liza_carinatus
+    name: Liza carinatus
+    chinese: 梭鮻
+    family: Mugilidae
+    conservation: NE
+    variants: []
+  - id: oreochromis_niloticus
+    name: Oreochromis niloticus
+    chinese: 尼罗罗非鱼
+    family: Cichlidae
+    conservation: NE
+    variants: []
+  - id: oryzias_latipes
+    name: Oryzias latipes
+    chinese: 青鳉
+    family: Adrianichthyidae
+    conservation: LC
+    variants: []
+  - id: hyporamphus_intermedius
+    name: Hyporamphus intermedius
+    chinese: 间下鱵
+    family: Hemiramphidae
+    conservation: LC
+    variants: []
+  - id: gambusia_affimis
+    name: Gambusia affimis
+    chinese: 食蚊鱼
+    family: Poeciliidae
+    conservation: NE
+    variants: []
+  - id: monopterus_albus
+    name: Monopterus albus
+    chinese: 黄鳝
+    family: Synbranchidae
+    conservation: LC
+    variants: []
+  - id: mastacembelus_sinensis
+    name: Mastacembelus sinensis
+    chinese: 中华刺鳅
+    family: Mastacembelidae
+    conservation: LC
+    variants: []
+  - id: mastacembelus_armatus
+    name: Mastacembelus armatus
+    chinese: 大刺鳅
+    family: Mastacembelidae
+    conservation: LC
+    variants: []
+  - id: macropodus_chinensis
+    name: Macropodus chinensis
+    chinese: 圆尾斗鱼
+    family: Osphronemidae
+    conservation: NT
+    variants: []
+  - id: macropodus_opercularis
+    name: Macropodus opercularis
+    chinese: 叉尾斗鱼
+    family: Osphronemidae
+    conservation: NT
+    variants: []
+  - id: channa_argus
+    name: Channa argus
+    chinese: 乌鳢
+    family: Channidae
+    conservation: LC
+    variants: []
+  - id: channa_asiatica
+    name: Channa asiatica
+    chinese: 月鳢
+    family: Channidae
+    conservation: LC
+    variants: []
+  - id: channa_maculata
+    name: Channa maculata
+    chinese: 斑鳢
+    family: Channidae
+    conservation: LC
+    variants: []
+  - id: cynoglossus_gracilis
+    name: Cynoglossus gracilis
+    chinese: 窄体舌鳎
+    family: Cynoglossidae
+    conservation: NE
+    variants: []
+  - id: cynoglossus_abbreviatus
+    name: Cynoglossus abbreviatus
+    chinese: 短吻三线舌鳎
+    family: Cynoglossidae
+    conservation: NE
+    variants: []
+  - id: cynoglossus_purpureomaculatus
+    name: Cynoglossus purpureomaculatus
+    chinese: 紫斑舌鳎
+    family: Cynoglossidae
+    conservation: NE
+    variants: []
+  - id: cynoglossus_semilaevis
+    name: Cynoglossus semilaevis
+    chinese: 半滑舌鳎
+    family: Cynoglossidae
+    conservation: NE
+    variants: []
+  - id: cynoglossus_joyneri
+    name: Cynoglossus joyneri
+    chinese: 短吻红舌鳎
+    family: Cynoglossidae
+    conservation: NE
+    variants: []
+  - id: cynoglossus_robustus
+    name: Cynoglossus robustus
+    chinese: 宽体舌鳎
+    family: Cynoglossidae
+    conservation: NE
+    variants: []
+  - id: repomucenus_olidus
+    name: Repomucenus olidus
+    chinese: 香斜棘䲗
+    family: Callionymidae
+    conservation: NE
+    variants: []
+  - id: lateolabrax_maculatus
+    name: Lateolabrax maculatus
+    chinese: 中国花鲈
+    family: Percichthyidae
+    conservation: NE
+    variants: []
+  - id: micropterus_salmoides
+    name: Micropterus salmoides
+    chinese: 大口黑鲈
+    family: Centrarchidae
+    conservation: NE
+    variants: []
+  - id: siniperca_chuatsi
+    name: Siniperca chuatsi
+    chinese: 鳜
+    family: Percichthyidae
+    conservation: LC
+    variants: []
+  - id: siniperca_kneri
+    name: Siniperca kneri
+    chinese: 大眼鳜
+    family: Percichthyidae
+    conservation: LC
+    variants: []
+  - id: siniperca_scherzeri
+    name: Siniperca scherzeri
+    chinese: 斑鳜
+    family: Percichthyidae
+    conservation: LC
+    variants: []
+  - id: siniperca_undulata
+    name: Siniperca undulata
+    chinese: 波纹鳜
+    family: Percichthyidae
+    conservation: NT
+    variants: []
+  - id: siniperca_roulei
+    name: Siniperca roulei
+    chinese: 长身鳜
+    family: Percichthyidae
+    conservation: NT
+    variants: []
+  - id: siniperca_obscura
+    name: Siniperca obscura
+    chinese: 暗鳜
+    family: Percichthyidae
+    conservation: NT
+    variants: []
+  - id: coreoperca_loona
+    name: Coreoperca loona
+    chinese: 漓江少鳞鳜
+    family: Percichthyidae
+    conservation: NT
+    variants: []
+  - id: sander_lucioperca
+    name: Sander lucioperca
+    chinese: 梭鲈
+    family: Percidae
+    conservation: NE
+    variants: []
+  - id: eleutheronema_tetradactylum
+    name: Eleutheronema tetradactylum
+    chinese: 四指马鲅
+    family: Polynemidae
+    conservation: NE
+    variants: []
+  - id: trachidermus_fasciatus
+    name: Trachidermus fasciatus
+    chinese: 淞江鲈
+    family: Cottidae
+    conservation: EN
+    variants: []
+  - id: takifugu_ocellatus
+    name: Takifugu ocellatus
+    chinese: 弓斑东方鲀
+    family: Tetraodontidae
+    conservation: LC
+    variants: []
+  - id: takifugu_fasciatus
+    name: Takifugu fasciatus
+    chinese: 暗纹东方鲀
+    family: Tetraodontidae
+    conservation: LC
+    variants: []
+  - id: takifugu_flavidus
+    name: Takifugu flavidus
+    chinese: 菊黄东方鲀
+    family: Tetraodontidae
+    conservation: NE
+    variants: []
+  - id: takifugu_vermicularis
+    name: Takifugu vermicularis
+    chinese: 虫纹东方鲀
+    family: Tetraodontidae
+    conservation: NE
+    variants: []
+  - id: takifugu_xanthopterus
+    name: Takifugu xanthopterus
+    chinese: 黄鳍东方鲀
+    family: Tetraodontidae
+    conservation: NE
+    variants: []
+  - id: takifugu_bimaculatus
+    name: Takifugu bimaculatus
+    chinese: 双斑东方鲀
+    family: Tetraodontidae
+    conservation: NE
+    variants: []
+  - id: takifugu_coronoidus
+    name: Takifugu coronoidus
+    chinese: 暗环东方鲀
+    family: Tetraodontidae
+    conservation: NE
     variants: []
   papers:
   - doi: 10.3390/ani15233434
@@ -739,4 +3259,3 @@ graph:
     authors:
     - Yin D
     - Liu K
-...
