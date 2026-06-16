@@ -2,6 +2,16 @@
 
 > 版本变更记录。参见 ROADMAP.md 了解技术改进路线图。
 
+## v5.9.1 — 2026-06-17
+- 🔍 **MCP 优先搜索**: `search_mcp_priority()` — 6 MCP 引擎并行(scholar/article/ncbi/tavily/exa/scholarly) → 失败回退 HTTP 5引擎
+- 🧹 **属名校验过滤**: `_filter_by_genus()` — 移除 Crossref/arXiv 标题不含目标属名的噪音论文
+- 📝 **OpenAlex 摘要修复**: `abstract_inverted_index` 倒排索引 → 可读文本重建
+- 🇨🇳 **cnki_web 垃圾过滤**: 中文不足2字自动丢弃(游戏广告)
+- 🩹 **McpClient.call_tool() 修复**: server/tool 名 `/` 分离在 `_get_or_start_process` 之前执行
+- 🔬 **ncbi MCP 全链路**: esearch→esummary 适配 `{"papers": [...]}` 格式
+- 📋 **5 个 MCP 响应解析器**: `_parse_scholar/article/tavily/exa/ncbi_response`
+- 🏷️ **图谱增强**: 鳤 12 篇论文补全 `authors_zh` + `affiliations`
+
 ## v5.9.0 — 2026-07-17
 - 🧭 新增 **ROADMAP.md / ROADMAP.zh.md** — 6 项目×3 时间维度未来优化方向路线图
 - 🗺️ README 双板同步: +「各项目未来优化方向」趋势表

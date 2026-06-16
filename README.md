@@ -65,35 +65,38 @@ result = adapter.search("珠星三块鱼", mode="adaptive")
 
 ## How It Works
 
-### 19 Search Engines (7 MCP + 12 Native HTTP)
+### 11 搜索引擎（6 MCP 优先 + 5 HTTP 回退）
 
 ```
-MCP (requires npx/node):
+MCP 优先层 (npx 子进程):
   scholar    → Google Scholar / OpenAlex / Semantic Scholar
-  article    → Europe PMC / PubMed / Crossref full-text
-  tavily     → AI deep web search
-  exa        → Semantic web search
-  ncbi       → PubMed E-utilities direct
-  scholarly  → OpenAlex + Semantic Scholar
+  article    → Europe PMC + PubMed + Crossref 全文
+  ncbi       → PubMed E-utilities (esearch+esummary+efetch)
+  tavily     → AI 深度网络搜索
+  exa        → 语义网络搜索
+  scholarly  → OpenAlex + Semantic Scholar (待集成)
 
-Native HTTP (no external processes):
+HTTP 回退层 (直连 API):
   pubmed       → NCBI E-utilities REST
-  crossref     → Crossref REST API
-  openalex     → OpenAlex REST API
-  arxiv        → arXiv API
   europe_pmc   → Europe PMC REST API
-  baidu_scholar→ Baidu Academic (Chinese)
-  cnki_web     → CNKI via Bing site:cnki.net
-  wanfang_web  → Wanfang Data via Bing
-  cas_web      → CAS/IHC via Bing
-  biorxiv_api  → bioRxiv/medRxiv preprints
-  researchgate → ResearchGate via Bing
-  web_search   → Bing general web search
+  crossref     → Crossref REST API
+  openalex     → OpenAlex REST API (含 abstract 重建)
+  arxiv        → arXiv API (属名校验严格过滤)
+  cnki_web     → Bing site:cnki.net (中文文献)
+
+去重管线:
+  raw → _filter_by_genus(属名校验) → _deduplicate(DOI+标题) → classify
 ```
 
-### KB-First Two-Stage Search
+### MCP 优先搜索（v5.9.1）
 
-Before blasting 19 engines, it checks the fish-ecology-assistant KB:
+```
+# MCP 6引擎并行 → 失败回退 HTTP
+python scripts/search_api.py --species "鳤"
+
+管线: 分类学变体 → MCP warmup(6引擎) → 并行搜索 →
+      属名校验(_filter_by_genus) → DOI去重 → CN/EN分类
+```
 
 ```python
 from src.search_coordinator import kb_first, continue_full_search
