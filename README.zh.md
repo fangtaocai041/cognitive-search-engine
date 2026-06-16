@@ -1,72 +1,143 @@
-# Cognitive Search Engine 🔍
+# 🕸️ Cognitive Search Engine
 
-**多源并行文献搜索引擎** — Google Scholar 优先 + 中文期刊 + PubMed/Crossref + 可信度评分。
+**它聪明地搜索物种文献，不遗漏一篇该看的论文，也不浪费一分钱搜无关的。**
 
-[English](README.md) · [更新日志](CHANGELOG.md) · [参与贡献](CONTRIBUTING.md)
+[English](README.md) · [更新日志](CHANGELOG.md) · [怎么参与](CONTRIBUTING.md)
 
 ---
 
-## 快速开始
+## 这引擎能干嘛？
 
-```bash
-pip install pyyaml
-python scripts/search_api.py --species "鳤"
-```
+你输入一个物种名，它能：
+
+1. **猜你要搜多少文献** — 先查 PubMed、Crossref、OpenAlex 估算文献量
+2. **决定怎么搜** — 文献少就穷举，多就分类，太多了就综述锚定
+3. **并行搜 6+ 个源** — 谷歌学术/PubMed/Crossref/OpenAlex/arXiv/中文期刊，谁先返回先处理
+4. **去重打分** — 按期刊权威性给每篇论文打分（0~100）
+5. **检测缺口** — 看看哪些方向还没人研究
+6. **自我进化** — 搜得越多，参数越准
+
+**关键词**: 物种 · 文献 · 多源搜索 · 可信度评分 · BDI 认知循环
+
+---
+
+## 怎么用
+
+### 一行代码搜物种
 
 ```python
 from src.meso_agent import create_agent
 
 agent = create_agent(mode="http")
 result = agent.search("Ochetobius_elongatus")
-print(f"{len(result.papers)} 篇论文，{result.elapsed_s:.1f} 秒")
+
+print(f"{len(result.papers)} 篇论文，耗时 {result.elapsed_s:.1f} 秒")
 ```
 
-## 核心功能
+### 命令行搜
 
-### 多源搜索
-- Google Scholar 优先搜索（全球学术）
-- PubMed / Europe PMC / Crossref 国际文献
-- 中文期刊（CNKI / Bing 中文搜索）
-- AI 网络搜索（Tavily / Exa）
+```bash
+python scripts/search_api.py --species "鳤"
+python scripts/search_api.py --species "Pseudaspius hakonensis" --max 20
+```
+
+### 给其他项目调用
+
+```python
+from src.adapter import CognitiveSearchAdapter
+
+adapter = CognitiveSearchAdapter()
+result = adapter.search("珠星三块鱼", mode="adaptive")
+```
+
+---
+
+## 它怎么工作的
+
+### 六个搜索通道
+
+```
+MCP 通道 (需 npx/node):
+  scholar    → 谷歌学术 / OpenAlex / Semantic Scholar
+  article    → Europe PMC / PubMed / Crossref 全文
+  tavily     → AI 深度网络搜索
+  exa        → 语义网络搜索
+  ncbi       → PubMed E-utilities 直连
+  scholarly  → OpenAlex + Semantic Scholar
+
+HTTP 通道 (无需装任何东西):
+  pubmed     → NCBI E-utilities REST
+  crossref   → Crossref REST API
+  openalex   → OpenAlex REST API
+  arxiv      → arXiv API
+  europe_pmc → Europe PMC REST API
+  cnki       → Bing 中文文献搜索
+```
+
+搜不到的时候还会自动生成 OCR 拼写变体（`Ochetobius` → `Ochetobibus`、`Ocheotbius`……），防止打字错误漏论文。
 
 ### 可信度评分
-```python
-from src.credibility_scorer import score_paper
 
-paper = {"title": "...", "journal": "Nature", "citation_count": 100}
-scored = score_paper(paper)
-# 🟢 ≥80 高 | 🟡 60-79 中 | 🟠 40-59 低 | 🔴 <40 不可信
+```
+评分 = 50(基础) + 30(SCI期刊) + 25(CSCD核心) + 10(有DOI) + 10(有PMID)
+       - 30(预印本) - 100(掠夺性期刊)
 ```
 
-### 其它能力
-- **BDI 认知循环** — 先估算文献量，再决定怎么搜，搜完评分进化
-- **OCR 变体** — 拉丁名打错了也能搜到（`Ochetobius` → `Ochetobibus`）
-- **KB-First** — 搜之前先查知识库有没有，避免重复
-- **S-T-V 闭环** — 和 fish-ecology-assistant / porpoise-agent 协同工作
+| 分数 | 标记 | 含义 |
+|------|------|------|
+| ≥80 | 🟢 | 高可信度，SCI/Q1 期刊论文 |
+| 60–79 | 🟡 | 中等，一般同行评审期刊 |
+| 40–59 | 🟠 | 低可信度，预印本/学位论文 |
+| <40 | 🔴 | 不可信，掠夺性期刊 |
 
-## 项目架构
+### 项目文件
 
 ```
 cognitive-search-engine/
-├── src/
-│   ├── meso_agent.py         ← BDI 搜索入口
-│   ├── mcp_client.py         ← MCP 并行客户端
-│   ├── parallel_search.py    ← HTTP 6 源并行搜索
-│   ├── unified_search.py     ← 搜索协议 + 分类学
-│   ├── adapter.py            ← 跨项目接口
-│   ├── credibility_scorer.py ← 可信度评分
-│   ├── validator.py          ← 论文验证
-│   ├── variant_generator.py  ← 拼写变体生成
-│   ├── inference_engine.py   ← 推理增强
-│   └── evolution_executor.py ← 自进化
-├── config/                   # 配置文件
-├── scripts/                  # CLI 工具
+├── config/           # 配置文件（搜索规则、物种图谱、MCP 服务器）
+├── src/              # Python 源码
+│   ├── meso_agent.py       ← BDI 认知循环，搜索入口
+│   ├── mcp_client.py       ← MCP 子进程管理 + 工具发现
+│   ├── parallel_search.py  ← HTTP 直连搜索（6 源并行）
+│   ├── unified_search.py   ← 搜索协议 + 分类学服务
+│   ├── validator.py        ← 论文验证
+│   ├── credibility_scorer.py ← 期刊白名单评分
+│   ├── variant_generator.py  ← OCR 拼写变体
+│   ├── inference_engine.py ← 推理增强（缺口检测）
+│   ├── evolution_executor.py ← 自进化参数调整
+│   ├── world_model.py      ← 预搜索仿真
+│   ├── adapter.py          ← 跨项目接口
+│   └── report_formatter.py ← 分类报告输出
+├── scripts/          # CLI 工具
+├── skills/           # Reasonix AI 技能
 └── tests/
 ```
 
-## 三角角色
+---
 
-本系统是 Triangle Core 的 **V/V1 (搜索验证)** 层，接收来自 fish-ecology-assistant (S) 的委托搜索请求，执行全量文献搜索后返回评分结果。
+## 它和谁一起工作
+
+```
+三角核心（S-T-V 闭环）
+├── S  fish-ecology-assistant   → 知识库 + 数据分析
+├── T  porpoise-agent           → 任务调度 + 流水线执行
+└── V  cognitive-search-engine  → 搜索验证 ← 就是这个项目
+```
+
+你是 `fish-ecology-assistant` 的用户？你查物种文献时，**先查 f 项目知识库**（不花 token），再决定要不要走 c 项目全量搜索（花 token 但更全）。
+
+---
+
+## 先装啥
+
+```bash
+pip install pyyaml        # 配置文件读取
+pip install requests      # HTTP 搜索（可选，默认用 urllib）
+```
+
+Python 3.10+。Windows/Linux/macOS 都行。
+
+---
 
 ## 许可证
 
