@@ -188,7 +188,7 @@ def _parse_scholar_response(text: str) -> List[Dict]:
                         "title": r.get("title", ""),
                         "authors": authors,
                         "year": str(r.get("year", r.get("publication_year", ""))),
-                        "journal": r.get("journal", r.get("journalName", "")),
+                        "journal": r.get("venue") or r.get("journal") or r.get("journalName", ""),
                         "abstract": r.get("abstract", "") or "",
                         "source": "mcp_scholar",
                         "pmid": r.get("pmid", "") or "",

@@ -208,7 +208,8 @@ def classify_papers(papers: list[dict], species_name: str = "",
         cs = p.get("credibility_score", p.get("trust_score", 50)) or 50
 
         # Detect OCR variant
-        is_ocr = _is_ocr_variant(doi, source, title, genus, species_ep)
+        abstract = p.get("abstract", "") or ""
+        is_ocr = _is_ocr_variant(doi, source, title, genus, species_ep, abstract)
 
         # Detect new (unindexed) paper
         is_new = _is_new_paper(p, source)
@@ -256,11 +257,30 @@ def classify_papers(papers: list[dict], species_name: str = "",
 
 
 def _is_ocr_variant(doi: str, source: str, title: str,
-                     genus: str, species_ep: str) -> bool:
+                     genus: str, species_ep: str,
+                     abstract: str = "") -> bool:
     """Detect if paper was found via OCR variant search."""
     if "variant" in source.lower():
         return True
+    # OCR 变体只在标题含拼写错误时标记
+    # 标题不含属名但摘要含属名的是附带论文，不是 OCR 变体
+    if genus and species_ep:
+        expected = f"{genus.lower()} {species_ep.lower()}"
+        title_lower = title.lower()
+        if expected not in title_lower:
+            # 检查标题是否有拼写变异（如 Ochetobibus → Ochetobius）
+            # 实际 OCR 变体：标题包含近似的属名拼写
+            from difflib import SequenceMatcher
+            words = title_lower.split()
+            for w in words:
+                if SequenceMatcher(None, w, genus.lower()).ratio() > 0.8 and w != genus.lower():
+                    return True  # 拼写相近但不同 → OCR 变体
+        return False  # 不含属名是附带论文，不是 OCR 变体
+    # 无 species_ep 时的兜底
     if genus and genus.lower() not in title.lower():
+        # 摘要含属名 → 附带论文，非 OCR 变体
+        if abstract and genus.lower() in abstract.lower():
+            return False
         return True
     return False
 
@@ -268,9 +288,13 @@ def _is_ocr_variant(doi: str, source: str, title: str,
 def _is_new_paper(paper: dict, source: str) -> bool:
     """Detect new (unindexed) papers — year ≥ current-1 and no PMID."""
     import datetime
-    year = paper.get("year")
+    raw_year = paper.get("year")
     pmid = paper.get("pmid")
     current = datetime.datetime.now().year
+    try:
+        year = int(raw_year) if raw_year else 0
+    except (ValueError, TypeError):
+        year = 0
     return bool(year and year >= current - 1 and not pmid)
 
 
