@@ -31,6 +31,7 @@ class McpClient:
         self._servers: Dict[str, dict] = {}
         self._processes: Dict[str, subprocess.Popen] = {}
         self._request_id: int = 0
+        self._tool_cache: Dict[str, str] = {}
         self._load_config(config_path)
 
     # ── Configuration ──────────────────────────────────────────────
@@ -81,6 +82,15 @@ class McpClient:
 
     # ── Process management ────────────────────────────────────────
 
+    @staticmethod
+    def _resolve_command(cmd: str) -> str:
+        """解析命令路径，支持 Windows 下的 .CMD/.EXE 文件."""
+        import shutil
+        resolved = shutil.which(cmd)
+        if resolved:
+            return resolved
+        return cmd
+
     def _get_or_start_process(self, server_name: str,
                               retry_max_s: int = 60) -> Optional[subprocess.Popen]:
         """Return the running process for a server, starting it if needed."""
@@ -105,17 +115,25 @@ class McpClient:
             if remaining <= 0:
                 break
             try:
+                # Resolve command (support Windows .CMD files)
+                cmd = self._resolve_command(server["command"])
+                args = [cmd] + server["args"]
+
                 startupinfo = None
                 if sys.platform == "win32":
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
+                # On Windows, use shell=True for .CMD/.BAT commands
+                use_shell = sys.platform == "win32" and cmd.lower().endswith((".cmd", ".bat"))
+
                 proc = subprocess.Popen(
-                    [server["command"]] + server["args"],
+                    args,
                     stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     startupinfo=startupinfo,
+                    shell=use_shell,
                     text=False,  # binary mode for JSON-RPC
                 )
                 self._processes[server_name] = proc
@@ -220,13 +238,50 @@ class McpClient:
 
     # ── Tool calling ──────────────────────────────────────────────
 
+    def _get_tool_name(self, server_name: str) -> Optional[str]:
+        """获取服务器上的第一个可用工具名.
+
+        MCP 服务器通常暴露特定名称的工具（如 scholar-mcp 的
+        scholar_search_literature_graph）。此方法通过 tools/list
+        发现工具名，并缓存结果。
+        """
+        if server_name in self._tool_cache:
+            return self._tool_cache[server_name]
+
+        proc = self._get_or_start_process(server_name)
+        if proc is None:
+            return None
+
+        # Initialize
+        init_resp = self._send_request(proc, "initialize", {
+            "protocolVersion": "2025-03-26",
+            "capabilities": {},
+            "clientInfo": {"name": "cognitive-search-engine", "version": "5.8.0"},
+        })
+        if init_resp is None:
+            return None
+
+        # Discover tools
+        tools_resp = self._send_request(proc, "tools/list", {})
+        if tools_resp is None:
+            return None
+
+        tools = (tools_resp.get("result") or {}).get("tools", [])
+        if not tools:
+            return None
+
+        # Use the first available tool
+        first_tool = tools[0].get("name", "")
+        self._tool_cache[server_name] = first_tool
+        return first_tool
+
     def call_tool(self, server_name: str,
                   arguments: Optional[dict] = None) -> List[dict]:
         """Call a tool on an MCP server.
 
         Args:
-            server_name: Tool name in form "server_name" or "server_name/tool_name".
-                         If no slash, tool name = server name.
+            server_name: Server name from config, or "server_name/tool_name".
+                         If no slash, auto-discover tool name via tools/list.
             arguments: Tool arguments dict.
 
         Returns:
@@ -241,23 +296,12 @@ class McpClient:
         if len(parts) > 1:
             tool_name = parts[1]
         else:
-            tool_name = server_name  # same as server name
+            # Auto-discover tool name
+            tool_name = self._get_tool_name(server_name)
+            if tool_name is None:
+                return [{"error": f"No tools found on server '{server_name}'", "source": "mcp"}]
 
-        # Step 1: Initialize session
-        init_resp = self._send_request(proc, "initialize", {
-            "protocolVersion": "2025-03-26",
-            "capabilities": {},
-            "clientInfo": {"name": "cognitive-search-engine", "version": "5.8.0"},
-        })
-        if init_resp is None:
-            return [{"error": "MCP initialization failed", "source": "mcp"}]
-
-        # Step 2: List tools (optional, get tool schema)
-        tools_resp = self._send_request(proc, "tools/list", {})
-        if tools_resp is None:
-            return [{"error": "MCP tools/list failed", "source": "mcp"}]
-
-        # Step 3: Call the tool
+        # Call the tool
         call_resp = self._send_request(proc, "tools/call", {
             "name": tool_name,
             "arguments": arguments or {},

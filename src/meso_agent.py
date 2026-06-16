@@ -541,6 +541,31 @@ class MesoAgent:
                 new_count += 1
         return new_count
 
+    # ── Runtime detection ─────────────────────────────────────────
+
+    @staticmethod
+    def _probe_mcp_available() -> bool:
+        """快速检测当前环境 MCP 子进程是否可用.
+
+        检查 npx (npm) 和 node 是否在 PATH 中。
+        Reasonix Desktop 中的 MCP 工具直接注入到 AI 模型，
+        此检测仅决定 Python 子进程是否要尝试启动额外 MCP 进程。
+
+        Returns:
+            True 如果 npx 或 node 可用
+        """
+        import shutil
+        npx_path = shutil.which("npx")
+        node_path = shutil.which("node")
+        uvx_path = shutil.which("uvx")
+        available = bool(npx_path or node_path or uvx_path)
+        if not available:
+            import logging as _lg
+            _lg.getLogger(__name__).info(
+                "MCP subprocess unavailable (npx/node/uvx not found) — using HTTP search"
+            )
+        return available
+
     # ── Main entry ────────────────────────────────────────────────
 
     def search(self, species_id: str) -> MesoSearchResult:
@@ -575,15 +600,24 @@ class MesoAgent:
 
         # ── Phase I: Intention — 执行搜索 ──
         if self.config.mode == "http" or plan.get("full_pipeline"):
-            # Try MCP mode first
-            try:
-                mcp = self._get_mcp()
-            except Exception as e:
-                result.errors.append(f"MCP init: {e}")
+            # 快速检测 MCP 是否可用 (npx/uvx 是否存在)
+            mcp_available = self._probe_mcp_available()
+            if mcp_available:
+                try:
+                    mcp = self._get_mcp()
+                except Exception as e:
+                    result.errors.append(f"MCP init: {e}")
+                    mcp_available = False
+            else:
+                result.meso_log.append({
+                    "phase": "mcp_check",
+                    "available": False,
+                    "note": "MCP 子进程不可用 (npx/node 未找到)，使用 HTTP 直连",
+                })
 
-            # Execute search phases
+            # Execute search phases (自动 fallback MCP→HTTP)
             papers, total_cost, exec_errors = self._execute_search(
-                species_id, plan, mcp
+                species_id, plan, mcp if mcp_available else None
             )
             result.papers = papers
             result.total_cost = total_cost
@@ -685,7 +719,15 @@ class MesoAgent:
 # ═══════════════════════════════════════════════════════════
 
 def _extract_papers(mcp_results: List[dict], source: str) -> List[Dict[str, Any]]:
-    """从 MCP 工具返回的结果中提取结构化论文数据."""
+    """从 MCP 工具返回的结果中提取结构化论文数据.
+
+    支持格式:
+      1. MCP tools/call JSON results (text 字段包含 JSON)
+      2. scholar-mcp: {"results": [{title, doi, authors, year, venue}, ...]}
+      3. article-mcp: {"articles": [{title, doi, ...}]}
+      4. ncbi: {"papers": [{title, doi, ...}]}
+      5. Raw dict with title/doi fields
+    """
     papers: List[Dict[str, Any]] = []
 
     for item in mcp_results:
@@ -693,30 +735,37 @@ def _extract_papers(mcp_results: List[dict], source: str) -> List[Dict[str, Any]
             continue
 
         text = item.get("text", "")
-        if text and isinstance(text, str) and len(text) > 20:
-            # Try JSON parse
+        if text and isinstance(text, str) and len(text) > 10:
             try:
                 parsed = json.loads(text)
-                if isinstance(parsed, list):
+                if isinstance(parsed, dict):
+                    # scholar-mcp: {"results": [...], "query": ...}
+                    results = (parsed.get("results") or parsed.get("papers")
+                               or parsed.get("articles") or parsed.get("items")
+                               or [])
+                    if isinstance(results, list):
+                        for p in results:
+                            if isinstance(p, dict) and (p.get("title") or p.get("doi")):
+                                _normalize_paper(p, source)
+                                papers.append(p)
+                    else:
+                        _normalize_paper(parsed, source)
+                        papers.append(parsed)
+                elif isinstance(parsed, list):
                     for p in parsed:
-                        if isinstance(p, dict):
+                        if isinstance(p, dict) and (p.get("title") or p.get("doi")):
                             _normalize_paper(p, source)
                             papers.append(p)
-                elif isinstance(parsed, dict):
-                    _normalize_paper(parsed, source)
-                    papers.append(parsed)
-                continue
             except (json.JSONDecodeError, TypeError):
-                # Treat as plain text entry
+                # Plain text — create an entry
+                lines = text.strip().split("\n")
+                title_guess = lines[0][:200] if lines else text[:200]
                 papers.append({
-                    "title": text[:200],
+                    "title": title_guess,
                     "source": source,
                     "_raw": text[:500],
                 })
-            continue
-
-        # Direct metadata
-        if item.get("title") or item.get("doi"):
+        elif item.get("title") or item.get("doi"):
             _normalize_paper(item, source)
             papers.append(item)
 
@@ -728,7 +777,10 @@ def _normalize_paper(paper: dict, source: str) -> None:
     paper.setdefault("source", source)
     # Map common field names
     field_map = {
-        "volume": "journal",  # Some APIs return journal in "volume"
+        "volume": "journal",    # Some APIs return journal in "volume"
+        "venue": "journal",     # scholar-mcp uses "venue"
+        "container-title": "journal",  # Crossref
+        "publication": "journal",
     }
     for old, new in field_map.items():
         if old in paper and new not in paper:
@@ -754,8 +806,8 @@ def _dedup_papers(papers: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     deduped: List[Dict[str, Any]] = []
 
     for p in papers:
-        doi = p.get("doi", "").strip().lower()
-        title = p.get("title", "").strip().lower()[:100]
+        doi = (p.get("doi") or "").strip().lower()
+        title = (p.get("title") or "").strip().lower()[:100]
 
         if doi and doi in seen_dois:
             continue
