@@ -28,6 +28,17 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+
+# 涌现检测集成
+try:
+    import sys
+    _infra_path = str(Path(__file__).resolve().parent.parent.parent / "infrastructure")
+    if _infra_path not in sys.path:
+        sys.path.insert(0, _infra_path)
+    from unified_emergence import EmergenceMonitor, DimensionalLevel
+    _EMERGENCE_AVAILABLE = True
+except ImportError:
+    _EMERGENCE_AVAILABLE = False
 from typing import Any, Optional
 
 try:
@@ -162,6 +173,21 @@ class EvolutionExecutor:
         except Exception:
             self.config = {}
 
+    def _feed_emergence(self, metrics: dict) -> None:
+        """将搜索指标送入涌现检测引擎."""
+        if not _EMERGENCE_AVAILABLE:
+            return
+        try:
+            mon = EmergenceMonitor()
+            for key, val in metrics.items():
+                if isinstance(val, (int, float)):
+                    mon.record(f"c_{key}", val, DimensionalLevel.D1)
+            signals = mon.check_emergence()
+            if signals:
+                logger.info(f"涌现信号: {len(signals)} 个")
+        except Exception:
+            pass
+
     def evaluate_and_adapt(self, metrics: dict) -> list[AdaptationAction]:
         """Evaluate all 7 triggers against current metrics and adapt parameters.
 
@@ -200,6 +226,9 @@ class EvolutionExecutor:
                 action = self._adapt_parameter(trigger)
                 if action:
                     actions.append(action)
+
+        # Feed metrics to emergence engine
+        self._feed_emergence(metrics)
 
         # Persist changes
         if actions:
