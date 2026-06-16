@@ -297,7 +297,8 @@ graph:
     - Yin D
     - Ma F
   - doi: 10.1002/ece3.72775
-    title: Evaluating Fishing Ban Effectiveness Through Spatiotemporal Changes in Genetic Diversity of Parabramis pekinensis
+    title: Evaluating Fishing Ban Effectiveness Through Spatiotemporal Changes in
+      Genetic Diversity of Parabramis pekinensis
     year: 2026
     journal: Ecol Evol
     species:
@@ -308,7 +309,8 @@ graph:
     - Yin D
     - Liu J
   - doi: 10.1007/s12686-018-1075-3
-    title: Development and characterization of 26 SNP markers in Ochetobius elongatus based on RAD-seq
+    title: Development and characterization of 26 SNP markers in Ochetobius elongatus
+      based on RAD-seq
     year: 2018
     journal: Conservation Genetics Resources
     species:
@@ -318,6 +320,16 @@ graph:
     - Jiping Yang
     - Yuefei Li
     - Shuli Zhu
+    authors_zh:
+    - 杨计平
+    - 李跃飞
+    - 朱书礼
+    - 陈蔚涛
+    - 李捷
+    - 薛慧敏
+    - 李新辉
+    affiliations:
+    - 中国水产科学研究院珠江水产研究所 (Pearl River Fisheries Research Institute, CAFS)
   - doi: 10.3109/19401736.2015.1089542
     title: Complete mitochondrial genome of Ochetobius elongatus (Cyprinidae, Leuciscinae)
     year: 2015
@@ -329,9 +341,18 @@ graph:
     - Ji Yang
     - Xin Hui Li
     - Yue Fei Li
+    authors_zh:
+    - 杨计平
+    - 李新辉
+    - 李跃飞
+    - 李捷
+    - 帅方敏
+    - 朱书礼
+    affiliations:
+    - 中国水产科学研究院珠江水产研究所 (Pearl River Fisheries Research Institute, CAFS)
   - doi: 10.17520/biods.2018121
-    title: Genetic diversity and population demographic history of Ochetobius elongatus in the middle and lower reaches of
-      the Xijiang River
+    title: Genetic diversity and population demographic history of Ochetobius elongatus
+      in the middle and lower reaches of the Xijiang River
     year: 2018
     journal: Biodiversity Science
     species:
@@ -341,8 +362,17 @@ graph:
     - Jiping Yang
     - Ce Li
     - Weitao Chen
+    authors_zh:
+    - 杨计平
+    - 李策
+    - 陈蔚涛
+    - 李跃飞
+    - 李新辉
+    affiliations:
+    - 中国水产科学研究院珠江水产研究所 (Pearl River Fisheries Research Institute, CAFS)
   - doi: 10.1038/s41597-024-04223-x
-    title: A chromosome-level genome assembly of critically endangered Ochetobius elongatus
+    title: A chromosome-level genome assembly of critically endangered Ochetobius
+      elongatus
     year: 2024
     journal: Scientific Data
     species:
@@ -352,8 +382,26 @@ graph:
     - Lekang Li
     - Xuanguang Liang
     - Jiatong Zhang
+    authors_zh:
+    - 李乐康
+    - 梁玄光
+    - 张嘉桐
+    - 徐群
+    - 王莉
+    - 高小平
+    - 宋欣然
+    - 张宝
+    - 黄丹
+    - 王鸿
+    - 王先勇
+    - 罗卓
+    - 孔驰平
+    - 吕建国
+    affiliations:
+    - 九江市农业科学院 (Jiujiang Academy of Agricultural Sciences, Jiangxi)
   - doi: 10.3390/ani15030433
-    title: 'Post-Fishing Ban Period: The Fish Diversity and Community Structure in the Poyang Lake Basin'
+    title: 'Post-Fishing Ban Period: The Fish Diversity and Community Structure in
+      the Poyang Lake Basin'
     year: 2025
     journal: Animals
     species:
@@ -363,8 +411,22 @@ graph:
     - Chiping Kong
     - Yulan Luo
     - Qun Xu
+    authors_zh:
+    - 孔驰平
+    - 罗宇兰
+    - 徐群
+    - 张宝
+    - 高小平
+    - 王先勇
+    - 罗卓
+    - 罗正立
+    - 李乐康
+    - 龚小玲
+    affiliations:
+    - 九江市农业科学院 (Jiujiang Academy of Agricultural Sciences, Jiangxi)
   - doi: 10.1016/j.gene.2020.145351
-    title: Temporal species-level composition of larvae resources in the lower Pearl River drainage
+    title: Temporal species-level composition of larvae resources in the lower Pearl
+      River drainage
     year: 2020
     journal: Gene
     species:
@@ -374,8 +436,19 @@ graph:
     - Weitao Chen
     - Ce Li
     - Jiping Yang
+    authors_zh:
+    - 陈蔚涛
+    - 李策
+    - 杨计平
+    - 朱书礼
+    - 李捷
+    - 李跃飞
+    - 李新辉
+    affiliations:
+    - 中国水产科学研究院珠江水产研究所 (Pearl River Fisheries Research Institute, CAFS)
   - doi: 10.3724/issn1000-3207-1999-6-662-l
-    title: STATUS OF FISHERIES IN THE SECTION BELOW THE GEZHOUBA DAM OF THE YANGTZE RIVER
+    title: STATUS OF FISHERIES IN THE SECTION BELOW THE GEZHOUBA DAM OF THE YANGTZE
+      RIVER
     year: 1999
     journal: Acta Hydrobiologica Sinica
     species:
@@ -385,6 +458,14 @@ graph:
     - Gongliang Yu
     - Yungan Xu
     - Jianbo Chang
+    authors_zh:
+    - 于宫良
+    - 徐永安
+    - 谭希昌
+    - 邓中林
+    - 常建波
+    affiliations:
+    - 中国科学院水生生物研究所 (Institute of Hydrobiology, CAS)
   - doi: 10.2305/iucn.uk.2013-1.rlts.t167008a1162900.en
     title: Ochetobius elongatus (IUCN Red List assessment)
     year: 2010
@@ -393,8 +474,12 @@ graph:
     - ochetobius_elongatus
     category: conservation
     authors: []
+    authors_zh: []
+    affiliations:
+    - IUCN 物种存续委员会 (IUCN SSC)
   - doi: 10.3390/ani15192870
-    title: Revealing Phenotypic Differentiation in Ochetobius elongatus from the Middle Yangtze River Through Geometric Morphometrics
+    title: Revealing Phenotypic Differentiation in Ochetobius elongatus from the Middle
+      Yangtze River Through Geometric Morphometrics
     year: 2025
     journal: Animals
     species:
@@ -408,8 +493,19 @@ graph:
     - Chen Y
     - Xiong F
     - Liu H
+    authors_zh:
+    - 蔡方陶
+    - 齐志远
+    - 胡梓恒
+    - 翟东东
+    - 陈媛媛
+    - 熊飞
+    - 刘红艳
+    affiliations:
+    - 长江大学生命科学学院 (School of Life Sciences, Yangtze University)
   - doi: 10.3390/ani16091369
-    title: Analysis of Ochetobibus elongatus (Kner) Dietary Habits Based on Digestive System Morphology, Histology, and Intestinal Content Sequencing Technology
+    title: Analysis of Ochetobibus elongatus (Kner) Dietary Habits Based on Digestive
+      System Morphology, Histology, and Intestinal Content Sequencing Technology
     year: 2026
     journal: Animals
     species:
@@ -427,6 +523,20 @@ graph:
     - Feng Z
     - Xie X
     - Tian L
+    authors_zh:
+    - 高凡
+    - 左志良
+    - 吴奇凡
+    - 肖荷微
+    - 彭正
+    - 邹亮
+    - 蒋刚
+    - 田鑫
+    - 冯志
+    - 谢晓
+    - 田力
+    affiliations:
+    - 湖南省水产科学研究所 (Hunan Fisheries Research Institute)
   - doi: 10.1016/j.watbs.2025.100378
     title: Non-native aquatic species in the Dongting Lake basin, China
     year: 2025
@@ -441,6 +551,15 @@ graph:
     - Bowler PA
     - Chao C
     - Wang B
+    authors_zh:
+    - 文星
+    - 张维
+    - 蔡璐
+    - Bowler PA
+    - 巢传鑫
+    - 王宝强
+    affiliations:
+    - 中国科学院水生生物研究所 (Institute of Hydrobiology, CAS)
   - doi: 10.17520/biods.2025136
     title: 长江中下游鳤不同群体的多变量形态学特征
     year: 2025
@@ -459,6 +578,9 @@ graph:
     - 熊飞
     - 刘红艳
     - 段辛斌
+    affiliations:
+    - 中国水产科学研究院长江水产研究所 (Yangtze River Fisheries Research Institute, CAFS)
+    - 长江大学动物科学技术学院 (College of Animal Science and Technology, Yangtze University)
   - doi: 10.3390/ani15172603
     title: Tetranucleotide Repeat Microsatellite Markers in Yangtze Finless Porpoise
     year: 2025
@@ -534,7 +656,8 @@ graph:
     - Ma X
     - Liu K
   - doi: 10.3390/ani16050840
-    title: Gut Microbiome Signatures Across Migratory, Sedentary, and Aquaculture Ecotypes of Coilia nasus
+    title: Gut Microbiome Signatures Across Migratory, Sedentary, and Aquaculture
+      Ecotypes of Coilia nasus
     year: 2026
     journal: Animals
     species:
@@ -545,7 +668,8 @@ graph:
     - Ying C
     - Ma F
   - doi: 10.1002/ece3.72815
-    title: Population Genomics Provides Novel Insights Into Evolutionary Relationships of Two Ecotypes Coilia nasus
+    title: Population Genomics Provides Novel Insights Into Evolutionary Relationships
+      of Two Ecotypes Coilia nasus
     year: 2025
     journal: Ecol Evol
     species:
@@ -595,7 +719,8 @@ graph:
     - Ying C
     - Liu K
   - doi: 10.1007/s00284-020-02088-y
-    title: Variations of Gut Prokaryotic Microbiome During Spawning Migration in Coilia nasus
+    title: Variations of Gut Prokaryotic Microbiome During Spawning Migration in Coilia
+      nasus
     year: 2021
     journal: Curr Microbiol
     species:
@@ -614,3 +739,4 @@ graph:
     authors:
     - Yin D
     - Liu K
+...
