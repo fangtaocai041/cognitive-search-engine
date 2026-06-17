@@ -1,6 +1,6 @@
-# 🔍 认知搜索引擎
+﻿# 🔍 认知搜索引擎
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python) ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square) ![Version](https://img.shields.io/badge/Version-v5.9-blueviolet?style=flat-square) ![Engines](https://img.shields.io/badge/Engines-15%2B-success?style=flat-square) ![Thompson](https://img.shields.io/badge/Thompson-Sampling-orange?style=flat-square) ![PID](https://img.shields.io/badge/PID-Rate%20Limit-yellow?style=flat-square) ![MPC](https://img.shields.io/badge/MPC-Optimization-red?style=flat-square) ![Async](https://img.shields.io/badge/Async-aiohttp-9cf?style=flat-square) ![CN/EN](https://img.shields.io/badge/CN%2FEN-Dual%20Channel-ff69b4?style=flat-square) ![Agent](https://img.shields.io/badge/Agent-Judge-important?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python) ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge) ![Version](https://img.shields.io/badge/Version-v5.9-blueviolet?style=for-the-badge) ![Engines](https://img.shields.io/badge/Engines-15%2B-success?style=for-the-badge) ![Thompson](https://img.shields.io/badge/Thompson-Sampling-orange?style=for-the-badge) ![PID](https://img.shields.io/badge/PID-Rate%20Limit-yellow?style=for-the-badge) ![MPC](https://img.shields.io/badge/MPC-Optimization-red?style=for-the-badge) ![Async](https://img.shields.io/badge/Async-aiohttp-9cf?style=for-the-badge) ![CN/EN](https://img.shields.io/badge/CN%2FEN-Dual%20Channel-ff69b4?style=for-the-badge) ![Agent](https://img.shields.io/badge/Agent-Judge-important?style=for-the-badge)
 
 > ⚡ 搜索验证核心 — BDI认知搜索，15+引擎，Thompson采样，MPC优化。
 > 你无法用昨天的搜索结果回答今天的问题。
