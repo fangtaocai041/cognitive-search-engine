@@ -1,6 +1,20 @@
-﻿<p align="center">
-  🇬🇧 <a href="README.md">English</a>
-</p>
+﻿<div align="center">
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║     ██████╗ ██████╗  ██████╗ ███╗   ██╗██╗████████╗██╗██╗   ██╗███████╗   ║
+║    ██╔════╝██╔═══██╗██╔════╝ ████╗  ██║██║╚══██╔══╝██║██║   ██║██╔════╝   ║
+║    ██║     ██║   ██║██║  ███╗██╔██╗ ██║██║   ██║   ██║██║   ██║█████╗     ║
+║    ██║     ██║   ██║██║   ██║██║╚██╗██║██║   ██║   ██║╚██╗ ██╔╝██╔══╝     ║
+║    ╚██████╗╚██████╔╝╚██████╔╝██║ ╚████║██║   ██║   ██║ ╚████╔╝ ███████╗   ║
+║     ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═╝   ╚═╝   ╚═╝  ╚═══╝  ╚══════╝   ║
+╠══════════════════════════════════════════════════════════════╣
+║   🧠 Meso-Cosmos Agent · BDI + ReAct · Hub-and-Spoke 图谱   ║
+║   ⚡ 认知重建 · 所指超越能指                                    ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+🇬🇧 <a href="README.md">English</a>
 
 # 🕸️ 认知搜索引擎 v5
 
@@ -18,16 +32,45 @@
 [![Thompson](https://img.shields.io/badge/Thompson_Sampling-bandit-EC4899)]()
 [![PID](https://img.shields.io/badge/PID_control-adaptive-F59E0B)]()
 
+<p align="center">
+  <a href="https://github.com/fangtaocai041/cognitive-search-engine/stargazers"><img src="https://img.shields.io/github/stars/fangtaocai041/cognitive-search-engine?style=social" alt="Stars"></a>
+  <a href="https://github.com/fangtaocai041/cognitive-search-engine/network/members"><img src="https://img.shields.io/github/forks/fangtaocai041/cognitive-search-engine?style=social" alt="Forks"></a>
+</p>
+
+</div>
+
+---
+
+## 📑 目录
+
+- [🧠 智能优化层](#-智能优化层)
+- [🔺 三角核心 + 衍生角色：V/V1（验证）](#-三角核心--衍生角色vv1验证)
+- [📊 自我评价](#-自我评价)
+- [📋 版本历史](#-版本历史)
+- [🔗 关联项目](#-关联项目)
+- [🧠 核心创新](#-核心创新)
+- [🏆 为什么这是最先进的物种搜索引擎](#-为什么这是最先进的物种搜索引擎)
+- [🆕 v5.4.0 新特性](#-v540-新特性)
+- [🚀 快速开始](#-快速开始)
+- [📋 README 变更记录](#-readme-变更记录)
+- [📜 许可证](#-许可证)
+
+---
+
 ## 🧠 智能优化层
 
 > 验证引擎集成三层优化：**DeepSeek 级效率**（MoE 门控 + KV 缓存）、**学者级置信度**（三法则统计停步）、**混沌增强探索**（Rössler 扰动 + 通配符发现）。
 > 由 [eon-core](https://github.com/fangtaocai041/eon-core) 统一调度。
+
+<p align="right"><a href="#-目录">↑ 返回目录</a></p>
 
 ## 🔺 三角核心 + 衍生角色：**V/V1（验证）**
 
 > 三生万物生态体系的一部分：三角核心（`S/V0`、`V/V1`、`Coord`）+ 衍生（`P₁`、`P₂`、`P₃`、`C`）。
 > 验证搜索结果，权威可信度评分，跨项目独立性保障。
 > **DirectLoader**：`importlib` 零 MCP 进程。**三角验证**：≥3 个来源，≥3 个独立项目。
+
+<p align="right"><a href="#-目录">↑ 返回目录</a></p>
 
 ## 📊 自我评价
 
@@ -39,6 +82,8 @@
 | 🔬 物种覆盖 | ⭐⭐⭐⭐ | 图谱中约 10 种，通过自动回写可扩展 |
 | ⚡ 效率 | ⭐⭐⭐⭐⭐ | DirectLoader + MoE 门控 + Thompson 采样 |
 | 🧪 测试覆盖 | ⭐⭐⭐⭐⭐ | 46 集成 + 94 鲁棒 = 140 测试 |
+
+<p align="right"><a href="#-目录">↑ 返回目录</a></p>
 
 ## 📋 版本历史
 
@@ -56,6 +101,8 @@
 
 > **核心优势**：从"字符串匹配"到"所指重建"——多条能指路径（精确、OCR 变体、作者网络、引用图谱、中文名）汇聚于同一所指（物种本身）。
 
+<p align="right"><a href="#-目录">↑ 返回目录</a></p>
+
 ## 🔗 关联项目
 
 本引擎作为 git submodule 集成于：
@@ -71,12 +118,16 @@
 
 > **协同进化**：引擎代码更新 → 衍生项目通过 submodule 自动受益。知识图谱进化 → 全项目共享。
 
+<p align="right"><a href="#-目录">↑ 返回目录</a></p>
+
 ## 🧠 核心创新
 
 **不是字符串匹配——是认知重建。**
 
 传统搜索匹配字符串。如果论文把"Ochetobius"错拼成"Ochetobibus"，就搜不到。
 我们的引擎从多条**能指**路径同时重建**所指**（物种本身）：精确名、OCR 变体、作者网络、引用图谱、中文名汇聚于同一物种。
+
+<p align="right"><a href="#-目录">↑ 返回目录</a></p>
 
 ## 🏆 为什么这是最先进的物种搜索引擎
 
@@ -103,7 +154,11 @@
 | 引用图谱 | 未利用 | 多 Hub 引用辐条，分类图谱 |
 | 学习能力 | 无状态，每次搜索独立 | 图谱随每次搜索增长 |
 
+<p align="right"><a href="#-目录">↑ 返回目录</a></p>
+
 ## 🆕 v5.4.0 新特性
+
+<details open><summary><b>📋 v5.4.0 特性列表</b></summary>
 
 | 特性 | 状态 | 说明 |
 |------|:----:|------|
@@ -121,6 +176,10 @@
 | 🧠 推理引擎 | ✅ | 搜索后空白分析 + 矛盾检测（TAO） |
 | 🎯 verify_claims() | ✅ | IProjectAdapter 跨项目声明验证 |
 | 🧪 测试套件 | ✅ | 8 测试文件，140 测试通过 |
+
+</details>
+
+<p align="right"><a href="#-目录">↑ 返回目录</a></p>
 
 ## 🚀 快速开始
 
@@ -146,6 +205,8 @@ python src/rule_engine.py
 /skill graph-search-engine species="Ochetobius elongatus"
 ```
 
+<p align="right"><a href="#-目录">↑ 返回目录</a></p>
+
 ## 📋 README 变更记录
 
 | 版本 | 日期 | 主题 | 变更内容 |
@@ -159,7 +220,9 @@ python src/rule_engine.py
 | **v5.0** | 2026-06-06 | 五层架构 | BDI WorldModel、CognitiveAgent |
 | **v4.0** | 2026-06-06 | 图谱引擎 | 知识图谱遍历、12 搜索层 |
 
-## 📜 License
+<p align="right"><a href="#-目录">↑ 返回目录</a></p>
+
+## 📜 许可证
 
 MIT © 2026 fangtaocai041
 
@@ -179,3 +242,17 @@ MIT © 2026 fangtaocai041
 这个项目不是一套固定的工具集——它是一个**活的系统**。每个组件都内置了过期机制、版本追踪和涌现感知。随着你的研究深入、R包更新、新方法涌现，它会和你一起进化。
 
 *最后更新: 2026-06-18 | Reasonix Code · DeepSeek 驱动*
+
+---
+
+<div align="center">
+
+### 🏷️ 技术标签
+
+`认知搜索` `物种搜索` `BDI智能体` `ReAct循环` `Hub-and-Spoke` `知识图谱` `Meso-Cosmos` `权威评分` `Thompson采样` `PID限速` `LLM` `Reasonix` `MCP` `OCR变体` `中文学术`
+
+<br>
+
+<sub>🔍 属于 **三生万物** 生态体系 · V/V1 验证层 · 由 [eon-core](https://github.com/fangtaocai041/eon-core) 统一协调</sub>
+
+</div>
