@@ -1,4 +1,4 @@
-<p align="center">
+﻿<p align="center">
   🇬🇧 <a href="README.md">English</a>
 </p>
 
@@ -44,7 +44,7 @@
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
-| **v5.4.0** | 2026-06-20 | 🆕 Thompson 采样多臂老虎机引擎选择器 + PID 自适应 API 限速器 + MPC 世界模型搜索成本优化 + LLM-as-Judge 四维评估 + validator.py 五级信任评分 + evolution_executor 7 触发矛盾驱动自进化 + AsyncParallelSearch（aiohttp，3-5 倍加速） |
+| **v5.4.0** | 2026-06-18 | 🆕 Thompson 采样多臂老虎机引擎选择器 + PID 自适应 API 限速器 + MPC 世界模型搜索成本优化 + LLM-as-Judge 四维评估 + validator.py 五级信任评分 + evolution_executor 7 触发矛盾驱动自进化 + AsyncParallelSearch（aiohttp，3-5 倍加速） |
 | **v5.3.0** | 2026-06-12 | 🆕 inference_engine 空白与矛盾检测（TAO 启发）+ agent_judge.py LLM-as-Judge |
 | **v5.2.2** | 2026-06-09 | validator.py 提取 + evolution_executor + paper_health_check + 修复 25+ 静默异常捕获 |
 | **v5.2.1** | 2026-06-07 | 三角核心三角验证 + DirectLoader + Meso-Cosmos Agent v4.0 |
@@ -52,7 +52,7 @@
 | **v5.1** | 2026-06-07 | Hub-and-Spoke 搜索 + 权威可信度评分 |
 | **v5.0** | 2026-06-07 | BDI + ReAct 认知架构 |
 
-> **最新**：v5.4.0 · 2026-06-20
+> **最新**：v5.4.0 · 2026-06-18
 
 > **核心优势**：从"字符串匹配"到"所指重建"——多条能指路径（精确、OCR 变体、作者网络、引用图谱、中文名）汇聚于同一所指（物种本身）。
 
@@ -150,8 +150,8 @@ python src/rule_engine.py
 
 | 版本 | 日期 | 主题 | 变更内容 |
 |:-----|:-----|:-----|:---------|
-| **v7.1** | 2026-06-20 | README 恢复 | Meso-Cosmos 架构、Hub-and-Spoke 协议、权威评分公式、五大突破、工程语言 |
-| **v5.4.0** | 2026-06-20 | 智能优化 | Thompson 采样、PID 限速、MPC 世界模型、异步搜索、LLM-as-Judge |
+| **v7.1** | 2026-06-18 | README 恢复 | Meso-Cosmos 架构、Hub-and-Spoke 协议、权威评分公式、五大突破、工程语言 |
+| **v5.4.0** | 2026-06-18 | 智能优化 | Thompson 采样、PID 限速、MPC 世界模型、异步搜索、LLM-as-Judge |
 | **v5.3.0** | 2026-06-12 | TAO 推理 | inference_engine 空白与矛盾检测 |
 | **v5.2.2** | 2026-06-09 | 错误基础设施 | 修复 25+ 静默异常 |
 | **v5.2** | 2026-06-06 | Meso-Cosmos | MesoAgent、动态图谱 v2.0、中英文规则 |
@@ -178,4 +178,4 @@ MIT © 2026 fangtaocai041
 
 这个项目不是一套固定的工具集——它是一个**活的系统**。每个组件都内置了过期机制、版本追踪和涌现感知。随着你的研究深入、R包更新、新方法涌现，它会和你一起进化。
 
-*最后更新: 2026-06-17 | Reasonix Code · DeepSeek 驱动*
+*最后更新: 2026-06-18 | Reasonix Code · DeepSeek 驱动*

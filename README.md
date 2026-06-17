@@ -1,4 +1,4 @@
-<p align="center">
+﻿<p align="center">
   🇨🇳 <a href="README.zh.md">中文</a>
 </p>
 
@@ -49,7 +49,7 @@
 
 | Version | Date | Changes |
 |---------|------|---------|
-| **v5.4.0** | 2026-06-20 | 🆕 Thompson Sampling multi-armed bandit engine selector + PID adaptive API rate limiter + MPC world model search cost optimization + LLM-as-Judge 4-dimension result evaluation + validator.py 5-level trust scoring + evolution_executor 7-trigger contradiction-driven self-evolution + AsyncParallelSearch (aiohttp, 3-5x faster) |
+| **v5.4.0** | 2026-06-18 | 🆕 Thompson Sampling multi-armed bandit engine selector + PID adaptive API rate limiter + MPC world model search cost optimization + LLM-as-Judge 4-dimension result evaluation + validator.py 5-level trust scoring + evolution_executor 7-trigger contradiction-driven self-evolution + AsyncParallelSearch (aiohttp, 3-5x faster) |
 | **v5.3.0** | 2026-06-12 | 🆕 inference_engine gap + contradiction detection (TAO-inspired) + agent_judge.py LLM-as-Judge |
 | **v5.2.2** | 2026-06-09 | validator.py extracted + evolution_executor + paper_health_check + contradiction-driven meso_agent + Fixed 25+ silent except:pass |
 | **v5.2.1** | 2026-06-07 | Triangle Core triangulation + DirectLoader + Meso-Cosmos Agent v4.0 |
@@ -57,7 +57,7 @@
 | **v5.1** | 2026-06-07 | Hub-and-Spoke search + authority credibility scoring |
 | **v5.0** | 2026-06-07 | BDI + ReAct cognitive architecture |
 
-> **Latest**: v5.4.0 · 2026-06-20
+> **Latest**: v5.4.0 · 2026-06-18
 
 > **Core Strength**: From "string matching" to "signified reconstruction" ?multiple signifier paths (exact, OCR variant, author network, citation graph, Chinese name) converge on the same signified (the species itself).
 
@@ -465,8 +465,8 @@ SATURATED (>100 papers): Review = literature map ?top-N per direction
 
 | Version | Date | Theme | What Changed |
 |:--------|:-----|:------|:-------------|
-| **v7.1** | 2026-06-20 | README Restoration | Restored from historical sessions: Meso-Cosmos architecture, Hub-and-Spoke protocol, Authority Scoring formula, 5 Breakthroughs, Engineering Language, README Changelog, Thompson Sampling + PID badges |
-| **v5.4.0** | 2026-06-20 | Intelligent Optimization | Thompson Sampling bandit, PID adaptive limiter, MPC world model, AsyncParallelSearch (aiohttp), LLM-as-Judge, validator.py 5-level trust, evolution_executor 7-trigger |
+| **v7.1** | 2026-06-18 | README Restoration | Restored from historical sessions: Meso-Cosmos architecture, Hub-and-Spoke protocol, Authority Scoring formula, 5 Breakthroughs, Engineering Language, README Changelog, Thompson Sampling + PID badges |
+| **v5.4.0** | 2026-06-18 | Intelligent Optimization | Thompson Sampling bandit, PID adaptive limiter, MPC world model, AsyncParallelSearch (aiohttp), LLM-as-Judge, validator.py 5-level trust, evolution_executor 7-trigger |
 | **v5.3.0** | 2026-06-12 | TAO Inference | inference_engine gap+contradiction detection, TAO-inspired reasoning |
 | **v5.2.2** | 2026-06-09 | Error Infrastructure | Fixed 25+ silent except:pass, validator.py, evolution_executor |
 | **v5.2.1** | 2026-06-07 | Cross-Project Sync | + Triangle Core role, + DeepWiki/Docker/Self-Evolve badges, + Linked Projects with co-evolution |
@@ -499,4 +499,4 @@ MIT © 2026 fangtaocai041
 
 This project is not a fixed toolset — it is a **living system**. Every component has built-in expiration mechanisms, version tracking, and emergence awareness. As your research deepens, packages update, and new methods emerge, it evolves with you.
 
-*Last updated: 2026-06-17 | Environment: Reasonix Code · DeepSeek Powered*
+*Last updated: 2026-06-18 | Environment: Reasonix Code · DeepSeek Powered*
