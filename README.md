@@ -13,6 +13,8 @@
 
 🌊 Everything flows.
 
+The world is dynamic, knowledge is temporary, emergence is the norm.
+
 ---
 ## 📖 Table of Contents
 
