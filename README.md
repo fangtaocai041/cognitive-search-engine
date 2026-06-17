@@ -1,6 +1,6 @@
 ﻿# 🔍 Cognitive Search Engine
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge) ![License](https://img.shields.io/badge/License-MIT-brightgreen?style=for-the-badge) ![Version](https://img.shields.io/badge/Version-v5.9-blueviolet?style=for-the-badge) ![Engines](https://img.shields.io/badge/Engines-15%2B-success?style=for-the-badge) ![Thompson](https://img.shields.io/badge/Thompson-Sampling-important?style=for-the-badge) ![PID](https://img.shields.io/badge/PID-Rate%20Limit-critical?style=for-the-badge) ![MPC](https://img.shields.io/badge/MPC-Optimization-informational?style=for-the-badge) ![Async](https://img.shields.io/badge/Async-aiohttp-ff69b4?style=for-the-badge) ![CN/EN](https://img.shields.io/badge/CN%2FEN-Dual-orange?style=for-the-badge) ![Agent](https://img.shields.io/badge/Agent-Judge-red?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge) ![License](https://img.shields.io/badge/License-MIT-brightgreen?style=for-the-badge) ![Version](https://img.shields.io/badge/Version-v5.9-blueviolet?style=for-the-badge) ![Engines](https://img.shields.io/badge/Engines-15%2B-success?style=for-the-badge) ![BDI](https://img.shields.io/badge/BDI-MesoAgent-important?style=for-the-badge) ![Thompson](https://img.shields.io/badge/Thompson-Sampling-critical?style=for-the-badge) ![PID](https://img.shields.io/badge/PID-Rate%20Limit-informational?style=for-the-badge) ![Async](https://img.shields.io/badge/Async-aiohttp-ff69b4?style=for-the-badge) ![CN/EN](https://img.shields.io/badge/CN%2FEN-Dual-orange?style=for-the-badge) ![Tests](https://img.shields.io/badge/Tests-57%2B-lightgrey?style=for-the-badge)
 
 > ⚡ Search Verification Core — BDI cognitive search with 15+ engines, Thompson Sampling, and MPC optimization.
 > You cannot answer today's question with yesterday's search.
@@ -89,19 +89,20 @@ cognitive-search-engine/
 
 ## ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| 🧠 BDI Cognitive | Belief→Desire→Intention adaptive search loop |
-| 🌐 15+ Search Engines | PubMed, Crossref, OpenAlex, Semantic Scholar, CNKI, Wanfang... |
-| ⚡ Async Search | aiohttp-based AsyncParallelSearch, 3-5x faster |
-| 🎯 Thompson Sampling | Learned engine selection replacing rule-based pruning |
-| 📊 PID Rate Limiting | Adaptive API request rate control |
-| 🎛️ MPC Optimization | Model Predictive Control for search cost optimization |
-| ⚖️ Agent-as-Judge | LLM-based result quality evaluation (4 dimensions) |
-| ✅ 5-level Trust | DOI→PMID→Species→Author→Journal scoring |
-| 🔍 OCR Variants | Systematic scientific name variant generation |
-| 🌊 CN/EN Dual Channel | Chinese + English literature separate routing |
-| 🔄 Self-Evolution | 7 triggers auto-adapt search parameters |
+| Feature | Status | Description |
+|---------|:------:|-------------|
+| 🧠 BDI MesoAgent | ✅ | Belief→Desire→Intention adaptive loop |
+| 🌐 15+ Providers | ✅ | PubMed, Crossref, OpenAlex, Semantic Scholar, CNKI... |
+| ⚡ Async Search | ✅ | aiohttp-based, 3-5x faster |
+| 🎯 Thompson Sampling | ✅ | Learned engine selection |
+| 📊 PID Rate Limiter | ✅ | Adaptive API rate control |
+| 🎛️ MPC World Model | ✅ | Search cost optimization |
+| ⚖️ Agent Judge | ✅ | LLM-based 4-dimension evaluation |
+| ✅ 5-level Trust | ✅ | DOI→PMID→Species→Author→Journal |
+| 🔍 OCR Variants | ✅ | Systematic name variant generation |
+| 🌊 CN/EN Channels | ✅ | Separate ZH/EN literature routing |
+| 🔄 Self-Evolution | ✅ | 7 triggers auto-adapt parameters |
+| 🐛 Error Logging | ✅ | Fixed 25+ silent except:pass |
 
 ---
 

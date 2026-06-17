@@ -1,6 +1,6 @@
 ﻿# 🔍 认知搜索引擎
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge) ![协议](https://img.shields.io/badge/%E5%8D%8F%E8%AE%AE-MIT-brightgreen?style=for-the-badge) ![版本](https://img.shields.io/badge/%E7%89%88%E6%9C%AC-v5.9-blueviolet?style=for-the-badge) ![引擎](https://img.shields.io/badge/%E5%BC%95%E6%93%8E-15%2B-success?style=for-the-badge) ![Thompson](https://img.shields.io/badge/Thompson-%E9%87%87%E6%A0%B7-important?style=for-the-badge) ![PID](https://img.shields.io/badge/PID-%E9%99%90%E9%80%9F-critical?style=for-the-badge) ![MPC](https://img.shields.io/badge/MPC-%E4%BC%98%E5%8C%96-informational?style=for-the-badge) ![异步](https://img.shields.io/badge/%E5%BC%82%E6%AD%A5-aiohttp-ff69b4?style=for-the-badge) ![中英](https://img.shields.io/badge/%E4%B8%AD%E8%8B%B1-%E5%8F%8C%E9%80%9A%E9%81%93-orange?style=for-the-badge) ![智能](https://img.shields.io/badge/%E6%99%BA%E8%83%BD-%E8%A3%81%E5%88%A4-red?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge) ![协议](https://img.shields.io/badge/%E5%8D%8F%E8%AE%AE-MIT-brightgreen?style=for-the-badge) ![版本](https://img.shields.io/badge/%E7%89%88%E6%9C%AC-v5.9-blueviolet?style=for-the-badge) ![引擎](https://img.shields.io/badge/%E5%BC%95%E6%93%8E-15%2B-success?style=for-the-badge) ![BDI](https://img.shields.io/badge/BDI-%E8%AE%A4%E7%9F%A5%E4%BD%93-important?style=for-the-badge) ![Thompson](https://img.shields.io/badge/Thompson-%E9%87%87%E6%A0%B7-critical?style=for-the-badge) ![PID](https://img.shields.io/badge/PID-%E9%99%90%E9%80%9F-informational?style=for-the-badge) ![异步](https://img.shields.io/badge/%E5%BC%82%E6%AD%A5-aiohttp-ff69b4?style=for-the-badge) ![中英](https://img.shields.io/badge/%E4%B8%AD%E8%8B%B1-%E5%8F%8C%E9%80%9A%E9%81%93-orange?style=for-the-badge) ![测试](https://img.shields.io/badge/%E6%B5%8B%E8%AF%95-57%2B-lightgrey?style=for-the-badge)
 
 > ⚡ 搜索验证核心 — BDI认知搜索，15+引擎，Thompson采样，MPC优化。
 > 你无法用昨天的搜索结果回答今天的问题。
@@ -119,19 +119,20 @@ cognitive-search-engine/
 
 ## ✨ 功能特性
 
-| 功能 | 说明 |
-|------|------|
-| 🧠 BDI 认知 | Belief→Desire→Intention 自适应搜索循环 |
-| 🌐 15+ 搜索引擎 | PubMed, Crossref, OpenAlex, Semantic Scholar, CNKI, 万方... |
-| ⚡ 异步搜索 | aiohttp AsyncParallelSearch, 3-5x 加速 |
-| 🎯 Thompson 采样 | 学习型引擎选择替代规则剪枝 |
-| 📊 PID 速率限制 | 自适应 API 请求速率控制 |
-| 🎛️ MPC 优化 | 模型预测控制搜索成本优化 |
-| ⚖️ Agent 裁判 | LLM 结果质量评估 (4维度) |
-| ✅ 5级信任 | DOI→PMID→物种→作者→期刊评分 |
-| 🔍 OCR 变体 | 系统化学名变体生成 |
-| 🌊 中英双通道 | 中英文文献分路由 |
-| 🔄 自进化 | 7 触发器自适应搜索参数 |
+| 功能 | 状态 | 说明 |
+|------|:--:|------|
+| 🧠 BDI MesoAgent | ✅ | Belief→Desire→Intention 自适应循环 |
+| 🌐 15+ 数据源 | ✅ | PubMed, Crossref, OpenAlex, CNKI, 万方... |
+| ⚡ 异步搜索 | ✅ | aiohttp, 3-5x 加速 |
+| 🎯 Thompson 采样 | ✅ | 学习型引擎选择 |
+| 📊 PID 限速器 | ✅ | 自适应 API 速率 |
+| 🎛️ MPC 世界模型 | ✅ | 搜索成本优化 |
+| ⚖️ Agent 裁判 | ✅ | LLM 四维评估 |
+| ✅ 5级信任 | ✅ | DOI→PMID→物种→作者→期刊 |
+| 🔍 OCR 变体 | ✅ | 系统化学名变体 |
+| 🌊 中英双通道 | ✅ | 中英文文献分路由 |
+| 🔄 自进化 | ✅ | 7 触发器参数自适应 |
+| 🐛 错误日志 | ✅ | 修复 25+ 静默吞错 |
 
 ---
 
