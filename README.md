@@ -159,7 +159,7 @@ UNDERSTAND → ROUTE → EXECUTE → VALIDATE → SYNTHESIZE → EVOLVE
 | Feature | Description | Module |
 |:--------|:------------|:-------|
 | **MesoAgent** | Meso-Cosmos coordination — unified WorldModel/SearchRuleEngine/MemorySystem/GraphUpdater | `src/meso_agent.py` |
-| **Dynamic Graph v2.0** | CN/EN-aware auto-update — Chinese journals auto-fill `authors_zh`, new journals auto-register, bilingual dedup | `src/graph_updater.py` |
+| **Dynamic Graph v2.0** | CN/EN-aware auto-update — Chinese journals auto-fill `authors_zh`, new journals auto-register, bilingual dedup | `src/meso_agent.py` (integrated) |
 | **CN/EN Literature Rule** | Chinese journals use Chinese names (杨计平), English use English (Yang Jiping); prevents dual-version duplication | `project memory (high)` |
 | **MCP Timeout Protection** | 15s threading timeout prevents MCP subprocess hang | `src/mcp_client.py` |
 | **Chinese Academic Search Skill** | Specialized search for 8 Chinese journals | `skills/chinese-academic-search.md` |
@@ -224,7 +224,7 @@ UNDERSTAND → ROUTE → EXECUTE → VALIDATE → SYNTHESIZE → EVOLVE
 |:-----:|----------|--------|
 | **1. Perception** | Input → species_id → genus/species/Chinese + volume estimation | `SearchRuleEngine.execute()` |
 | **2. Cognitive** | BDI policy π(Belief,Desire) → Intention + ReAct loop | `src/agent_core.py` |
-| **3. Memory** | Short-term + Long-term + **Classified Knowledge Graph** | `src/memory_layer.py` |
+| **3. Memory** | Short-term + Long-term + **Classified Knowledge Graph** | `src/meso_agent.py` (integrated) |
 | **4. Mapping** | Direction routing → hub selection → `article_get_references` | `search_rules.yaml` |
 | **5. Execution** | PubMed · Crossref · MCP (7 engines) · Authority scoring · Thompson Sampling · PID Limiter | `rule_engine._http_search()` |
 
@@ -461,11 +461,11 @@ cognitive-search-engine/
 │   └── tools.json                → JSON Schema: DeepSeek+Gemini+OpenAI tools
 ├── src/                          → 15 modules (5-layer cognitive agent)
 │   ├── agent_core.py             → 🧠 CognitiveAgent  — BDI + ReAct loop
-│   ├── memory_layer.py           → 🗄️ MemorySystem → short-term + long-term
+│   ├── meso_agent.py            → 🧠 MesoAgent — coordination + graph + memory
 │   ├── world_model.py            → 🧬 BDI WorldModel → Belief/Desire/Intention
 │   ├── rule_engine.py            → ⚙️ SearchRuleEngine → phases + execution
 │   ├── variant_generator.py      → 🔤 OCR variant auto-generation
-│   ├── graph_updater.py          → 📊 Graph persistence + reverse indexes
+│   ├── meso_agent.py            → 📊 MesoAgent — graph persistence + CN/EN rules
 │   ├── mcp_client.py             → 🔌 MCP stdio client (7 servers)
 │   ├── parallel_search.py        → ⚡ Multi-query parallel executor
 │   ├── meso_agent.py             → 🧠 Meso-Cosmos coordination layer
