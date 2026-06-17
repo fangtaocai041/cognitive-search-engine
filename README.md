@@ -1,117 +1,120 @@
-# Cognitive Search Engine 🕸️
+# 🔍 Cognitive Search Engine
 
-**三角核心 V/V1 层** — 多源并行搜索 · 分类学验证 · 可信度评分。
-
-> 🌊 万物皆变 · Panta Rhei
->
-> 搜索不是一次性的查询——它是持续的验证循环。
-
-[![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-blue)](https://python.org)
-[![Reasonix](https://img.shields.io/badge/Reasonix-Code-brightgreen)](https://reasonix.ai)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Version](https://img.shields.io/badge/version-5.9-8b5cf6)]()
+[![Engines](https://img.shields.io/badge/engines-15+-22c55e)]()
+[![Frontier](https://img.shields.io/badge/frontier-Thompson|PID|MPC|AgentJudge-orange)]()
 
-[English](README.md) · [中文](README.zh.md) · [更新日志](CHANGELOG.md) · [鱼知识库](https://github.com/fangtaocai041/fish-ecology-assistant)
+> ⚡ Search Verification Core — BDI cognitive search with 15+ engines, Thompson Sampling, and MPC optimization.
+> You cannot answer today's question with yesterday's search.
 
----
-
-## 🎯 核心哲学
-
-> 世界是动态的，知识是暂时的，涌现是常态。
-
-这是三角之 **V（验证）**。S（知识）提出主张，V 负责验证——通过多源并行搜索、跨项目比对、三角验证评分，确保每一条写入知识库的信息都经过 ≥3 个独立来源的检验。
-
-### 🔗 在三角中的角色
-
-```
-三生万物架构：
-  S/V0  fish-ecology-assistant    → 知识供给（阴·静）
-  V/V1  cognitive-search-engine   → 搜索验证（阳·动） ← 你在这里
-  Coord eon-core                  → 协调内核（太极点）
-```
+[English](README.md) · [中文](README.zh.md) · [CHANGELOG](CHANGELOG.md)
 
 ---
 
-## 🧩 这个项目是什么
+## 📖 Table of Contents
 
-它是一个搜索验证引擎。不存储知识，而是验证知识。
-
-当 S 层说"鳤的科是鲤科"，V 层会去问 PubMed、Crossref、中文期刊、Google Scholar——它们都这么说吗？有没有不一致？如果有，谁是对的？
-
-> 赫拉克利特说：人不能两次踏进同一条河流。
->
-> 我们说：你也不能用昨天的搜索回答今天的问题。
+- [Philosophy](#-philosophy)
+- [Quick Start](#-quick-start)
+- [Architecture](#-architecture)
+- [Features](#-features)
+- [Project Structure](#-project-structure)
+- [Ecosystem](#-ecosystem)
 
 ---
 
-## ⚡ 快速上手
+## 🏛️ Philosophy
+
+> The world is dynamic, knowledge is temporary, emergence is constant.
+
+This is the **V-state (V1)** of the Triangle — Search Verification. Knowledge supplied by V0 is verified here through multi-source parallel search, credibility scoring, and source independence enforcement. The BDI cognitive architecture (Belief→Desire→Intention) adapts search strategy in real-time.
+
+---
+
+## 🚀 Quick Start
 
 ```bash
-# 搜索物种
-python scripts/search_api.py --species "Ochetobius elongatus"
+# Clone
+git clone git@github.com:fangtaocai041/cognitive-search-engine.git
+cd cognitive-search-engine
 
-# 分类学不一致检测
-python scripts/search_api.py --species "Ochetobius elongatus" --check-taxonomy
+# Install
+pip install -e .
 
-# JSON 输出
-python scripts/search_api.py --species "鳤" --format json
+# Run
+python src/main.py search "Coilia nasus ecology"
 ```
 
 ---
 
-## 🚀 核心能力
-
-| 🚀 能力 | 📝 说明 |
-|:-----|:------|
-| **多源并行** | tavily / exa / scholar / article / scholarly，11 引擎可配置 |
-| **分类学验证** | 跨项目比对 family/order，不一致自动标记 |
-| **三角验证评分** | 每篇论文 ≥2 独立源，journal whitelist 加权 |
-| **OCR 变体** | 学名 OCR 容错（u↔b, i↔l, n↔m） |
-| **引用回溯** | 从中文论文提取英文参考文献，弥合语言鸿沟 |
-| **结果去重** | 按 DOI 精确去重，按标题模糊去重 |
-| **DirectLoader** | `importlib` 零进程加载，无 MCP 开销 |
-
----
-
-## 📁 项目结构
+## 🏗️ Architecture
 
 ```
 cognitive-search-engine/
-├── src/
-│   ├── search_coordinator.py   ← 搜索编排
-│   ├── unified_search.py       ← 统一搜索入口
-│   └── search_api.py           ← API 层
-├── scripts/
-│   └── search_api.py           ← CLI 入口
-└── config/
-    └── evolution.yaml          ← 自适应参数
+  src/
+  ├── meso_agent.py          BDI cognitive core (Belief→Desire→Intention)
+  ├── parallel_search.py     15+ HTTP providers (PubMed/Crossref/OpenAlex...)
+  ├── AsyncParallelSearch     aiohttp-based async search (3-5x faster)
+  ├── search_coordinator.py  KB-first two-stage search coordinator
+  ├── unified_search.py      Adaptive mode: EXHAUSTIVE/CLASSIFIED/SATURATED
+  ├── validator.py           5-level trust scoring + source independence
+  ├── thompson_selector.py   Thompson Sampling multi-armed bandit engine selector
+  ├── pid_limiter.py         PID adaptive API rate limiting
+  ├── mpc_world.py           MPC search cost optimization
+  ├── agent_judge.py         LLM-as-Judge result evaluation
+  ├── inference_engine.py    Post-search gap + contradiction detection
+  ├── evolution_executor.py  7-trigger self-evolution
+  └── variant_generator.py   OCR scientific name variants
 ```
 
+---
 
-## 🔗 生态体系
+## ✨ Features
 
-> 🔥 和则无穷力量，分则顶尖专家引擎。
+| Feature | Description |
+|---------|-------------|
+| 🧠 BDI Cognitive | Belief→Desire→Intention adaptive search loop |
+| 🌐 15+ Search Engines | PubMed, Crossref, OpenAlex, Semantic Scholar, CNKI, Wanfang... |
+| ⚡ Async Search | aiohttp-based AsyncParallelSearch, 3-5x faster |
+| 🎯 Thompson Sampling | Learned engine selection replacing rule-based pruning |
+| 📊 PID Rate Limiting | Adaptive API request rate control |
+| 🎛️ MPC Optimization | Model Predictive Control for search cost optimization |
+| ⚖️ Agent-as-Judge | LLM-based result quality evaluation (4 dimensions) |
+| ✅ 5-level Trust | DOI→PMID→Species→Author→Journal scoring |
+| 🔍 OCR Variants | Systematic scientific name variant generation |
+| 🌊 CN/EN Dual Channel | Chinese + English literature separate routing |
+| 🔄 Self-Evolution | 7 triggers auto-adapt search parameters |
 
-本项目是「三生万物」生态的 V1。
+---
+
+## 📁 Project Structure
 
 ```
-三角核心 (sealed 3):
-  📦 fish-ecology-assistant    → 知识供给 (V0)
-  🔍 cognitive-search-engine   → 搜索验证 (V1)
-  ⚙️ eon-core                  → 协调内核 (Coord)
-
-万物衍生 (open N):
-  🐬 porpoise-agent    → 江豚专研 (P₁)
-  🐟 coilia-agent      → 刀鲚专研 (P₂)
-  🐟 culter-agent      → 鲌类专研 (P₃)
-  🔥 conflict-arbiter  → 冲突仲裁 (C)
+cognitive-search-engine/
+  (see Architecture section above)
 ```
 
-> 🌊 万物皆变 · Panta Rhei
->
-> 🏛️ 赫拉克利特说：人不能两次踏进同一条河流。
->
-> 💻 我们说：你也不能用昨天的搜索回答今天的问题。
->
-> **📅 最后更新: 2026-06-17 · 🖥️ Reasonix Code · ⚡ DeepSeek 驱动**
+---
 
-[⬆ 回到顶部](#)
+## 🔗 Ecosystem
+
+This project is the Search Verification Core (V1) in the SanShengWanWu ecosystem.
+
+```
+Triangle Core (sealed 3):
+  📦 fish-ecology-assistant    → Knowledge Supply (V0)
+  🔍 cognitive-search-engine   → Search Verification (V1)
+  ⚙️ eon-core                  → Coordination Hub (Coord)
+
+Derived Projects (open N):
+  🐬 porpoise-agent    → P₁ Porpoise Expert
+  🐟 coilia-agent      → P₂ Coilia Expert
+  🐟 culter-agent      → P₃ Culter Expert
+  🔥 conflict-arbiter  → C  Conflict Arbitration
+```
+
+> 🔥 Together infinite power, apart top expert engines.
+
+---
+*SanShengWanWu Ecosystem · MIT License · fangtaocai041*

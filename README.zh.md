@@ -1,74 +1,85 @@
-# Cognitive Search Engine 🕸️
+# 🔍 认知搜索引擎
 
-**三角核心 V/V1 层** — 多源并行搜索 · 分类学验证 · 可信度评分。
-
-> 🌊 万物皆变 · Panta Rhei
->
-> 搜索不是一次性的查询——它是持续的验证循环。
-
-[![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-blue)](https://python.org)
-[![Reasonix](https://img.shields.io/badge/Reasonix-Code-brightgreen)](https://reasonix.ai)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Version](https://img.shields.io/badge/version-5.9-8b5cf6)]()
+[![Engines](https://img.shields.io/badge/engines-15+-22c55e)]()
+[![Frontier](https://img.shields.io/badge/frontier-Thompson|PID|MPC|AgentJudge-orange)]()
+
+> ⚡ 搜索验证核心 — BDI认知搜索，15+引擎，Thompson采样，MPC优化。
+> 你无法用昨天的搜索结果回答今天的问题。
 
 [English](README.md) · [中文](README.zh.md) · [更新日志](CHANGELOG.md)
 
 ---
 
-## 🎯 核心哲学
+## 📖 目录
+
+- [哲学](#-哲学)
+- [快速开始](#-快速开始)
+- [架构](#-架构)
+- [功能特性](#-功能特性)
+- [项目结构](#-项目结构)
+- [生态体系](#-生态体系)
+
+---
+
+## 🏛️ 哲学
 
 > 世界是动态的，知识是暂时的，涌现是常态。
 
-这是三角之 **V（验证）**。S（知识）提出主张，V 负责验证——通过多源并行搜索、跨项目比对、三角验证评分，确保每一条写入知识库的信息都经过 ≥3 个独立来源的检验。
-
-### 🔗 在三角中的角色
-
-```
-三生万物架构：
-  S/V0  fish-ecology-assistant    → 知识供给（阴·静）
-  V/V1  cognitive-search-engine   → 搜索验证（阳·动） ← 你在这里
-  Coord eon-core                  → 协调内核（太极点）
-```
+这是三角之 **V (V1)** — 搜索验证层。V0供给的知识在此经过多源并行搜索、可信度评分、源独立性检验。BDI认知架构 (Belief→Desire→Intention) 实时自适应搜索策略。
 
 ---
 
-## 🧩 这个项目是什么
-
-它是一个搜索验证引擎。不存储知识，而是验证知识。
-
-当 S 层说"鳤的科是鲤科"，V 层会去问 PubMed、Crossref、中文期刊、Google Scholar——它们都这么说吗？有没有不一致？如果有，谁是对的？
-
-> 赫拉克利特说：人不能两次踏进同一条河流。
->
-> 我们说：你也不能用昨天的搜索回答今天的问题。
-
----
-
-## ⚡ 快速上手
+## 🚀 快速开始
 
 ```bash
-# 搜索物种
-python scripts/search_api.py --species "Ochetobius elongatus"
-
-# 分类学不一致检测
-python scripts/search_api.py --species "Ochetobius elongatus" --check-taxonomy
-
-# JSON 输出
-python scripts/search_api.py --species "鳤" --format json
+git clone git@github.com:fangtaocai041/cognitive-search-engine.git
+cd cognitive-search-engine
+pip install -e .
+python src/main.py search "刀鲚 生态"
 ```
 
 ---
 
-## 🚀 核心能力
+## 🏗️ 架构
 
-| 🚀 能力 | 📝 说明 |
-|:---------|:--------|
-| **多源并行** | tavily / exa / scholar / article / scholarly，11 引擎可配置 |
-| **分类学验证** | 跨项目比对 family/order，不一致自动标记 |
-| **三角验证评分** | 每篇论文 ≥2 独立源，journal whitelist 加权 |
-| **OCR 变体** | 学名 OCR 容错（u↔b, i↔l, n↔m） |
-| **引用回溯** | 从中文论文提取英文参考文献，弥合语言鸿沟 |
-| **结果去重** | 按 DOI 精确去重，按标题模糊去重 |
-| **DirectLoader** | `importlib` 零进程加载，无 MCP 开销 |
+```
+cognitive-search-engine/
+  src/
+  ├── meso_agent.py          BDI 认知核心 (Belief→Desire→Intention)
+  ├── parallel_search.py     15+ HTTP 数据源 (PubMed/Crossref/OpenAlex...)
+  ├── AsyncParallelSearch     aiohttp 异步搜索 (3-5x 加速)
+  ├── search_coordinator.py  KB-First 两阶段搜索协调器
+  ├── unified_search.py      自适应模式: 全量/分类/饱和
+  ├── validator.py           5级信任评分 + 源独立性检验
+  ├── thompson_selector.py   Thompson采样多臂老虎机引擎选择
+  ├── pid_limiter.py         PID自适应API速率限制
+  ├── mpc_world.py           MPC搜索成本优化
+  ├── agent_judge.py         LLM裁判结果评估
+  ├── inference_engine.py    搜索后缺口+矛盾检测
+  ├── evolution_executor.py  7触发器自进化
+  └── variant_generator.py   OCR学名变体生成
+```
+
+---
+
+## ✨ 功能特性
+
+| 功能 | 说明 |
+|------|------|
+| 🧠 BDI 认知 | Belief→Desire→Intention 自适应搜索循环 |
+| 🌐 15+ 搜索引擎 | PubMed, Crossref, OpenAlex, Semantic Scholar, CNKI, 万方... |
+| ⚡ 异步搜索 | aiohttp AsyncParallelSearch, 3-5x 加速 |
+| 🎯 Thompson 采样 | 学习型引擎选择替代规则剪枝 |
+| 📊 PID 速率限制 | 自适应 API 请求速率控制 |
+| 🎛️ MPC 优化 | 模型预测控制搜索成本优化 |
+| ⚖️ Agent 裁判 | LLM 结果质量评估 (4维度) |
+| ✅ 5级信任 | DOI→PMID→物种→作者→期刊评分 |
+| 🔍 OCR 变体 | 系统化学名变体生成 |
+| 🌊 中英双通道 | 中英文文献分路由 |
+| 🔄 自进化 | 7 触发器自适应搜索参数 |
 
 ---
 
@@ -76,22 +87,14 @@ python scripts/search_api.py --species "鳤" --format json
 
 ```
 cognitive-search-engine/
-├── src/
-│   ├── search_coordinator.py   ← 搜索编排
-│   ├── unified_search.py       ← 统一搜索入口
-│   └── search_api.py           ← API 层
-├── scripts/
-│   └── search_api.py           ← CLI 入口
-└── config/
-    └── evolution.yaml          ← 自适应参数
+  (见上方架构图)
 ```
 
+---
 
 ## 🔗 生态体系
 
-> 🔥 和则无穷力量，分则顶尖专家引擎。
-
-本项目是「三生万物」生态的 V1。
+本项目是「三生万物」生态的 搜索验证核心 (V1)。
 
 ```
 三角核心 (sealed 3):
@@ -100,18 +103,13 @@ cognitive-search-engine/
   ⚙️ eon-core                  → 协调内核 (Coord)
 
 万物衍生 (open N):
-  🐬 porpoise-agent    → 江豚专研 (P₁)
-  🐟 coilia-agent      → 刀鲚专研 (P₂)
-  🐟 culter-agent      → 鲌类专研 (P₃)
-  🔥 conflict-arbiter  → 冲突仲裁 (C)
+  🐬 porpoise-agent    → P₁ 江豚专研
+  🐟 coilia-agent      → P₂ 刀鲚专研
+  🐟 culter-agent      → P₃ 鲌类专研
+  🔥 conflict-arbiter  → C  冲突仲裁
 ```
 
-> 🌊 万物皆变 · Panta Rhei
->
-> 🏛️ 赫拉克利特说：人不能两次踏进同一条河流。
->
-> 💻 我们说：你也不能用昨天的搜索回答今天的问题。
->
-> **📅 最后更新: 2026-06-17 · 🖥️ Reasonix Code · ⚡ DeepSeek 驱动**
+> 🔥 和则无穷力量，分则顶尖专家引擎。
 
-[⬆ 回到顶部](#)
+---
+*SanShengWanWu Ecosystem · MIT License · fangtaocai041*
