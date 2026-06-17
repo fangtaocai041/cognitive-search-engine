@@ -11,7 +11,7 @@
 
 [English](README.md) · [中文](README.zh.md)
 
-Multi-source academic literature search and verification engine.
+🌊 Everything flows.
 
 ---
 ## 📖 Table of Contents
