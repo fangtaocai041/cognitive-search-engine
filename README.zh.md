@@ -1,6 +1,17 @@
 ﻿# 🔍 认知搜索引擎
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge) ![协议](https://img.shields.io/badge/%E5%8D%8F%E8%AE%AE-MIT-brightgreen?style=for-the-badge) ![版本](https://img.shields.io/badge/%E7%89%88%E6%9C%AC-v5.9-blueviolet?style=for-the-badge) ![引擎](https://img.shields.io/badge/%E5%BC%95%E6%93%8E-15%2B-success?style=for-the-badge) ![BDI](https://img.shields.io/badge/BDI-%E8%AE%A4%E7%9F%A5%E4%BD%93-important?style=for-the-badge) ![Thompson](https://img.shields.io/badge/Thompson-%E9%87%87%E6%A0%B7-critical?style=for-the-badge) ![PID](https://img.shields.io/badge/PID-%E9%99%90%E9%80%9F-informational?style=for-the-badge) ![异步](https://img.shields.io/badge/%E5%BC%82%E6%AD%A5-aiohttp-ff69b4?style=for-the-badge) ![中英](https://img.shields.io/badge/%E4%B8%AD%E8%8B%B1-%E5%8F%8C%E9%80%9A%E9%81%93-orange?style=for-the-badge) ![测试](https://img.shields.io/badge/%E6%B5%8B%E8%AF%95-57%2B-lightgrey?style=for-the-badge)
+<p align="center">
+  ![Python 3.10+](https://img.shields.io/badge/Python%203.10%2B-3776AB?style=flat-square)
+  ![MIT](https://img.shields.io/badge/MIT-34D058?style=flat-square)
+  ![v5.9](https://img.shields.io/badge/v5.9-8A4FCE?style=flat-square)
+  ![15+ engines](https://img.shields.io/badge/15%2B%20engines-007EC6?style=flat-square)
+  ![Thompson](https://img.shields.io/badge/Thompson-FE7D37?style=flat-square)
+  ![PID control](https://img.shields.io/badge/PID%20control-D73A4A?style=flat-square)
+  ![aiohttp](https://img.shields.io/badge/aiohttp-0EA5E9?style=flat-square)
+  ![CN/EN](https://img.shields.io/badge/CN%2FEN-EC4899?style=flat-square)
+  ![BDI agent](https://img.shields.io/badge/BDI%20agent-F59E0B?style=flat-square)
+</p>
+
 
 > ⚡ 搜索验证核心 — BDI认知搜索，15+引擎，Thompson采样，MPC优化。
 > 你无法用昨天的搜索结果回答今天的问题。

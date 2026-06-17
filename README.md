@@ -1,6 +1,17 @@
 ﻿# 🔍 Cognitive Search Engine
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge) ![License](https://img.shields.io/badge/License-MIT-brightgreen?style=for-the-badge) ![Version](https://img.shields.io/badge/Version-v5.9-blueviolet?style=for-the-badge) ![Engines](https://img.shields.io/badge/Engines-15%2B-success?style=for-the-badge) ![BDI](https://img.shields.io/badge/BDI-MesoAgent-important?style=for-the-badge) ![Thompson](https://img.shields.io/badge/Thompson-Sampling-critical?style=for-the-badge) ![PID](https://img.shields.io/badge/PID-Rate%20Limit-informational?style=for-the-badge) ![Async](https://img.shields.io/badge/Async-aiohttp-ff69b4?style=for-the-badge) ![CN/EN](https://img.shields.io/badge/CN%2FEN-Dual-orange?style=for-the-badge) ![Tests](https://img.shields.io/badge/Tests-57%2B-lightgrey?style=for-the-badge)
+<p align="center">
+  ![Python 3.10+](https://img.shields.io/badge/Python%203.10%2B-3776AB?style=flat-square)
+  ![MIT](https://img.shields.io/badge/MIT-34D058?style=flat-square)
+  ![v5.9](https://img.shields.io/badge/v5.9-8A4FCE?style=flat-square)
+  ![15+ engines](https://img.shields.io/badge/15%2B%20engines-007EC6?style=flat-square)
+  ![Thompson](https://img.shields.io/badge/Thompson-FE7D37?style=flat-square)
+  ![PID control](https://img.shields.io/badge/PID%20control-D73A4A?style=flat-square)
+  ![aiohttp](https://img.shields.io/badge/aiohttp-0EA5E9?style=flat-square)
+  ![CN/EN](https://img.shields.io/badge/CN%2FEN-EC4899?style=flat-square)
+  ![BDI agent](https://img.shields.io/badge/BDI%20agent-F59E0B?style=flat-square)
+</p>
+
 
 > ⚡ Search Verification Core — BDI cognitive search with 15+ engines, Thompson Sampling, and MPC optimization.
 > You cannot answer today's question with yesterday's search.
