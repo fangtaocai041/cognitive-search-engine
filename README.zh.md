@@ -11,7 +11,7 @@
 
 [English](README.md) · [中文](README.zh.md)
 
-🌊 万物皆流。
+<div align="center"><h3>🌊 万物皆流。</h3></div>
 
 世界是动态的，知识是暂时的，涌现是常态。
 

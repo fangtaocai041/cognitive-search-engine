@@ -11,7 +11,7 @@
 
 [English](README.md) · [中文](README.zh.md)
 
-🌊 Everything flows.
+<div align="center"><h3>🌊 Everything flows.</h3></div>
 
 The world is dynamic, knowledge is temporary, emergence is the norm.
 
