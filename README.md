@@ -22,11 +22,30 @@
 
 ## 🏛️ Philosophy
 
-> The world is dynamic, knowledge is temporary, emergence is constant.
+> 🌍 The world is dynamic. 📖 Knowledge is temporary. 🌟 Emergence is the norm.
 
-This is the **V-state (V1)** of the Triangle — Search Verification. Knowledge supplied by V0 is verified here through multi-source parallel search, credibility scoring, and source independence enforcement. The BDI cognitive architecture (Belief→Desire→Intention) adapts search strategy in real-time.
+This is not a slogan. It is the operating system running through every line of code.
 
----
+### 📜 Three Tenets
+
+**🌍 The world is dynamic** — R packages update, species distributions shift, scientific consensus evolves, climate change reshapes ecosystems. A correct conclusion today may be outdated in six months.
+
+**📖 Knowledge is temporary** — The foundation of science is falsification (Popper). No discovery is ultimate truth—only the best current explanation. We use calibrated language: evidence suggests not proves.
+
+**🌟 Emergence is the norm** — Life, consciousness, ecosystems, AI reasoning—all are emergent phenomena. When >=3 independent sources point to the same unexpected pattern, the system flags it as an emergence signal.
+
+### ⚖️ Why This Matters
+
+| Scenario | Traditional | Dynamic Worldview |
+|:---------|:-----------|:------------------|
+| Citations | Studies prove it | Smith (2022) found X, Jones (2024) added Y |
+| Outliers | Ignore as noise | >=3 sources → emergence signal |
+| Knowledge decay | Handbook frozen | Review records include Next review date |
+
+> 道生一，一生二，二生三，三生万物。
+
+This is the **S-state (V0)** of the Triangle — Knowledge Supply, holding 430 Yangtze fish species.
+
 
 ## 🚀 Quick Start
 
