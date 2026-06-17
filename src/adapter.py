@@ -12,13 +12,20 @@ Capabilities:
 from __future__ import annotations
 
 import logging
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+# Import shared adapter protocol (workspace root on sys.path)
+try:
+    from scripts.adapter_protocol import IProjectAdapter
+except ImportError:
+    IProjectAdapter = object  # fallback for standalone usage
 
-class CognitiveSearchAdapter:
+
+class CognitiveSearchAdapter(IProjectAdapter):
     """Adapter for cognitive-search-engine (V1 — 验证引擎).
 
     Wraps MesoAgent.search() for cross-project consumption.

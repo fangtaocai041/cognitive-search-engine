@@ -7,6 +7,7 @@
   3. classify_paper() → 学科分类
   4. cn_en_label() → CN/EN通道标注
 
+logger = logging.getLogger(__name__)
 用法:
   from src.unified_search import estimate_mode, is_incidental, classify_paper
   mode = estimate_mode("Ochetobius elongatus", "CR", 16)
@@ -24,6 +25,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # HTTP fallback engines (from parallel_search)
 from src.parallel_search import (
+import logging
     _search_pubmed, _search_europe_pmc, _search_crossref, _search_openalex, _search_arxiv,
     _search_crossref_direct, _search_semantic_scholar,
     _search_biorxiv_medrxiv, _search_researchgate,
@@ -476,8 +478,8 @@ def _ensure_species_graph_loaded() -> List[Dict[str, Any]]:
             with open(graph_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
             _SPECIES_GRAPH = data.get("graph", {}).get("species", [])
-    except Exception:
-        pass
+    except Exception as _e:
+                logger.warning(f"Suppressed in unified_search.py: {type(_e).__name__}: {_e}")
     return _SPECIES_GRAPH
 
 
@@ -798,6 +800,6 @@ def _mcp_available() -> bool:
             fn = getattr(__builtins__, tool_name, None)
             if fn is not None:
                 return True
-        except Exception:
-            pass
+        except Exception as _e:
+                logger.warning(f"Suppressed in unified_search.py: {type(_e).__name__}: {_e}")
     return False

@@ -29,6 +29,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from pathlib import Path
 import json
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -181,8 +182,8 @@ def _resolve_species_name(name: str) -> List[str]:
                 if sci and sci not in names:
                     names.append(sci)
                 break
-    except Exception:
-        pass
+    except Exception as _e:
+                logger.warning(f"Suppressed in search_coordinator.py: {type(_e).__name__}: {_e}")
     return names
 
 
@@ -268,8 +269,8 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
                     if len(pruned_group) < len(full_group):
                         logger.info(f"Adaptive pruning: {len(full_group)} -> {len(pruned_group)} engines")
                     break
-    except Exception:
-        pass
+    except Exception as _e:
+                logger.warning(f"Suppressed in search_coordinator.py: {type(_e).__name__}: {_e}")
     
     # 3. 多引擎并行搜索 — 直接调用 MCP 工具 (本会话可用)
     engine_results = _run_real_search(variants, pruned_group, limit)
@@ -505,8 +506,8 @@ def _fallback_check_taxonomy(species_name: str) -> List[str]:
     """离线分类学检查。"""
     try:
         return check_taxonomy(species_name)
-    except Exception:
-        pass
+    except Exception as _e:
+                logger.warning(f"Suppressed in search_coordinator.py: {type(_e).__name__}: {_e}")
     import yaml
     from pathlib import Path
     config = Path(__file__).resolve().parent.parent / "config" / "species_graph.yaml"

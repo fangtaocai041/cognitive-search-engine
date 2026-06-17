@@ -228,8 +228,8 @@ class MesoAgent:
                 wm_volume = prediction.estimated_volume if hasattr(prediction, "estimated_volume") else len(known)
                 if wm_volume > len(known):
                     return wm_volume
-            except Exception:
-                pass
+            except Exception as _e:
+                logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
 
         # ── Secondary: Multi-source HTTP estimation ──
         multi = self._estimate_literature_volume_multi(species_id)
@@ -272,8 +272,8 @@ class MesoAgent:
                 with _urlreq.urlopen(url, timeout=6) as resp:
                     data = _json.loads(resp.read())
                 pubmed_count = int(data.get("esearchresult", {}).get("count", "0") or "0")
-            except Exception:
-                pass
+            except Exception as _e:
+                logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
 
         def _fetch_crossref():
             nonlocal scholar_count
@@ -282,8 +282,8 @@ class MesoAgent:
                 with _urlreq.urlopen(url, timeout=6) as resp:
                     data = _json.loads(resp.read())
                 scholar_count = int(data.get("message", {}).get("total-results", 0) or 0)
-            except Exception:
-                pass
+            except Exception as _e:
+                logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
 
         def _fetch_openalex():
             nonlocal openalex_count
@@ -292,16 +292,16 @@ class MesoAgent:
                 with _urlreq.urlopen(url, timeout=6) as resp:
                     data = _json.loads(resp.read())
                 openalex_count = int(data.get("meta", {}).get("count", 0) or 0)
-            except Exception:
-                pass
+            except Exception as _e:
+                logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
 
         with ThreadPoolExecutor(max_workers=3) as pool:
             futs = [pool.submit(f) for f in (_fetch_pubmed, _fetch_crossref, _fetch_openalex)]
             for fut in as_completed(futs):
                 try:
                     fut.result(timeout=8)
-                except Exception:
-                    pass
+                except Exception as _e:
+                logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
 
         return max(pubmed_count, scholar_count, openalex_count, 0)
 
@@ -472,8 +472,8 @@ class MesoAgent:
                         item["_phase"] = "variant_search"
                         papers.append(item)
                     total_cost += 150
-                except Exception:
-                    pass
+                except Exception as _e:
+                logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
 
         papers = _dedup_papers(papers)
         return papers[:self.config.max_papers], total_cost, errors
@@ -534,8 +534,8 @@ class MesoAgent:
             for p in papers:
                 try:
                     self._CredibilityScorer(p)
-                except Exception:
-                    pass
+                except Exception as _e:
+                logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
 
     def _detect_new_papers(self, papers: List[Dict[str, Any]]) -> int:
         """统计新论文 (来自 graph_lookup 以外的阶段)."""
