@@ -2,6 +2,16 @@
 
 > 版本变更记录。参见 ROADMAP.md 了解技术改进路线图。
 
+## v5.10.0 — 2026-06-27
+
+### 🔍 verify_claims() + 测试扩展
+
+- 🎯 **verify_claims() adapter 方法**: `IProjectAdapter.verify_claims(claims)` — 跨项目声明验证端点
+- 🧪 **测试套件扩展 5→8**: 新增 `test_credibility_scorer.py`、`test_world_model.py`、`test_configs.py`
+- 全量 8 测试文件覆盖 validator / variant / credibility / unified search / world model / configs / imports / integration
+
+---
+
 ## v5.9.1 — 2026-06-17
 - 🔍 **MCP 优先搜索**: `search_mcp_priority()` — 6 MCP 引擎并行(scholar/article/ncbi/tavily/exa/scholarly) → 失败回退 HTTP 5引擎
 - 🧹 **属名校验过滤**: `_filter_by_genus()` — 移除 Crossref/arXiv 标题不含目标属名的噪音论文

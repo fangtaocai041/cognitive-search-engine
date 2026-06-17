@@ -89,7 +89,17 @@ cognitive-search-engine/
   ├── agent_judge.py         LLM-as-Judge result evaluation
   ├── inference_engine.py    Post-search gap + contradiction detection
   ├── evolution_executor.py  7-trigger self-evolution
-  └── variant_generator.py   OCR scientific name variants
+  ├── variant_generator.py   OCR scientific name variants
+  └── adapter.py            IProjectAdapter + verify_claims() method
+  tests/
+  ├── test_validator.py      信任评分测试
+  ├── test_variant_generator.py  变体生成测试
+  ├── test_credibility_scorer.py 可信度评分测试
+  ├── test_unified_search.py     统一搜索测试
+  ├── test_world_model.py        MPC 世界模型测试
+  ├── test_configs.py            配置加载测试
+  ├── test_imports.py            导入链测试
+  └── test_search_integration.py 搜索集成测试
 ```
 
 ---
@@ -109,7 +119,9 @@ cognitive-search-engine/
 | 🔍 OCR Variants | ✅ | Systematic name variant generation |
 | 🌊 CN/EN Channels | ✅ | Separate ZH/EN literature routing |
 | 🔄 Self-Evolution | ✅ | 7 triggers auto-adapt parameters |
+| 🎯 verify_claims() | ✅ | IProjectAdapter cross-project claim verification |
 | 🐛 Error Logging | ✅ | Fixed 25+ silent except:pass |
+| 🧪 Test Suite | ✅ | 8 test files (validator, variant, credibility, search, world model, configs, imports, integration) |
 
 ---
 
