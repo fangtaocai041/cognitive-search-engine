@@ -227,6 +227,63 @@ class CognitiveSearchAdapter(IProjectAdapter):
             return {"status": "degraded", "claims_count": len(claims),
                     "verified": 0, "note": "validator not available"}
 
+    def verify(self, query: str, **kwargs) -> Dict[str, Any]:
+        """Standard pipeline verification stage.
+
+        Called by cross_project pipeline as cognitive.verify.
+        Accepts prior_outputs from fish.search stage and validates
+        the search results via multi-source cross-checking.
+
+        Args:
+            query: species name or search query
+            prior_outputs: dict of prior stage outputs (from fish.search)
+            species: species name override
+        """
+        prior = kwargs.get("prior_outputs", {})
+        species = kwargs.get("species", query)
+
+        # Extract claims from prior fish.search output
+        claims = []
+        fish_output = prior.get("fish", {})
+        if isinstance(fish_output, dict):
+            # Extract species data as claims
+            species_data = fish_output.get("species_data", {})
+            if species_data:
+                for key in ("scientific_name", "chinese_name", "family",
+                            "conservation", "ecology"):
+                    val = species_data.get(key, "")
+                    if val:
+                        claims.append(f"{key}: {val}")
+            # Extract knowledge items
+            for item in fish_output.get("knowledge_items", []):
+                if isinstance(item, dict):
+                    item_type = item.get("type", "")
+                    item_data = item.get("data", {})
+                    if item_data:
+                        claims.append(f"{item_type}: {str(item_data)[:200]}")
+
+        if not claims:
+            # Fallback: verify the query itself as a claim
+            claims = [f"species: {query}"]
+
+        # Run verification
+        verify_result = self.verify_claims(claims)
+
+        # Also do a KB check
+        kb_check = self.check_fish_knowledge_base(species.replace(" ", "_"))
+
+        return {
+            "status": "ok",
+            "query": query,
+            "species": species,
+            "claims_verified": len(claims),
+            "verification": verify_result,
+            "kb_check": kb_check,
+            "engine": "cognitive-search-engine",
+            "role": "V1_VerifyVertex",
+            "method": "verify",
+        }
+
 
 def get_adapter() -> CognitiveSearchAdapter:
     """Factory function for project_loader."""
