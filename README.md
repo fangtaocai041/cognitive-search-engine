@@ -2,9 +2,9 @@
   🇨🇳 <a href="README.zh.md">中文</a>
 </p>
 
-# 🕸?Cognitive Search Engine v5
+# ὗ8️ Cognitive Search Engine v5
 
-> **Meso-Cosmos Agent** ?BDI + ReAct + Authority Scoring + CN/EN Dynamic Graph + Lazy Loading
+> **Meso-Cosmos Agent**  — BDI + ReAct + Authority Scoring + CN/EN Dynamic Graph + Lazy Loading
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-5.4.0-8b5cf6)](config/agent.yaml)
@@ -29,19 +29,19 @@
 
 > Part of the SanShengWanWu ecosystem: Triangle Core (`S/V0`, `V/V1`, `Coord`) + Derived (`P₁`, `P₂`, `P₃`, `C`).
 > Validates search results, authority credibility scoring, enforces cross-project independence.
-> **DirectLoader**: `importlib` zero MCP process. **Triangulation**: ? sources, ? independent projects.
+> **DirectLoader**: `importlib` zero MCP process. **Triangulation**: ≥3 sources, ≥3 independent projects.
 > Coordinated by [eon-core](https://github.com/fangtaocai041/eon-core).
 
 ## 📊 Self-Assessment
 
 | Dimension | Rating | Notes |
 |-----------|:-----:|-------|
-| 🎯 Search Precision | ⭐⭐⭐⭐?| Hub-and-Spoke + OCR variants + credibility scoring (0-100) |
-| 🧠 Cognitive Architecture | ⭐⭐⭐⭐?| BDI + ReAct loop + contradiction-driven strategy selection |
-| 📊 Validation Rigor | ⭐⭐⭐⭐?| `validator.py` with cross-project independence enforcement |
-| 🔬 Species Coverage | ⭐⭐⭐⭐?| ~10 species in graph, expandable via auto-writeback |
-| ?Efficiency | ⭐⭐⭐⭐?| DirectLoader (importlib, zero MCP) + MoE gating + Thompson Sampling |
-| 🧪 Test Coverage | ⭐⭐⭐⭐?| 46 integration + 94 robustness = 140 tests |
+| 🎯 Search Precision | ⭐⭐⭐⭐⭐| Hub-and-Spoke + OCR variants + credibility scoring (0-100) |
+| 🧠 Cognitive Architecture | ⭐⭐⭐⭐⭐| BDI + ReAct loop + contradiction-driven strategy selection |
+| 📊 Validation Rigor | ⭐⭐⭐⭐⭐| `validator.py` with cross-project independence enforcement |
+| 🔬 Species Coverage | ⭐⭐⭐⭐⭐| ~10 species in graph, expandable via auto-writeback |
+| ⚡ Efficiency | ⭐⭐⭐⭐⭐| DirectLoader (importlib, zero MCP) + MoE gating + Thompson Sampling |
+| 🧪 Test Coverage | ⭐⭐⭐⭐⭐| 46 integration + 94 robustness = 140 tests |
 
 ---
 
@@ -67,11 +67,11 @@ This engine is integrated as a git submodule in:
 
 | Project | Role | Description |
 |---------|:----:|-------------|
-| [eon-core](https://github.com/fangtaocai041/eon-core) | **Coord** | Coordination Hub ?EventBus · CAS · DAG routing · 6-project topology |
+| [eon-core](https://github.com/fangtaocai041/eon-core) | **Coord** | Coordination Hub — EventBus · CAS · DAG routing · 6-project topology |
 | [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S/V0** (Knowledge Supply) | Fish ecology ?21 MCP · 28 skills · Yangtze 430 species KB |
-| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **P?* (Derived) | Finless porpoise specialist ?NBHF acoustics · habitat modeling |
-| [coilia-agent](https://github.com/fangtaocai041/coilia-agent) | **P?* (Derived) | Tapertail anchovy specialist ?otolith microchemistry · migration ecology |
-| [culter-agent](https://github.com/fangtaocai041/culter-agent) | **P?* (Derived) | Culter genomics ?trophic ecology · growth analysis |
+| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **P₁** (Derived) | Finless porpoise specialist ?NBHF acoustics · habitat modeling |
+| [coilia-agent](https://github.com/fangtaocai041/coilia-agent) | **P₁** (Derived) | Tapertail anchovy specialist ?otolith microchemistry · migration ecology |
+| [culter-agent](https://github.com/fangtaocai041/culter-agent) | **P₁** (Derived) | Culter genomics ?trophic ecology · growth analysis |
 | [conflict-arbiter](https://github.com/fangtaocai041/conflict-arbiter) | **C** (Derived) | Conflict arbitration ?multi-source protection-level detection |
 
 > **Co-evolution**: Engine code updated ?derived projects auto-benefit via submodule.
@@ -162,10 +162,10 @@ Think ?Act ?Observe ?Reflect
 |:---------:|---------|----------|
 | **S/V0** | fish-ecology-assistant | Knowledge Supply ?data, findings |
 | **V/V1** | cognitive-search-engine | Validation ?verification, trust scoring |
-| **Coord** | eon-core | Coordination ?EventBus, CAS, DAG routing |
-| **P?* | porpoise-agent | Derived ?Porpoise domain expert |
-| **P?* | coilia-agent | Derived ?Coilia domain expert |
-| **P?* | culter-agent | Derived ?Culter domain expert |
+| **Coord** | eon-core | Coordination — EventBus, CAS, DAG routing |
+| **P₁** | porpoise-agent | Derived ?Porpoise domain expert |
+| **P₁** | coilia-agent | Derived ?Coilia domain expert |
+| **P₁** | culter-agent | Derived ?Culter domain expert |
 | **C** | conflict-arbiter | Derived ?Conflict arbitration |
 
 ## 🔧 Engineering Language Commitment
@@ -338,7 +338,7 @@ cognitive-search-engine/
 ?  ├── wuxing.yaml               ?WuXing 5-element flow
 ?  └── tools.json                ?JSON Schema: DeepSeek+Gemini+OpenAI tools
 ?├── src/                          ?15 modules (5-layer cognitive agent)
-?  ├── agent_core.py             ?🧠 CognitiveAgent ?BDI + ReAct loop
+?  ├── agent_core.py             ?🧠 CognitiveAgent  — BDI + ReAct loop
 ?  ├── memory_layer.py           ?🗄? MemorySystem ?short-term + long-term
 ?  ├── world_model.py            ?🧬 BDI WorldModel ?Belief/Desire/Intention
 ?  ├── rule_engine.py            ?⚙  SearchRuleEngine ?phases + execution
