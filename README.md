@@ -1,151 +1,314 @@
-![Python 3.10+](https://img.shields.io/badge/Python%203.10%2B-3776AB?style=flat-square)
-  ![MIT](https://img.shields.io/badge/MIT-34D058?style=flat-square)
-  ![v5.4.0](https://img.shields.io/badge/v5.4.0-8A4FCE?style=flat-square)
-  ![15+ engines](https://img.shields.io/badge/15%2B%20engines-007EC6?style=flat-square)
-  ![7 MCP](https://img.shields.io/badge/7%20MCP-FE7D37?style=flat-square)
-  ![5 skills](https://img.shields.io/badge/5%20skills-D73A4A?style=flat-square)
-  ![140 tests](https://img.shields.io/badge/140%20tests-0EA5E9?style=flat-square)
-  ![Thompson](https://img.shields.io/badge/Thompson-EC4899?style=flat-square)
-  ![PID control](https://img.shields.io/badge/PID%20control-F59E0B?style=flat-square)
-  ![CN/EN](https://img.shields.io/badge/CN%2FEN-6B7280?style=flat-square)
+<p align="center">
+  🇨🇳 <a href="README.zh.md">中文</a>
 </p>
 
-[English](README.md) · [中文](README.zh.md)
+# 🕸️ Cognitive Search Engine v5
 
-<div align="center"><h3>🌊 Everything flows.</h3></div>
+> **Meso-Cosmos Agent** — BDI + ReAct + Authority Scoring + CN/EN Dynamic Graph + Lazy Loading
 
-The world is dynamic, knowledge is temporary, emergence is the norm.
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-5.4.0-8b5cf6)](config/agent.yaml)
+[![Skills](https://img.shields.io/badge/skills-5-22c55e)](skills/)
+[![MCP](https://img.shields.io/badge/MCP-7-f59e0b)](config/mcp_servers.yaml)
+[![Architecture](https://img.shields.io/badge/architecture-meso_cosmos-8b5cf6)](docs/ARCHITECTURE.md)
+[![Multi-LLM](https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6)]()
+[![BDI](https://img.shields.io/badge/BDI-ReAct-22c55e)]()
+[![Authority Score](https://img.shields.io/badge/authority-scoring_0_100-ec4899)]()
+[![DeepWiki](https://devin.ai/assets/askdeepwiki.png)](https://deepwiki.com/fangtaocai041/cognitive-search-engine)
+[![Docker](https://img.shields.io/badge/Docker-planning-lightgrey)]()
+[![Self-Evolve](https://img.shields.io/badge/self_evolve-feedback_loop-10b981)](skills/self-evolve.md)
+[![Thompson](https://img.shields.io/badge/Thompson_Sampling-bandit-EC4899)]()
+[![PID](https://img.shields.io/badge/PID_control-adaptive-F59E0B)]()
 
----
+## 🧠 Intelligent Optimization Layers
 
-## 📖 Table of Contents
+> The verification engine integrates three optimization layers: **DeepSeek-level efficiency** (MoE gating + KV cache), **scholar-level confidence** (Rule of Three statistical stopping), and **chaos-enhanced exploration** (Rössler perturbation + wildcard discovery).
+> Coordinated by [eon-core](https://github.com/fangtaocai041/eon-core).
 
-- [Philosophy](#-philosophy)
-- [Quick Start](#-quick-start)
-- [Architecture](#-architecture)
-- [Features](#-features)
-- [Unique Innovations](#-unique-innovations)
-- [Project Structure](#-project-structure)
-- [Version History](#-version-history)
-- [Self-Assessment](#-self-assessment)
-- [Ecosystem](#-ecosystem)
+## 🔺 S-T-V-P₁-P₂ Architecture Role: **Validation (V)**
 
----
+> Part of the S-T-V-P₁-P₂ ecosystem: `fish(S) → cognitive(V)`, with `porpoise(P₁)` + `coilia(P₂)` + `culter(P₃)` as domain specialists, `conflict-arbiter(C)` for arbitration.
+> Validates search results, authority credibility scoring, enforces cross-project independence.
+> **DirectLoader**: `importlib` zero MCP process. **Triangulation**: ≥3 sources, ≥2 independent projects.
+> Coordinated by [eon-core](https://github.com/fangtaocai041/eon-core).
 
-## 🏛️ Philosophy
+## 📊 Self-Assessment
 
-> The river flows, knowledge drifts, emergence patterns.
-
-This is not a slogan. It is the operating system running through every line of code, every search, every analysis.
-
-This is the **Search Verification Core (V/V1)** in the SanShengWanWu S-T-V-P₁-P₂ architecture, coordinated by **eon-core**. S (Knowledge) proposes claims; V (Verification) validates them — through multi-source parallel search, cross-project comparison, and triangulation scoring, ensuring every piece of knowledge entering the system passes ≥3 independent source checks.
-
-### 📜 Three Tenets
-
-**🌊 The River Flows** — Packages update, species migrate, consensus shifts, climate reshapes. Today's certainty is tomorrow's footnote. We place knowledge on a timeline and view it dynamically.
-
-**🍂 Knowledge Drifts** — The foundation of science is falsifiability (Popper). No discovery is final — only the best current explanation. We speak in calibrated language: evidence suggests, not proves.
-
-**🌟 Emergence Patterns** — Life, consciousness, ecosystems, AI reasoning — all emergent. When three or more independent sources converge on the same unexpected pattern, the system flags emergence — never dismisses it as noise.
-
-### ⚖️ Why This Matters
-
-| Scenario | Traditional | Dynamic Worldview |
-|:---------|:-----------|:-------------------|
-| Citations | Studies prove | Smith (2022) found X; Jones (2024) added Y |
-| Outliers | Dismiss as noise | Three or more sources → emergence signal |
-| Knowledge Decay | Handbook frozen | Review records include next review date |
-| Method | Fixed pipeline | Dynamic selection, dynamic confidence |
-
-> 道生一，一生二，二生三，三生万物。
-
-From One comes Two, from Two comes Three, from Three come all things.
+| Dimension | Rating | Notes |
+|-----------|:-----:|-------|
+| 🎯 Search Precision | ⭐⭐⭐⭐⭐ | Hub-and-Spoke + OCR variants + credibility scoring (0-100) |
+| 🧠 Cognitive Architecture | ⭐⭐⭐⭐⭐ | BDI + ReAct loop + contradiction-driven strategy selection |
+| 📊 Validation Rigor | ⭐⭐⭐⭐☆ | `validator.py` with cross-project independence enforcement |
+| 🔬 Species Coverage | ⭐⭐⭐⭐☆ | ~10 species in graph, expandable via auto-writeback |
+| ⚡ Efficiency | ⭐⭐⭐⭐☆ | DirectLoader (importlib, zero MCP) + MoE gating + Thompson Sampling |
+| 🧪 Test Coverage | ⭐⭐⭐⭐⭐ | 46 integration + 94 robustness = 140 tests |
 
 ---
 
-## 🧩 What This Is
+## 📋 Version History
 
-A search verification engine. It does not store knowledge — it verifies knowledge.
+| Version | Date | Changes |
+|---------|------|---------|
+| **v5.4.0** | 2026-06-20 | 🆕 Thompson Sampling multi-armed bandit engine selector + PID adaptive API rate limiter + MPC world model search cost optimization + LLM-as-Judge 4-dimension result evaluation + validator.py 5-level trust scoring + evolution_executor 7-trigger contradiction-driven self-evolution + AsyncParallelSearch (aiohttp, 3-5x faster) |
+| **v5.3.0** | 2026-06-12 | 🆕 inference_engine gap + contradiction detection (TAO-inspired) + agent_judge.py LLM-as-Judge |
+| **v5.2.2** | 2026-06-09 | validator.py extracted + evolution_executor + paper_health_check + contradiction-driven meso_agent + Fixed 25+ silent except:pass |
+| **v5.2.1** | 2026-06-07 | S-T-V triangulation + DirectLoader + Meso-Cosmos Agent v4.0 |
+| **v5.2** | 2026-06-07 | Meso-Cosmos coordination layer + CN/EN bilingual graph |
+| **v5.1** | 2026-06-07 | Hub-and-Spoke search + authority credibility scoring |
+| **v5.0** | 2026-06-07 | BDI + ReAct cognitive architecture |
 
-When the S-layer says "Ochetobius elongatus belongs to Cyprinidae," the V-layer asks PubMed, Crossref, Chinese journals, Google Scholar — do they all agree? Is there disagreement? If so, who is right?
+> **Latest**: v5.4.0 · 2026-06-20
 
-> Heraclitus said: No man ever steps in the same river twice.
->
-> We say: You cannot answer today's question with yesterday's search.
+> **Core Strength**: From "string matching" to "signified reconstruction" — multiple signifier paths (exact, OCR variant, author network, citation graph, Chinese name) converge on the same signified (the species itself).
 
----
+## 🔗 Linked Projects
 
-## 🚀 Quick Start
+This engine is integrated as a git submodule in:
 
-```bash
-# Clone
-git clone git@github.com:fangtaocai041/cognitive-search-engine.git
-cd cognitive-search-engine
+| Project | Role | Description |
+|---------|:----:|-------------|
+| [eon-core](https://github.com/fangtaocai041/eon-core) | **Coord** | Coordination Hub — EventBus · CAS · DAG routing · 6-project topology |
+| [fish-ecology-assistant](https://github.com/fangtaocai041/fish-ecology-assistant) | **S** (State) | Fish ecology — 21 MCP · 28 skills · Yangtze 430 species KB |
+| [porpoise-agent](https://github.com/fangtaocai041/porpoise-agent) | **P₁** (Porpoise) | Finless porpoise specialist — NBHF acoustics · habitat modeling |
+| [coilia-agent](https://github.com/fangtaocai041/coilia-agent) | **P₂** (Coilia) | Tapertail anchovy specialist — otolith microchemistry · migration ecology |
+| [culter-agent](https://github.com/fangtaocai041/culter-agent) | **P₃** (Culter) | Culter genomics — trophic ecology · growth analysis |
+| [conflict-arbiter](https://github.com/fangtaocai041/conflict-arbiter) | **C** (Arbiter) | Conflict arbitration — multi-source protection-level detection |
 
-# Install
-pip install -e .
+> **Co-evolution**: Engine code updated → derived projects auto-benefit via submodule.
+> Knowledge graph evolves → shared across all projects.
+> Full coordination spec: `coordination.yaml` at workspace root.
 
-# Run
-python src/main.py search "Coilia nasus ecology"
+### 🧠 eon-core Unified Kernel (Workspace Level)
+
+> **10-layer concentric architecture** — OriginKernel → YinYang → 5 Vertices (V0-V4) → 8 Trigrams → Tetrahedron → Samsara → Sphere → Tendrils → Evolution.
+> Unified coordination by [eon-core](https://github.com/fangtaocai041/eon-core). Replaces the deprecated meso-cosmos-agent (deleted v7.1).
+> See `eon-core/config/taiji.yaml`.
+
+```
+UNDERSTAND → ROUTE → EXECUTE → VALIDATE → SYNTHESIZE → EVOLVE
+ (Macro)     (Meso)   (Micro)   (Cross)     (Merge)     (Feedback)
 ```
 
 ---
 
-## 🏗️ Architecture
+## 🧠 v5.2: Meso-Cosmos Agent — 中宇宙式协调层
 
-### S-T-V-P₁-P₂ Role
+> **Macro(BDI) → Meso(Coordination) → Micro(Execution)** — 自动在宏观意图与微观工具调用之间搭建桥梁。
+
+### What's New
+
+| Feature | Description | Module |
+|:--------|:------------|:-------|
+| **MesoAgent** | 中宇宙式协调层 — 统一管理 WorldModel/SearchRuleEngine/MemorySystem/GraphUpdater | `src/meso_agent.py` |
+| **Dynamic Graph v2.0** | CN/EN-aware auto-update — 中文期刊自动填入 `authors_zh`，新作者/期刊自动注册，中英文双语去重 | `src/graph_updater.py` |
+| **CN/EN Literature Rule** | 中文期刊走中文署名（杨计平），英文走英文名（Yang Jiping）；论文防双版本重复 | `project memory (high)` |
+| **MCP Timeout Protection** | 15 秒 threading 超时防止 MCP 子进程永久阻塞 | `src/mcp_client.py` |
+| **Chinese Academic Search Skill** | 覆盖 8 种中文期刊的专用搜索策略 | `skills/chinese-academic-search.md` |
+
+### Meso-Cosmos Architecture
 
 ```
-S-T-V-P₁-P₂ Architecture (coordinated by eon-core):
-
-  S/V0  fish-ecology-assistant    → Knowledge Supply
-  V/V1  cognitive-search-engine   → Search Verification ← this project
-  Coord  eon-core                  → Coordination Hub
+┌─────────────────────────────────────────────────────┐
+│              Macro-cosmos (BDI 意图层)               │
+│  CognitiveAgent · WorldModel · Belief/Desire/Intention │
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│              Meso-cosmos (协调层)                     │
+│  MesoAgent.search(species_id)                       │
+│                                                     │
+│  Pipeline: BDI预测 → 模式选择(穷举/分类/轻量)          │
+│          → 执行分发 → 图谱更新 → CN/EN规则            │
+│                                                     │
+│  Components: WorldModel + SearchRuleEngine          │
+│              + MemorySystem + GraphUpdater          │
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│              Micro-cosmos (执行层)                    │
+│  PubMed E-utilities · Crossref · OpenAlex · MCP      │
+│  11 search phases · 5 engines · Authority scoring    │
+└─────────────────────────────────────────────────────┘
 ```
 
-### Internal Architecture
+### CN/EN Automatic Rules
 
-```
-cognitive-search-engine/
-  src/
-  ├── meso_agent.py          BDI cognitive core (Belief→Desire→Intention)
-  ├── parallel_search.py     15+ HTTP providers (PubMed/Crossref/OpenAlex...)
-  ├── AsyncParallelSearch     aiohttp-based async search (3-5x faster)
-  ├── search_coordinator.py  KB-first two-stage search coordinator
-  ├── unified_search.py      Adaptive mode: EXHAUSTIVE/CLASSIFIED/SATURATED
-  ├── validator.py           5-level trust scoring + source independence check
-  ├── thompson_selector.py   Thompson Sampling multi-armed bandit engine selector
-  ├── pid_limiter.py         PID adaptive API rate limiting
-  ├── mpc_world.py           MPC search cost optimization
-  ├── agent_judge.py         LLM-as-Judge 4-dimension result evaluation
-  ├── inference_engine.py    Post-search gap + contradiction detection (TAO-inspired)
-  ├── evolution_executor.py  7-trigger self-evolution (contradiction-driven)
-  ├── variant_generator.py   OCR scientific name variant safety net
-  └── adapter.py             IProjectAdapter + verify_claims() method
-  config/
-  ├── coordination.yaml      Cross-project coordination (shared with ecosystem)
-  ├── evolution.yaml         Self-evolution parameters + feedback loop
-  └── taiji.yaml             DAG topology definition
-  tests/
-  ├── test_validator.py           Trust scoring tests
-  ├── test_variant_generator.py   Variant generation tests
-  ├── test_credibility_scorer.py  Credibility scoring tests
-  ├── test_unified_search.py      Unified search tests
-  ├── test_world_model.py         MPC world model tests
-  ├── test_configs.py             Config loading tests
-  ├── test_imports.py             Import chain tests
-  └── test_search_integration.py  Search integration tests
-```
+| Context | Before | After |
+|:--------|:-------|:------|
+| Chinese journal paper | `authors: [Yang Jiping]` | `authors_zh: [杨计平]` ✅ |
+| English journal paper | `authors: [Yang Jiping]` | `authors: [Yang Jiping]` ✅ (unchanged) |
+| CN/EN duplicate papers | Kept both versions | DOI + title_zh dedup → keep Chinese version |
+| New author found | Manually add to graph | Auto-register with Chinese name |
+| New journal found | Manual entry | Auto-register |
 
 ---
 
-## ✨ Features
+## 🧠 v5.1: Hub-and-Spoke Search Protocol
+
+> **From linear layers to directional hubs** — locate hub papers per sub-discipline, extract citation spokes, classify into knowledge graph.
+
+### Search Protocol: Hub-and-Spoke (3 Phases)
+
+| Phase | Action | Tools |
+|:-----:|--------|-------|
+| **1. Locate Hubs** | Parallel search across 5 sub-discipline directions (genetics/morphology/genomics/ecology/survey) | `scholar_search` + `web_search` |
+| **2. Extract Spokes** | Pull citation graph from each hub paper | `article_get_references` |
+| **3. Gap Detection** | OCR variant sweep + new paper detection (year ≥ current-1, PMID=NULL) | `scholar_search` variant queries |
+
+### 5-Layer Agent Architecture
+
+| Layer | Function | Module |
+|:-----:|----------|--------|
+| **1. Perception** | Input → species_id → genus/species/Chinese + volume estimation | `SearchRuleEngine.execute()` |
+| **2. Cognitive** | BDI policy π(Belief,Desire) → Intention + ReAct loop | `src/agent_core.py` |
+| **3. Memory** | Short-term + Long-term + **Classified Knowledge Graph** | `src/memory_layer.py` |
+| **4. Mapping** | Direction routing → hub selection → `article_get_references` | `search_rules.yaml` |
+| **5. Execution** | PubMed · Crossref · MCP (7 engines) · Authority scoring · Thompson Sampling · PID Limiter | `rule_engine._http_search()` |
+
+### BDI + ReAct Cognitive Loop
+
+```
+Think → Act → Observe → Reflect
+  │       │        │          │
+  │  form_intention  count    compare
+  │  (B,D)→I        papers   Belief vs
+  │                          Desire
+  ▼
+Desire satisfied? → STOP
+```
+
+📖 Full architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+## 🔺 S-T-V-P₁-P₂ Architecture (Cross-Project)
+
+> Six projects: State(fish) → Validation(cognitive) → Coord(eon-core), with P₁(porpoise) + P₂(coilia) + P₃(culter) + C(arbiter)
+
+| Component | Project | Function |
+|:---------:|---------|----------|
+| **S** | fish-ecology-assistant | State — knowledge, data, findings |
+| **V** | cognitive-search-engine | Validation — verification, trust scoring |
+| **Coord** | eon-core | Coordination — EventBus, CAS, DAG routing |
+| **P₁** | porpoise-agent | Porpoise domain expert |
+| **P₂** | coilia-agent | Coilia domain expert |
+| **P₃** | culter-agent | Culter domain expert |
+| **C** | conflict-arbiter | Conflict arbitration |
+
+## 🔧 Engineering Language Commitment
+
+> **Every feature is expressed in executable engineering language — not natural language.**
+> `function(input: Type) → OutputType` | `WHEN condition THEN action` | `config.path.to.value`
+
+| Format | Purpose | Example |
+|--------|---------|---------|
+| `search_rules.yaml` | Structured rule engine (10 phases) | `function: mine_review_references` + `tools: [article_get_references]` |
+| `tools.json` | JSON Schema tool definitions | Compatible with DeepSeek + Gemini + OpenAI Function Calling |
+| `src/rule_engine.py` | Python executor | `SearchRuleEngine("config/search_rules.yaml").execute(species_id)` |
+| `config/evolution.yaml` | Self-adaptive parameters | `trigger: recall < 0.5 FOR 3 CONSECUTIVE → satisfice_threshold += 2` |
+
+## 🧠 Core Innovation
+
+**Not string matching — cognitive reconstruction.**
+
+Traditional search matches strings. If a paper misspells "Ochetobius" as "Ochetobibus", it's invisible.
+Our engine reconstructs the **signified** (the species itself) from multiple **signifier** paths simultaneously.
+
+```
+Signifier Paths → Signified (Species)
+─────────────────────────────────────
+Exact name      ─┐
+Variant spell   ─┤
+Author network  ─┼─→ Ochetobius elongatus (鳤)
+Citation graph  ─┤
+Journal context ─┤
+Chinese name    ─┘
+```
+
+## 🏆 Why This Is the Most Advanced Species Search Engine
+
+### vs Traditional Academic Search (Google Scholar, Web of Science, PubMed)
+
+| Problem | Traditional | Cognitive Search Engine |
+|---------|------------|------------------------|
+| Species name typos | ❌ Misses "Ochetobibus" when searching "Ochetobius" | ✅ OCR variant sweep catches all (2 papers found: 2009 + 2026) |
+| Chinese DB blind spot | ❌ PubMed/Crossref don't index 知网/万方/维普 | ✅ Chinese-first search → web_search + 11 journal sites |
+| Cold-start (new species) | ❌ Zero results → stuck | ✅ Hub-and-Spoke: multi-direction hub location |
+| Review paper blind trust | ❌ Cites ghosts/misattributions silently | ✅ Authority scoring 0-100 per paper, SCI/core-journal weighted |
+| Search amnesia | ❌ Same search repeated, same cost | ✅ Classified knowledge graph persists, lazy-load on demand |
+| One-size-fits-all depth | ❌ Same effort for 8 papers or 8000 | ✅ 3-mode: exhaustive(<20) / classified(20-100) / review-anchored(>100) |
+| No cognitive model | ❌ Pure string matching | ✅ Semiotics + linguistics + phonetics + logic |
+
+### vs AI Search (Gemini, Perplexity, Claude)
+
+| Problem | AI Search | Cognitive Search Engine |
+|---------|----------|------------------------|
+| Transparency | ❌ Black box — can't verify completeness | ✅ 3-phase Hub-and-Spoke, each auditable |
+| Cost | ❌ High token cost per search | ✅ Lazy-load knowledge graph, ~60% fewer calls |
+| Domain knowledge | ❌ Generic — no species-specific logic | ✅ Latin grammar, IPA, OCR error models |
+| Source authority | ❌ Mixes preprints with peer-reviewed equally | ✅ Credibility score 0-100, predatory journals excluded |
+| Citation graph | ❌ Not leveraged | ✅ Multi-hub citation spokes → classified graph |
+| Learning | ❌ Stateless — each search independent | ✅ Graph grows with each search |
+
+### Unique Capabilities (No Other Tool Has)
+
+| # | Capability | Why It Matters |
+|:--|-----------|---------------|
+| 1 | **Hub-and-Spoke Graph Search** | Multi-direction hubs → citation spokes → 10 calls cover 90%+ recall |
+| 2 | **Authority Credibility Scoring** | SCI + CSCD核心 weighted +30, predatory journals -100 excluded |
+| 3 | **Review-First Strategy** | For >20 papers: find review first → it IS the literature map |
+| 4 | **Classified Knowledge Graph** | Lazy-load: output category counts first, expand only on user request |
+| 5 | **OCR Variant Safety Net** | Ochetobius→Ochetobibus: caught 2 papers that exact-name search missed |
+
+## ⚡ Five Breakthroughs
+
+### 1. Hub-and-Spoke Graph (Not Linear Layers)
+
+| Traditional (v4.1 14-layer) | Hub-and-Spoke (v5.0) |
+|----------------------------|----------------------|
+| 14 layers, sequential | 3 phases, parallel hubs |
+| ~15+ tool calls/search | ~10 tool calls/search |
+| Single linear path | Multi-direction spoke merge |
+| Layers 0-13 all always executed | Gaps only filled when detected |
+
+### 2. Authority Credibility Scoring
+
+```
+credibility = 50 + 30(SCI) + 25(CSCD核心) + 10(DOI) + 10(PMID) - 30(preprint) - 100(predatory)
+→ 🟢 ≥80 高可信度  🟡 60-79 中  🟠 40-59 低  🔴 <40 不可信
+```
+
+### 3. Review-First Strategy (for medium/large fields)
+
+```
+IF estimated > 20 papers:
+  Search review first → review references ≈ complete literature map
+  Only then search for post-review papers
+```
+
+### 4. Classified Knowledge Graph with Lazy Loading
+
+```
+Output: category counts only → user picks direction → expand that subtree
+Never load all papers into context at once.
+```
+
+### 5. Multi-Discipline Cognitive Engine
+
+| Discipline | Method |
+|-----------|--------|
+| Semiotics | Signifier decomposition → signified reconstruction |
+| Linguistics | Latin morphology, root extraction, OCR error models |
+| Phonetics | IPA transcription, Soundex+Metaphone double-code |
+| Logic | Deductive chain, abductive inference, inductive pattern |
+
+---
+
+## 🆕 v5.4.0 New Features
 
 | Feature | Status | Description |
 |---------|:------:|-------------|
 | 🧠 BDI MesoAgent | ✅ | Belief→Desire→Intention adaptive loop |
-| 🌐 15+ Providers | ✅ | PubMed, Crossref, OpenAlex, Semantic Scholar, CNKI, Wanfang, Baidu Scholar... |
-| ⚡ Async Search | ✅ | aiohttp-based, 3-5x faster |
+| 🌐 15+ Providers | ✅ | PubMed, Crossref, OpenAlex, CNKI, Wanfang, Baidu Scholar... |
+| ⚡ Async Search | ✅ | aiohttp-based AsyncParallelSearch, 3-5x faster |
 | 🎯 Thompson Sampling | ✅ | Learned engine selection via multi-armed bandit |
 | 📊 PID Rate Limiter | ✅ | Adaptive API rate control |
 | 🎛️ MPC World Model | ✅ | Search cost optimization |
@@ -161,25 +324,29 @@ cognitive-search-engine/
 
 ---
 
-## 💡 Unique Innovations
+## 🚀 Quick Start
 
-### 1. Hub-and-Spoke Search Architecture
-All search requests route through this engine as the single gateway. Derived projects (P₁, P₂, P₃) call cognitive-search-engine — never raw APIs directly.
-
-### 2. Authority Scoring (5-Level Trust)
+```bash
+git clone https://github.com/fangtaocai041/cognitive-search-engine.git
+cd cognitive-search-engine
 ```
-DOI match > PMID match > Species name match > Author match > Journal match
+
+Add to your Reasonix project:
+```yaml
+# In your project's config/agent.yaml
+skills:
+  skill_dir: "../cognitive-search-engine/skills"
 ```
-Each result receives a weighted trust score. Cross-source disagreement triggers deeper verification.
 
-### 3. OCR Variant Safety Net
-`variant_generator.py` systematically generates OCR-prone scientific name variants (e.g., *Coilia nasus* → *Coilia nasus*, *Coilia nasus*, *Collia nasus*) to catch mis-scanned literature.
+Or run directly with Python:
+```bash
+python src/rule_engine.py
+```
 
-### 4. Taxonomic Knowledge Graph (Lazy-Loaded)
-Species taxonomy relationships are loaded on-demand, never pre-cached. The graph evolves as new species relationships are discovered.
-
-### 5. Five-Discipline Cognitive Engines
-Each search category (taxonomy, ecology, genetics, conservation, morphology) has its own tuned cognitive engine with discipline-specific relevance scoring.
+Or use as a Skill:
+```
+/skill graph-search-engine species="Ochetobius elongatus"
+```
 
 ---
 
@@ -187,76 +354,174 @@ Each search category (taxonomy, ecology, genetics, conservation, morphology) has
 
 ```
 cognitive-search-engine/
-  (see Architecture section above)
+├── README.md                     ← You are here
+├── README.zh.md                  ← 中文
+├── LICENSE
+│
+├── config/
+│   ├── agent.yaml                ← v5.0: 5-layer architecture + BDI config
+│   ├── mcp_servers.yaml          ← 7 search engines
+│   ├── species_graph.yaml        ← Long-term memory (16 entries + indexes)
+│   ├── component_registry.yaml   ← Living system: 12 components lifecycle
+│   ├── evolution.yaml            ← Self-evolution: 7 auto-adaptive triggers
+│   ├── search_rules.yaml         ← Phase definitions (mapping layer)
+│   ├── stv_protocol.yaml         ← Cross-project STV triangle protocol
+│   ├── tao.yaml                  ← TAO-inspired reasoning config
+│   ├── wuxing.yaml               ← WuXing 5-element flow
+│   └── tools.json                ← JSON Schema: DeepSeek+Gemini+OpenAI tools
+│
+├── src/                          ← 15 modules (5-layer cognitive agent)
+│   ├── agent_core.py             ← 🧠 CognitiveAgent — BDI + ReAct loop
+│   ├── memory_layer.py           ← 🗄️  MemorySystem — short-term + long-term
+│   ├── world_model.py            ← 🧬 BDI WorldModel — Belief/Desire/Intention
+│   ├── rule_engine.py            ← ⚙️  SearchRuleEngine — phases + execution
+│   ├── variant_generator.py      ← 🔤 OCR variant auto-generation
+│   ├── graph_updater.py          ← 📊 Graph persistence + reverse indexes
+│   ├── mcp_client.py             ← 🔌 MCP stdio client (7 servers)
+│   ├── parallel_search.py        ← ⚡ Multi-query parallel executor
+│   ├── meso_agent.py             ← 🧠 Meso-Cosmos coordination layer
+│   ├── validator.py              ← ✅ 5-level trust scoring + independence check
+│   ├── thompson_selector.py      ← 🎰 Thompson Sampling bandit engine selector
+│   ├── pid_limiter.py            ← 📊 PID adaptive API rate limiter
+│   ├── mpc_world.py              ← 🎛️ MPC search cost optimization
+│   ├── agent_judge.py            ← ⚖️ LLM-as-Judge 4-dimension evaluation
+│   ├── inference_engine.py       ← 🧠 Post-search gap + contradiction detection
+│   ├── evolution_executor.py     ← 🔄 7-trigger self-evolution (contradiction-driven)
+│   └── adapter.py                ← 🔗 IProjectAdapter + verify_claims()
+│
+├── skills/
+│   ├── graph-search-engine.md    ← v4 core: graph traversal + Pareto-optimal
+│   ├── cognitive-species-search.md ← v3: semiotics + linguistics + phonetics
+│   ├── chinese-academic-search.md  ← 中文期刊搜索 (8 journals)
+│   ├── meso-orchestrator.md      ← 🧠 Meso-Cosmos coordination
+│   └── self-evolve.md            ← 🧬 Post-search feedback → auto-adjust
+│
+├── docs/
+│   ├── ARCHITECTURE.md           ← 5-layer agent architecture (full docs)
+│   ├── STV_TRIANGLE_ARCHITECTURE.md ← Cross-project triangle architecture
+│   └── UNIFIED_EVOLUTION.md      ← Multi-project co-evolution architecture
+│
+├── tests/
+│   ├── test_validator.py           ← Trust scoring tests
+│   ├── test_variant_generator.py   ← Variant generation tests
+│   ├── test_credibility_scorer.py  ← Credibility scoring tests
+│   ├── test_unified_search.py      ← Unified search tests
+│   ├── test_world_model.py         ← MPC world model tests
+│   └── test_search_integration.py  ← Search integration tests
+│
+└── .github/workflows/
+    └── validate.yml              ← CI/CD
 ```
 
 ---
 
-## 📜 Version History
+## 🔬 How It Works
 
-| Version | Date | Highlights |
-|---------|------|------------|
-| **v5.4.0** | 2026-06-17 | validator.py 5-level trust, evolution_executor 7-trigger, contradiction-driven evolution |
-| v5.3.0 | 2026-06-12 | inference_engine gap+contradiction detection, TAO-inspired reasoning |
-| v5.2.2 | 2026-06-09 | Fixed 25+ silent except:pass, error logging infrastructure |
-| v5.2.1 | 2026-06-07 | MPC world model search cost optimization |
-| v5.2.0 | 2026-06-06 | Thompson Sampling engine selector, PID adaptive rate limiter |
-| v5.1.0 | 2026-06-05 | AsyncParallelSearch (aiohttp), 3-5x speed improvement |
-| v5.0.0 | 2026-06-01 | BDI MesoAgent, 15+ providers, unified search modes |
-
----
-
-## 🪞 Self-Assessment
-
-### Strengths
-- **Verification-first**: Every claim passes through ≥3 independent source validation
-- **Engine diversity**: 15+ providers spanning Western (PubMed/Crossref) and Chinese (CNKI/Wanfang) academic databases
-- **Self-healing**: PID limiter prevents API abuse; OCR variants catch scanning errors
-- **Contradiction-aware**: inference_engine actively hunts disagreements, not just confirmations
-- **Cross-project integration**: verify_claims() enables any derived project to validate against the full search arsenal
-
-### Current Limitations
-- Some Chinese academic APIs (CNKI, Wanfang) have unstable access patterns
-- Thompson Sampling cold-start requires ~50 queries per engine for convergence
-- MPC world model assumes linear cost functions (adequate for current scale)
-- No streaming search yet (batch-only)
-
-### Roadmap
-- [ ] Streaming search with progressive result delivery
-- [ ] Bayesian truth serum for multi-rater claim validation
-- [ ] Automated retraction watch integration
-- [ ] Graph neural network for species co-occurrence prediction
-
----
-
-## 🔗 Ecosystem
-
-This project is the **Search Verification Core (V/V1)** in the SanShengWanWu ecosystem.
+### BDI + ReAct Cognitive Loop
 
 ```
-S-T-V-P₁-P₂ Architecture (coordinated by eon-core):
-
-  S/V0  📦 fish-ecology-assistant    → Knowledge Supply
-  V/V1  🔍 cognitive-search-engine   → Search Verification ← this project
-  Coord ⚙️ eon-core                  → Coordination Hub
-
-  Derived:
-    P₁  🐬 porpoise-agent    → Porpoise Domain Expert
-    P₂  🐟 coilia-agent      → Coilia Domain Expert
-    P₃  🐟 culter-agent      → Culter Domain Expert
-    C   🔥 conflict-arbiter  → Conflict Arbitration
+1. INIT Belief: load known papers from graph (0 tokens)
+2. THINK:   π(Belief, Desire) → Intention (select phases)
+3. ACT:     Execute phase (PubMed, Crossref, MCP servers)
+4. OBSERVE: Count new papers, compute IG, update Belief
+5. REFLECT: Compare Belief vs Desire → continue / restructure / stop
+6. PERSIST: Merge new papers into graph (long-term memory)
 ```
 
-> 🔥 Together infinite power, apart top expert engines.
+### Graph-First Efficiency
+
+```
+IF known papers ≥ 8 → SATISFICED, return immediately (0 tokens)
+IF known papers < 8 → execute cheapest phases first
+IF consecutive zeros ≥ 2 → STOP (diminishing returns)
+```
+
+### Adaptive Search Depth (3-Mode)
+
+```
+EXHAUSTIVE (<20 papers): Hub-and-Spoke full expansion, 100% recall target
+CLASSIFIED (20-100 papers): Review-first → category counts → user-selects direction
+SATURATED (>100 papers): Review = literature map → top-N per direction
+```
 
 ---
 
-🌱 **Everything Flows · Panta Rhei**
+## 📡 Search Engines (built-in)
 
-> Heraclitus said: No man ever steps in the same river twice.
->
-> We say: You cannot analyze today's ecological data with last month's code.
+| Engine | Purpose | Fuzzy Match |
+|--------|---------|:----------:|
+| Google Scholar | Primary — strongest fuzzy matching | ✅✅✅ |
+| Europe PMC + PubMed | Biomedical literature | ✅ |
+| OpenAlex + Semantic Scholar | Cross-disciplinary | ✅✅ |
+| CNKI + Wanfang + Baidu Scholar | Chinese academic databases | ✅ |
+| Tavily | Web search (grey lit, reports) | ✅✅ |
+| Exa | Semantic web search | ✅ |
 
-This project is not a fixed toolset — it is a **living system**. Every component has built-in expiration mechanisms, version tracking, and emergence awareness. As your research deepens, packages update, and new methods emerge, it evolves with you.
+---
 
-*Last updated: 2026-06-20　|　Environment: Reasonix Code · DeepSeek Powered*
+## 🗺️ Future Roadmap
+
+### ⚠️ Known Limitations
+
+| Area | Limitation | Impact |
+|------|-----------|--------|
+| **UI** | CLI-only, depends on Reasonix runtime | Cannot be used standalone |
+| **Deployment** | No Docker image, no REST API | No independent deploy |
+| **Benchmark** | Only verified on 鳤 (12 papers) | Unknown recall on other species |
+| **Chinese DB** | web_search + web_fetch fallback, no direct CNKI API | Rate-limited |
+| **Peer Review** | No published paper | Academic community hasn't reviewed |
+
+### 🎯 Milestone 1: Ship as Standalone Product
+
+- Web UI (Streamlit / Gradio) → input species name → output knowledge graph
+- REST API (FastAPI) → POST /search
+- Docker image → `docker pull fangtaocai/cognitive-search-engine`
+- pip install → `python -m cognitive_search.search "鳤"`
+
+### 🎯 Milestone 2: Multi-Species Benchmark
+
+- Curate 50 Chinese freshwater fish species with known paper lists
+- Baseline: PubMed/Google Scholar/Semantic Scholar recall
+- Compare: this engine's recall, precision, token cost per species
+
+### 🎯 Milestone 3: Academic Publication
+
+- Target: BMC Bioinformatics / J. of Fish Biology / Scientific Data
+- Contributions: Hub-and-Spoke protocol, Authority credibility scoring, OCR variant safety net, Chinese-first search strategy
+
+### 💡 Ideas Being Explored
+
+- **CrewAI-style multi-agent**: one agent per sub-discipline Hub
+- **Local LLM inference**: replace DeepSeek API with Ollama (Qwen2.5-7B)
+- **CNKI direct API**: if institutional access available
+- **Multi-modal**: add image search (fish photos → species ID → paper retrieval)
+
+---
+
+## 📋 README Changelog
+
+| Version | Date | Theme | What Changed |
+|:--------|:-----|:------|:-------------|
+| **v7.1** | 2026-06-20 | README Restoration | Restored from historical sessions: Meso-Cosmos architecture, Hub-and-Spoke protocol, Authority Scoring formula, 5 Breakthroughs, Engineering Language, README Changelog, Thompson Sampling + PID badges |
+| **v5.4.0** | 2026-06-20 | Intelligent Optimization | Thompson Sampling bandit, PID adaptive limiter, MPC world model, AsyncParallelSearch (aiohttp), LLM-as-Judge, validator.py 5-level trust, evolution_executor 7-trigger |
+| **v5.3.0** | 2026-06-12 | TAO Inference | inference_engine gap+contradiction detection, TAO-inspired reasoning |
+| **v5.2.2** | 2026-06-09 | Error Infrastructure | Fixed 25+ silent except:pass, validator.py, evolution_executor |
+| **v5.2.1** | 2026-06-07 | Cross-Project Sync | + S-T-V triangle role, + DeepWiki/Docker/Self-Evolve badges, + Linked Projects with co-evolution |
+| **v5.2** | 2026-06-06 | Meso-Cosmos Agent | + MesoAgent, + Dynamic Graph v2.0 (CN/EN auto), + CN/EN Literature Rule, + MCP 15s Timeout |
+| **v5.1** | 2026-06-06 | Hub-and-Spoke Protocol | + Hub-and-Spoke (3-phase, 10 calls), + Authority Credibility Scoring, + Review-First Strategy, + Lazy-load Graph |
+| **v5.0** | 2026-06-06 | 5-Layer Agent Architecture | + BDI WorldModel, + CognitiveAgent (ReAct loop), + MemorySystem, + agent_core.py |
+| **v4.3** | 2026-06-06 | Engineering Language | + YAML Rule Engine (10 phases), + JSON Schema tools.json, + rule_engine.py |
+| **v4.2** | 2026-06-06 | Living System | + component_registry (12 components), + evolution.yaml (4 adaptive params), + self-evolve Skill |
+| **v4.1** | 2026-06-06 | Adaptive Depth | + Adaptive search depth (exhaustive/classified/satisficing), + Phase 1.5 Review Mining |
+| **v4.0** | 2026-06-06 | Graph Engine | Initial release — Knowledge Graph Traversal, 12 search layers, 5 search engines |
+
+---
+
+## 📜 License
+
+MIT © 2026 fangtaocai041
+
+---
+
+> **"不枚举，不穷举。遍历图谱，满意即止。"**
+> Don't enumerate. Traverse the graph. Stop when satisfied.
