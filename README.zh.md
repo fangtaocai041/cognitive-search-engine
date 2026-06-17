@@ -241,6 +241,9 @@ MIT © 2026 fangtaocai041
 
 这个项目不是一套固定的工具集——它是一个**活的系统**。每个组件都内置了过期机制、版本追踪和涌现感知。随着你的研究深入、R包更新、新方法涌现，它会和你一起进化。
 
+
+> 🔧 Agent 约束: [AGENTS.md](../AGENTS.md) · [core-constitution.md](../.reasonix/core-constitution.md) · [research-first](../skills/research-first.md) · [retro-session](../skills/retro-session.md)
+
 *最后更新: 2026-06-18 | Reasonix Code · DeepSeek 驱动*
 
 ---
