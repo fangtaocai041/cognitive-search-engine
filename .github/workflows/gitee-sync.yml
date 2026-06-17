@@ -1,0 +1,15 @@
+﻿name: Sync to Gitee
+on:
+  push:
+    branches: [master, main]
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Push to Gitee
+        run: |
+          REPO=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          git remote add gitee "https://${{ secrets.GITEE_USERNAME }}:${{ secrets.GITEE_TOKEN }}@gitee.com/${{ github.repository_owner }}/${REPO}.git" 2>/dev/null || git remote set-url gitee "https://${{ secrets.GITEE_USERNAME }}:${{ secrets.GITEE_TOKEN }}@gitee.com/${{ github.repository_owner }}/${REPO}.git"
+          git push gitee --all 2>/dev/null || echo "Gitee sync skipped (set GITEE_USERNAME and GITEE_TOKEN secrets)"
