@@ -1,10 +1,6 @@
 # 🔍 认知搜索引擎
 
-[![Python](https://img.shields.io/badge/python-3.10+-blue)](https://python.org)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/version-5.9-8b5cf6)]()
-[![Engines](https://img.shields.io/badge/engines-15+-22c55e)]()
-[![Frontier](https://img.shields.io/badge/frontier-Thompson|PID|MPC|AgentJudge-orange)]()
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python) ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square) ![Version](https://img.shields.io/badge/Version-v5.9-blueviolet?style=flat-square) ![Engines](https://img.shields.io/badge/Engines-15%2B-success?style=flat-square) ![Thompson](https://img.shields.io/badge/Thompson-Sampling-orange?style=flat-square) ![PID](https://img.shields.io/badge/PID-Rate%20Limit-yellow?style=flat-square) ![MPC](https://img.shields.io/badge/MPC-Optimization-red?style=flat-square) ![Async](https://img.shields.io/badge/Async-aiohttp-9cf?style=flat-square) ![CN/EN](https://img.shields.io/badge/CN%2FEN-Dual%20Channel-ff69b4?style=flat-square) ![Agent](https://img.shields.io/badge/Agent-Judge-important?style=flat-square)
 
 > ⚡ 搜索验证核心 — BDI认知搜索，15+引擎，Thompson采样，MPC优化。
 > 你无法用昨天的搜索结果回答今天的问题。
