@@ -1,4 +1,7 @@
-﻿# 🔍 认知搜索引擎
+<div align="center">
+  <h1>🔍 认知搜索引擎</h1>
+  <p><em>搜索验证核心 — BDI认知搜索 · 15+引擎 · Thompson采样 · MPC优化</em></p>
+</div>
 
 <p align="center">
   ![Python 3.10+](https://img.shields.io/badge/Python%203.10%2B-3776AB?style=flat-square)
@@ -11,12 +14,6 @@
   ![CN/EN](https://img.shields.io/badge/CN%2FEN-EC4899?style=flat-square)
   ![BDI agent](https://img.shields.io/badge/BDI%20agent-F59E0B?style=flat-square)
 </p>
-
-
-> ⚡ 搜索验证核心 — BDI认知搜索，15+引擎，Thompson采样，MPC优化。
-> 你无法用昨天的搜索结果回答今天的问题。
-
-[English](README.md) · [中文](README.zh.md) · [更新日志](CHANGELOG.md)
 
 ---
 

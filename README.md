@@ -1,4 +1,7 @@
-﻿# 🔍 Cognitive Search Engine
+<div align="center">
+  <h1>🔍 Cognitive Search Engine</h1>
+  <p><em>Search Verification Core — BDI cognitive search · 15+ engines · Thompson Sampling · MPC optimization</em></p>
+</div>
 
 <p align="center">
   ![Python 3.10+](https://img.shields.io/badge/Python%203.10%2B-3776AB?style=flat-square)
@@ -11,12 +14,6 @@
   ![CN/EN](https://img.shields.io/badge/CN%2FEN-EC4899?style=flat-square)
   ![BDI agent](https://img.shields.io/badge/BDI%20agent-F59E0B?style=flat-square)
 </p>
-
-
-> ⚡ Search Verification Core — BDI cognitive search with 15+ engines, Thompson Sampling, and MPC optimization.
-> You cannot answer today's question with yesterday's search.
-
-[English](README.md) · [中文](README.zh.md) · [CHANGELOG](CHANGELOG.md)
 
 ---
 
