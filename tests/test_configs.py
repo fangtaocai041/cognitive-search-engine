@@ -3,7 +3,7 @@
 import sys
 from pathlib import Path
 
-PROJ = Path(__file__).resolve().parent.parent / "cognitive-search-engine"
+PROJ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJ))
 
 

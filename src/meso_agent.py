@@ -301,7 +301,7 @@ class MesoAgent:
                 try:
                     fut.result(timeout=8)
                 except Exception as _e:
-                logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
+                    logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
 
         return max(pubmed_count, scholar_count, openalex_count, 0)
 
@@ -473,7 +473,7 @@ class MesoAgent:
                         papers.append(item)
                     total_cost += 150
                 except Exception as _e:
-                logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
+                    logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
 
         papers = _dedup_papers(papers)
         return papers[:self.config.max_papers], total_cost, errors
@@ -535,7 +535,7 @@ class MesoAgent:
                 try:
                     self._CredibilityScorer(p)
                 except Exception as _e:
-                logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
+                    logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
 
     def _detect_new_papers(self, papers: List[Dict[str, Any]]) -> int:
         """统计新论文 (来自 graph_lookup 以外的阶段)."""
