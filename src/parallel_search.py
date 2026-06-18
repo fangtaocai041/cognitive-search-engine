@@ -1022,6 +1022,26 @@ class SearchStats:
     elapsed_s: float = 0.0
 
 
+# ─── Thompson Sampling engine selector ────────────────────────────
+_THOMPSON_SELECTOR = None  # Lazy init
+
+def _get_engine_selector():
+    """Get or create Thompson engine selector for adaptive engine selection."""
+    global _THOMPSON_SELECTOR
+    if _THOMPSON_SELECTOR is None:
+        try:
+            from src.thompson_selector import ThompsonEngineSelector
+            _THOMPSON_SELECTOR = ThompsonEngineSelector()
+        except ImportError:
+            class _DummySelector:
+                def select_engines(self, query, available, k=20, context=None):
+                    return available
+                def update(self, *args, **kwargs):
+                    pass
+            _THOMPSON_SELECTOR = _DummySelector()
+    return _THOMPSON_SELECTOR
+
+
 class ParallelSearch:
     """多源 HTTP 并行搜索。
 
@@ -1030,9 +1050,11 @@ class ParallelSearch:
     """
 
     def __init__(self, max_workers: int = 4,
-                 providers: Optional[List[str]] = None):
+                 providers: Optional[List[str]] = None,
+                 use_thompson: bool = True):
         self._pool = ThreadPoolExecutor(max_workers=max_workers)
         self._providers = providers or list(_PROVIDERS.keys())
+        self._use_thompson = use_thompson and len(self._providers) > 10
 
     def search(self, query: str, chinese_name: str = "",
                max_per_provider: int = 20) -> SearchStats:
@@ -1052,8 +1074,23 @@ class ParallelSearch:
         failed: List[str] = []
         futures = []
 
+        # ── Thompson Sampling: select optimal provider subset ──
+        active_providers = self._providers
+        if self._use_thompson:
+            selector = _get_engine_selector()
+            selected = selector.select_engines(
+                query, active_providers, k=min(12, len(active_providers)),
+                context={"query": query}
+            )
+            # Always include core essential providers
+            essential = {"pubmed", "crossref", "openalex"}
+            for e in essential:
+                if e in active_providers and e not in selected:
+                    selected.append(e)
+            active_providers = selected
+
         # 提交国际源
-        for name in self._providers:
+        for name in active_providers:
             fn, default_max = _PROVIDERS.get(name, (None, 0))
             if fn is None:
                 continue
@@ -1084,6 +1121,16 @@ class ParallelSearch:
 
         # 属名校验 — 过滤标题不含目标属名的噪音论文
         filtered = _filter_by_genus(query, deduped)
+
+        # ── Thompson update: record engine performance ──
+        if self._use_thompson:
+            selector = _get_engine_selector()
+            elapsed_s = time.perf_counter() - t0
+            for name in active_providers:
+                had_papers = name in succeeded and any(
+                    p.get("source") == name for p in filtered
+                )
+                selector.update(name, success=had_papers, elapsed_ms=elapsed_s * 1000)
 
         return SearchStats(
             total_raw=len(all_papers),

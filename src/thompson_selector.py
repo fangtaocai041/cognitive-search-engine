@@ -1,4 +1,8 @@
-"""ThompsonSamplingEngine — multi-armed bandit for learned engine selection.
+"""ThompsonEngineSelector — multi-armed bandit for learned engine selection.
+
+NOTE: This module wraps eon-core's ThompsonBandit with search-engine-specific
+extensions (context-based category boosting, EMA timing, epsilon-greedy exploration).
+The core Thompson Sampling logic lives in eon-core/src/shared/thompson.py.
 
 Replaces rule-based engine pruning (by family name) with Bayesian learning.
 Each engine = a Beta-distributed arm. Success = paper found, Failure = no result.
@@ -14,14 +18,34 @@ Usage:
     engines = selector.select_engines(query, available_engines, k=5)
 """
 
-import random, json, os
+from __future__ import annotations
+
+import json, os, random
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
 
+# Use eon-core's canonical ThompsonBandit for core Beta sampling logic
+try:
+    import sys as _sys_ts
+    _EON_SHARED = os.path.normpath(
+        os.path.join(os.path.dirname(__file__), '..', '..', 'eon-core', 'src', 'shared')
+    )
+    if _EON_SHARED not in _sys_ts.path:
+        _sys_ts.path.insert(0, _EON_SHARED)
+    from thompson import ThompsonBandit, ArmStats
+    _HAVE_EON_CORE = True
+except ImportError:
+    _HAVE_EON_CORE = False
+
 
 @dataclass
 class EngineStats:
+    """Per-engine statistics for Thompson Sampling.
+
+    Backward-compatible with standalone EngineStats API.
+    Delegates Beta distribution math to eon-core's ArmStats when available.
+    """
     successes: int = 0
     failures: int = 0
     total_time_ms: float = 0.0
@@ -29,11 +53,15 @@ class EngineStats:
     category_hits: Dict[str, int] = field(default_factory=dict)
 
     @property
-    def alpha(self): return self.successes + 1
+    def alpha(self):
+        return self.successes + 1
+
     @property
-    def beta(self): return self.failures + 1
+    def beta(self):
+        return self.failures + 1
+
     @property
-    def win_rate(self): 
+    def win_rate(self):
         total = self.successes + self.failures
         return self.successes / total if total > 0 else 0.5
 
