@@ -1,4 +1,4 @@
-﻿"""SanShengWanWu Ecosystem — Canonical Shared Types.
+"""SanShengWanWu Ecosystem — Canonical Shared Types.
 
 Cross-project type system for the entire 三生万物 ecosystem.
 Single source of truth for all 7 projects (Triangle Core + Derived).
