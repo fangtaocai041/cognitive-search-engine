@@ -651,3 +651,45 @@ This project is not a fixed toolset — it is a **living system**. Every compone
 <sub>🔍 Part of the **SanShengWanWu** ecosystem · V/V1 Validation · Coordinated by [eon-core](https://github.com/fangtaocai041/eon-core)</sub>
 
 </div>
+
+
+---
+
+## 🧬 RCCA 集成 (v2.1.0 便携核心)
+
+本项目已集成 [san-sheng-wanwu-core](https://github.com/fangtaocai041/san-sheng-wanwu-core) 的便携 RCCA 核心模块。
+
+### 已部署的核心能力
+
+| 模块 | 类名 | 用途 |
+|:-----|:-----|:-----|
+| 阻尼自我模型 | `SelfModelEngine` | 预测误差滑动窗口 → 稳定性检测 |
+| 资源分配策略 | `EmotionEngine` | 事件驱动策略选择 → 行为倾向 |
+| 概念转座层 | `TranspositionLayer` | 跳跃基因逻辑: 跨域推理模式迁移 |
+| 反思循环 | `ReflectionLoop` | 递归思考→转座→自我适应闭环 |
+
+### 快速开始
+
+```python
+from src.rcca_core import SelfModelEngine, EmotionEngine, TranspositionLayer, ReflectionLoop
+
+# 初始化自我模型
+sm = SelfModelEngine()
+state = sm.reflect()  # 稳定性自检
+
+# 情感驱动的转座
+tl = TranspositionLayer()
+e = EmotionEngine(transposition_layer=tl)
+e.stimulate("discovery", 0.8)  # 发现新知识 → 自动推送到转座层
+
+# 跨域转座：将搜索策略从 A 通道迁移到 B 通道
+result = tl.transpose("search", "verify", {"concept": "cross_domain", "confidence": 0.9})
+
+# 反思循环
+loop = ReflectionLoop()
+report = loop.run(["scholar", "cnki", "ncbi"], transposition=tl)
+```
+
+### 版本
+
+核心版本: **RCCA v2.1.0** (2026-06-20) · 零外部依赖 · 即插即用

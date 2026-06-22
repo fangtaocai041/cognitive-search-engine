@@ -1,0 +1,1317 @@
+catalog_version: 2.1.0
+domains:
+  molecular_genetics:
+    label: 分子遗传学
+    triggers:
+    - genetic
+    - diversity
+    - population
+    - mitochondrial
+    - microsatellite
+    - snp
+    - ssr
+    - haplotype
+    - phyloge
+    - 遗传
+    - 群体
+    - 多态
+    - 线粒体
+    - 分子标记
+    - 系统发育
+    - phylogen
+    - 进化
+    databases:
+    - id: ncbi_pubmed
+      access: free
+      search_tools:
+      - ncbi_ncbi_esearch
+      - ncbi_ncbi_efetch
+      search_template: '{species_name}[Title/Abstract]'
+    - id: ncbi_nucleotide
+      access: free
+      search_tools:
+      - ncbi_ncbi_esearch
+      search_template: '{species_name}[Organism]'
+  fisheries_ichthyology:
+    label: 鱼类学与渔业
+    triggers:
+    - fish
+    - fisheries
+    - ichthyology
+    - survey
+    - resource
+    - habitat
+    - migration
+    - spawning
+    - growth
+    - reproduction
+    - 鱼类
+    - 渔业
+    - 调查
+    - 渔获
+    - 资源
+    - 栖息
+    - 洄游
+    - 群落
+    - 种群
+    - 生态
+    - ecology
+    databases:
+    - id: cnki
+      access: paid
+      search_tools:
+      - web_search
+      search_template: site:cnki.net {keyword} 鱼类
+    - id: scholar_google
+      access: free
+      search_tools:
+      - scholar_search_literature_graph
+      - scholar_search_google_scholar_key_words
+      search_template: '{keyword}'
+    - id: crossref
+      access: free
+      search_tools:
+      - article_search_literature
+      search_template: '{keyword}'
+  toxicology:
+    label: 毒理学与环境
+    triggers:
+    - toxic
+    - pollut
+    - contamin
+    - pfas
+    - metal
+    - 毒理
+    - 污染
+    - 重金属
+    - 环境
+    - environmental
+    - water quality
+    - 水质
+    databases:
+    - id: ncbi_pubmed
+      access: free
+      search_tools:
+      - ncbi_ncbi_esearch
+      search_template: ({keyword}) AND (toxicology OR pollution OR ecotoxicology)
+    - id: crossref
+      access: free
+      search_tools:
+      - article_search_literature
+      search_template: '{keyword} toxicology'
+  morphology:
+    label: 形态与表型
+    triggers:
+    - morpholog
+    - phenotype
+    - shape
+    - geometric
+    - 形态
+    - 表型
+    - 测量
+    - meristic
+    - plasticity
+    - 可塑性
+    databases:
+    - id: ncbi_pubmed
+      access: free
+      search_tools:
+      - ncbi_ncbi_esearch
+      search_template: '{species_name} morphology'
+    - id: crossref
+      access: free
+      search_tools:
+      - article_search_literature
+      search_template: '{keyword} morphology'
+  genomics:
+    label: 基因组学
+    triggers:
+    - genome
+    - chromosome
+    - assembly
+    - sequencing
+    - 基因组
+    - 染色体
+    - 组装
+    - 测序
+    - 全基因组
+    - comparative
+    databases:
+    - id: ncbi_pubmed
+      access: free
+      search_tools:
+      - ncbi_ncbi_esearch
+      search_template: '{species_name} genome'
+    - id: ncbi_nucleotide
+      access: free
+      search_tools:
+      - ncbi_ncbi_esearch
+      search_template: '{species_name}[Organism] AND genome'
+    - id: scholar_google
+      access: free
+      search_tools:
+      - scholar_search_literature_graph
+      search_template: '{keyword} genome assembly'
+  conservation:
+    label: 保护生物学
+    triggers:
+    - conservation
+    - endangered
+    - protected
+    - recovery
+    - 保护
+    - 濒危
+    - 禁渔
+    - policy
+    - management
+    - 红皮书
+    - esu
+    - mu
+    - biodiversity
+    - 生物多样性
+    databases:
+    - id: crossref
+      access: free
+      search_tools:
+      - article_search_literature
+      search_template: '{keyword} conservation'
+    - id: scholar_google
+      access: free
+      search_tools:
+      - scholar_search_literature_graph
+      search_template: '{keyword} conservation endangered'
+  biomedical:
+    label: 生物医学
+    triggers:
+    - disease
+    - parasite
+    - immun
+    - pathogen
+    - microbiome
+    - gut
+    - 疾病
+    - 寄生虫
+    - 免疫
+    - 肠道
+    - 微生物
+    databases:
+    - id: ncbi_pubmed
+      access: free
+      search_tools:
+      - ncbi_ncbi_esearch
+      search_template: '{species_name} disease OR parasite OR microbiome'
+  general_academic:
+    label: 通用学术
+    triggers: []
+    databases:
+    - id: crossref
+      access: free
+      search_tools:
+      - article_search_literature
+      search_template: '{keyword}'
+    - id: openalex
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:openalex.org {keyword}
+    - id: tavily_web
+      access: free
+      search_tools:
+      - tavily_tavily_search
+      search_template: '{keyword} research paper'
+    - id: semantic_scholar
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:semanticscholar.org {keyword}
+    - id: core_ac_uk
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:core.ac.uk {keyword}
+    - id: doaj
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:doaj.org {keyword}
+  ecology_biodiversity:
+    label: 生态与生物多样性
+    triggers:
+    - biodiversity
+    - ecosystem
+    - species distribution
+    - niche model
+    - climate change
+    - SDM
+    - 生物多样性
+    - 生态系统
+    - 物种分布
+    - 生态位
+    - 气候变化
+    - 栖息地评估
+    - 自然保护区
+    - wetland
+    - 湿地
+    - restoration
+    - 修复
+    databases:
+    - id: gbif
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:gbif.org {keyword}
+    - id: iucn_redlist
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:iucnredlist.org {keyword}
+    - id: biodiversity_heritage_library
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:biodiversitylibrary.org {keyword}
+    - id: eol
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:eol.org {keyword}
+    - id: dryad
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:datadryad.org {keyword}
+    - id: ncbi_pubmed
+      access: free
+      search_tools:
+      - ncbi_ncbi_esearch
+      search_template: ({keyword}) AND (biodiversity OR ecosystem OR conservation)
+  aquatic_species_db:
+    label: 水生生物专题库
+    triggers:
+    - fish
+    - fisheries
+    - ichthyology
+    - aquatic
+    - freshwater
+    - marine
+    - aquaculture
+    - 水产养殖
+    - 鱼类
+    - 渔业
+    - 水生
+    - 淡水
+    - 海洋
+    - porpoise
+    - 江豚
+    - dolphin
+    - 鲸豚
+    - cetacean
+    - crustacean
+    - 甲壳
+    - mollusk
+    - 软体
+    - coral
+    - reef
+    - 珊瑚
+    - 礁
+    - great barrier reef
+    - 大堡礁
+    databases:
+    - id: fishbase
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:fishbase.org {keyword}
+    - id: worms
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:marinespecies.org {keyword}
+    - id: fao_fisheries
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:fao.org/fishery {keyword}
+    - id: gbif
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:gbif.org {keyword}
+  bioinformatics:
+    label: 生物信息学
+    triggers:
+    - bioinformatic
+    - computational biology
+    - sequence analysis
+    - alignment
+    - variant calling
+    - rna-seq
+    - transcriptome
+    - proteome
+    - metabolome
+    - protein folding
+    - molecular docking
+    - 生物信息
+    - 计算生物学
+    - 序列比对
+    - 转录组
+    - 蛋白质组
+    - 代谢组
+    - 蛋白折叠
+    - 分子对接
+    - machine learning
+    - deep learning
+    - neural network
+    - 深度学习
+    - 机器学习
+    - 神经网络
+    databases:
+    - id: biorxiv
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:biorxiv.org {keyword}
+    - id: arxiv_qbio
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:arxiv.org q-bio {keyword}
+    - id: ncbi_pubmed
+      access: free
+      search_tools:
+      - ncbi_ncbi_esearch
+      search_template: ({keyword}) AND (bioinformatics OR computational biology)
+    - id: ncbi_sra
+      access: free
+      search_tools:
+      - ncbi_ncbi_esearch
+      search_template: '{species_name}[Organism]'
+  ai_ml:
+    label: 人工智能与机器学习
+    triggers:
+    - artificial intelligence
+    - machine learning
+    - deep learning
+    - neural network
+    - transformer
+    - large language model
+    - LLM
+    - GPT
+    - computer vision
+    - NLP
+    - reinforcement learning
+    - generative
+    - 人工智能
+    - 深度学习
+    - 机器学习
+    - 神经网络
+    - 大语言模型
+    - 大模型
+    - 计算机视觉
+    - 自然语言处理
+    - 强化学习
+    - 生成式
+    - image recognition
+    - 图像识别
+    - object detection
+    - 目标检测
+    - classification
+    - 分类
+    databases:
+    - id: arxiv_cs
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:arxiv.org cs.AI OR cs.LG OR cs.CL {keyword}
+    - id: paperswithcode
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:paperswithcode.com {keyword}
+    - id: openreview
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:openreview.net {keyword}
+    - id: semantic_scholar
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:semanticscholar.org {keyword}
+  mathematics_statistics:
+    label: 数学与统计
+    triggers:
+    - statistics
+    - probability
+    - bayesian
+    - optimization
+    - differential equation
+    - numerical
+    - stochastic
+    - linear algebra
+    - time series
+    - regression
+    - hypothesis test
+    - 统计
+    - 概率
+    - 贝叶斯
+    - 优化
+    - 微分方程
+    - 数值
+    - 随机过程
+    - 线性代数
+    - 时间序列
+    - 回归
+    - 假设检验
+    - entropy
+    - 信息熵
+    - graph theory
+    - 图论
+    databases:
+    - id: arxiv_math
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:arxiv.org math.ST OR stat.ML OR stat.AP {keyword}
+    - id: project_euclid
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:projecteuclid.org {keyword}
+    - id: zbmath
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:zbmath.org {keyword}
+    - id: semantic_scholar
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:semanticscholar.org statistics {keyword}
+  chinese_institutions:
+    label: 中国学术机构库
+    triggers:
+    - 中国
+    - 长江
+    - 珠江
+    - 黄河
+    - 黑龙江
+    - 鄱阳湖
+    - 洞庭湖
+    - 太湖
+    - 中华
+    - 国家
+    - 科学院
+    - 水产
+    - 水生
+    - 淡水
+    - 濒危
+    - 保护动物
+    - 红皮书
+    - 保护区
+    - 鱼类志
+    - 动物志
+    - 渔业资源
+    - 增殖放流
+    databases:
+    - id: cas_ihb
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:ihb.ac.cn {keyword}
+    - id: cafs
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:cafs.ac.cn {keyword}
+    - id: nstl
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:nstl.gov.cn {keyword}
+    - id: cnki
+      access: paid
+      search_tools:
+      - web_search
+      search_template: site:cnki.net {keyword}
+    - id: cqvip
+      access: paid
+      search_tools:
+      - web_search
+      search_template: site:cqvip.com {keyword}
+    - id: wanfang
+      access: paid
+      search_tools:
+      - web_search
+      search_template: site:wanfangdata.com.cn {keyword}
+  university_repositories:
+    label: 大学机构知识库
+    triggers:
+    - thesis
+    - dissertation
+    - 博士论文
+    - 硕士论文
+    - 学位论文
+    - repository
+    - institutional repository
+    - 知识库
+    - 机构库
+    - university
+    - 大学
+    - 水产养殖
+    - aquaculture
+    - stock assessment
+    - 渔业管理
+    - fisheries management
+    - marine biology
+    - 海洋生物
+    - coral reef
+    - 珊瑚礁
+    - tropical fish
+    - 热带鱼
+    - coral
+    - reef
+    - great barrier reef
+    - 大堡礁
+    databases:
+    - id: base_search
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:base-search.net {keyword}
+    - id: dart_europe
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:dart-europe.org {keyword}
+    - id: ndltd
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:ndltd.org {keyword}
+    - id: oaister
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:oaister.worldcat.org {keyword}
+    - id: ubc_circle
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:circle.ubc.ca {keyword}
+    - id: uw_researchworks
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:digital.lib.washington.edu {keyword}
+    - id: wageningen_ur
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:library.wur.nl {keyword}
+    - id: uc_escholarship
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:escholarship.org {keyword}
+    - id: jcu_researchonline
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:researchonline.jcu.edu.au {keyword}
+    - id: mit_dspace
+      access: free
+      search_tools:
+      - web_search
+      search_template: site:dspace.mit.edu {keyword}
+topology:
+  db_domain_edges:
+  - from: ncbi_pubmed
+    to: molecular_genetics
+    weight: 0.95
+  - from: ncbi_pubmed
+    to: toxicology
+    weight: 0.85
+  - from: ncbi_pubmed
+    to: morphology
+    weight: 0.7
+  - from: ncbi_pubmed
+    to: genomics
+    weight: 0.9
+  - from: ncbi_pubmed
+    to: biomedical
+    weight: 0.95
+  - from: ncbi_pubmed
+    to: fisheries_ichthyology
+    weight: 0.4
+  - from: ncbi_pubmed
+    to: ecology_biodiversity
+    weight: 0.55
+  - from: ncbi_pubmed
+    to: bioinformatics
+    weight: 0.75
+  - from: ncbi_nucleotide
+    to: molecular_genetics
+    weight: 0.8
+  - from: ncbi_nucleotide
+    to: genomics
+    weight: 0.85
+  - from: ncbi_nucleotide
+    to: bioinformatics
+    weight: 0.55
+  - from: ncbi_sra
+    to: genomics
+    weight: 0.8
+  - from: ncbi_sra
+    to: bioinformatics
+    weight: 0.85
+  - from: cnki
+    to: fisheries_ichthyology
+    weight: 0.9
+  - from: cnki
+    to: morphology
+    weight: 0.6
+  - from: cnki
+    to: toxicology
+    weight: 0.5
+  - from: cnki
+    to: conservation
+    weight: 0.55
+  - from: cnki
+    to: chinese_institutions
+    weight: 0.9
+  - from: cnki
+    to: ecology_biodiversity
+    weight: 0.5
+  - from: cqvip
+    to: fisheries_ichthyology
+    weight: 0.75
+  - from: cqvip
+    to: chinese_institutions
+    weight: 0.8
+  - from: wanfang
+    to: fisheries_ichthyology
+    weight: 0.7
+  - from: wanfang
+    to: chinese_institutions
+    weight: 0.8
+  - from: scholar_google
+    to: fisheries_ichthyology
+    weight: 0.75
+  - from: scholar_google
+    to: conservation
+    weight: 0.7
+  - from: scholar_google
+    to: genomics
+    weight: 0.6
+  - from: scholar_google
+    to: ai_ml
+    weight: 0.65
+  - from: scholar_google
+    to: bioinformatics
+    weight: 0.6
+  - from: crossref
+    to: fisheries_ichthyology
+    weight: 0.7
+  - from: crossref
+    to: morphology
+    weight: 0.65
+  - from: crossref
+    to: toxicology
+    weight: 0.6
+  - from: crossref
+    to: conservation
+    weight: 0.65
+  - from: crossref
+    to: molecular_genetics
+    weight: 0.5
+  - from: crossref
+    to: ecology_biodiversity
+    weight: 0.55
+  - from: openalex
+    to: general_academic
+    weight: 0.8
+  - from: tavily_web
+    to: general_academic
+    weight: 0.7
+  - from: gbif
+    to: ecology_biodiversity
+    weight: 0.95
+  - from: gbif
+    to: aquatic_species_db
+    weight: 0.7
+  - from: iucn_redlist
+    to: conservation
+    weight: 0.95
+  - from: iucn_redlist
+    to: ecology_biodiversity
+    weight: 0.85
+  - from: biodiversity_heritage_library
+    to: ecology_biodiversity
+    weight: 0.85
+  - from: biodiversity_heritage_library
+    to: morphology
+    weight: 0.6
+  - from: eol
+    to: ecology_biodiversity
+    weight: 0.8
+  - from: eol
+    to: aquatic_species_db
+    weight: 0.6
+  - from: dryad
+    to: ecology_biodiversity
+    weight: 0.75
+  - from: dryad
+    to: molecular_genetics
+    weight: 0.55
+  - from: dryad
+    to: bioinformatics
+    weight: 0.5
+  - from: fishbase
+    to: aquatic_species_db
+    weight: 0.98
+  - from: fishbase
+    to: fisheries_ichthyology
+    weight: 0.9
+  - from: worms
+    to: aquatic_species_db
+    weight: 0.9
+  - from: worms
+    to: ecology_biodiversity
+    weight: 0.65
+  - from: fao_fisheries
+    to: aquatic_species_db
+    weight: 0.85
+  - from: fao_fisheries
+    to: fisheries_ichthyology
+    weight: 0.9
+  - from: biorxiv
+    to: bioinformatics
+    weight: 0.9
+  - from: biorxiv
+    to: molecular_genetics
+    weight: 0.75
+  - from: biorxiv
+    to: genomics
+    weight: 0.8
+  - from: arxiv_qbio
+    to: bioinformatics
+    weight: 0.85
+  - from: arxiv_qbio
+    to: genomics
+    weight: 0.7
+  - from: arxiv_cs
+    to: ai_ml
+    weight: 0.95
+  - from: arxiv_cs
+    to: bioinformatics
+    weight: 0.6
+  - from: arxiv_math
+    to: mathematics_statistics
+    weight: 0.95
+  - from: arxiv_math
+    to: ai_ml
+    weight: 0.5
+  - from: paperswithcode
+    to: ai_ml
+    weight: 0.9
+  - from: openreview
+    to: ai_ml
+    weight: 0.85
+  - from: project_euclid
+    to: mathematics_statistics
+    weight: 0.85
+  - from: zbmath
+    to: mathematics_statistics
+    weight: 0.8
+  - from: semantic_scholar
+    to: ai_ml
+    weight: 0.8
+  - from: semantic_scholar
+    to: mathematics_statistics
+    weight: 0.7
+  - from: semantic_scholar
+    to: general_academic
+    weight: 0.85
+  - from: core_ac_uk
+    to: general_academic
+    weight: 0.75
+  - from: doaj
+    to: general_academic
+    weight: 0.7
+  - from: cas_ihb
+    to: chinese_institutions
+    weight: 0.95
+  - from: cas_ihb
+    to: fisheries_ichthyology
+    weight: 0.85
+  - from: cas_ihb
+    to: ecology_biodiversity
+    weight: 0.7
+  - from: cafs
+    to: chinese_institutions
+    weight: 0.95
+  - from: cafs
+    to: fisheries_ichthyology
+    weight: 0.9
+  - from: cafs
+    to: aquatic_species_db
+    weight: 0.8
+  - from: nstl
+    to: chinese_institutions
+    weight: 0.9
+  - from: nstl
+    to: general_academic
+    weight: 0.75
+  - from: base_search
+    to: university_repositories
+    weight: 0.95
+  - from: base_search
+    to: ecology_biodiversity
+    weight: 0.65
+  - from: base_search
+    to: fisheries_ichthyology
+    weight: 0.55
+  - from: base_search
+    to: aquatic_species_db
+    weight: 0.6
+  - from: base_search
+    to: general_academic
+    weight: 0.7
+  - from: dart_europe
+    to: university_repositories
+    weight: 0.9
+  - from: dart_europe
+    to: aquatic_species_db
+    weight: 0.5
+  - from: dart_europe
+    to: ecology_biodiversity
+    weight: 0.45
+  - from: ndltd
+    to: university_repositories
+    weight: 0.85
+  - from: ndltd
+    to: ai_ml
+    weight: 0.4
+  - from: ndltd
+    to: general_academic
+    weight: 0.6
+  - from: oaister
+    to: university_repositories
+    weight: 0.88
+  - from: oaister
+    to: general_academic
+    weight: 0.65
+  - from: ubc_circle
+    to: university_repositories
+    weight: 0.95
+  - from: ubc_circle
+    to: fisheries_ichthyology
+    weight: 0.9
+  - from: ubc_circle
+    to: ecology_biodiversity
+    weight: 0.7
+  - from: ubc_circle
+    to: conservation
+    weight: 0.55
+  - from: uw_researchworks
+    to: university_repositories
+    weight: 0.95
+  - from: uw_researchworks
+    to: fisheries_ichthyology
+    weight: 0.85
+  - from: uw_researchworks
+    to: aquatic_species_db
+    weight: 0.75
+  - from: wageningen_ur
+    to: university_repositories
+    weight: 0.95
+  - from: wageningen_ur
+    to: aquatic_species_db
+    weight: 0.8
+  - from: wageningen_ur
+    to: fisheries_ichthyology
+    weight: 0.75
+  - from: wageningen_ur
+    to: ecology_biodiversity
+    weight: 0.65
+  - from: uc_escholarship
+    to: university_repositories
+    weight: 0.95
+  - from: uc_escholarship
+    to: ecology_biodiversity
+    weight: 0.75
+  - from: uc_escholarship
+    to: molecular_genetics
+    weight: 0.55
+  - from: uc_escholarship
+    to: toxicology
+    weight: 0.5
+  - from: jcu_researchonline
+    to: university_repositories
+    weight: 0.95
+  - from: jcu_researchonline
+    to: aquatic_species_db
+    weight: 0.98
+  - from: jcu_researchonline
+    to: ecology_biodiversity
+    weight: 0.8
+  - from: jcu_researchonline
+    to: conservation
+    weight: 0.55
+  - from: mit_dspace
+    to: university_repositories
+    weight: 0.95
+  - from: mit_dspace
+    to: ai_ml
+    weight: 0.9
+  - from: mit_dspace
+    to: bioinformatics
+    weight: 0.7
+  - from: mit_dspace
+    to: mathematics_statistics
+    weight: 0.6
+  domain_edges:
+  - from: molecular_genetics
+    to: genomics
+    weight: 0.6
+  - from: genomics
+    to: molecular_genetics
+    weight: 0.5
+  - from: toxicology
+    to: biomedical
+    weight: 0.4
+  - from: fisheries_ichthyology
+    to: conservation
+    weight: 0.5
+  - from: conservation
+    to: fisheries_ichthyology
+    weight: 0.4
+  - from: morphology
+    to: fisheries_ichthyology
+    weight: 0.3
+  - from: ecology_biodiversity
+    to: conservation
+    weight: 0.7
+  - from: conservation
+    to: ecology_biodiversity
+    weight: 0.6
+  - from: fisheries_ichthyology
+    to: aquatic_species_db
+    weight: 0.75
+  - from: aquatic_species_db
+    to: ecology_biodiversity
+    weight: 0.6
+  - from: ecology_biodiversity
+    to: aquatic_species_db
+    weight: 0.55
+  - from: bioinformatics
+    to: genomics
+    weight: 0.7
+  - from: bioinformatics
+    to: molecular_genetics
+    weight: 0.6
+  - from: bioinformatics
+    to: ai_ml
+    weight: 0.5
+  - from: ai_ml
+    to: bioinformatics
+    weight: 0.55
+  - from: ai_ml
+    to: mathematics_statistics
+    weight: 0.45
+  - from: mathematics_statistics
+    to: ai_ml
+    weight: 0.4
+  - from: mathematics_statistics
+    to: bioinformatics
+    weight: 0.35
+  - from: chinese_institutions
+    to: fisheries_ichthyology
+    weight: 0.6
+  - from: chinese_institutions
+    to: ecology_biodiversity
+    weight: 0.5
+  - from: chinese_institutions
+    to: conservation
+    weight: 0.45
+  - from: university_repositories
+    to: fisheries_ichthyology
+    weight: 0.5
+  - from: university_repositories
+    to: ecology_biodiversity
+    weight: 0.5
+  - from: university_repositories
+    to: aquatic_species_db
+    weight: 0.45
+  - from: university_repositories
+    to: ai_ml
+    weight: 0.35
+  - from: university_repositories
+    to: bioinformatics
+    weight: 0.35
+  - from: fisheries_ichthyology
+    to: university_repositories
+    weight: 0.4
+  - from: ecology_biodiversity
+    to: university_repositories
+    weight: 0.4
+  db_complement_edges:
+  - from: ncbi_pubmed
+    to: cnki
+    weight: 0.8
+  - from: ncbi_pubmed
+    to: scholar_google
+    weight: 0.7
+  - from: crossref
+    to: scholar_google
+    weight: 0.5
+  - from: ncbi_pubmed
+    to: tavily_web
+    weight: 0.4
+  - from: cnki
+    to: crossref
+    weight: 0.5
+  - from: crossref
+    to: openalex
+    weight: 0.4
+  - from: ncbi_pubmed
+    to: biorxiv
+    weight: 0.5
+  - from: cnki
+    to: cqvip
+    weight: 0.6
+  - from: cnki
+    to: wanfang
+    weight: 0.55
+  - from: cqvip
+    to: wanfang
+    weight: 0.5
+  - from: cnki
+    to: nstl
+    weight: 0.5
+  - from: cnki
+    to: cas_ihb
+    weight: 0.45
+  - from: gbif
+    to: iucn_redlist
+    weight: 0.6
+  - from: gbif
+    to: fishbase
+    weight: 0.55
+  - from: fishbase
+    to: worms
+    weight: 0.65
+  - from: fishbase
+    to: fao_fisheries
+    weight: 0.7
+  - from: iucn_redlist
+    to: biodiversity_heritage_library
+    weight: 0.4
+  - from: biorxiv
+    to: arxiv_qbio
+    weight: 0.6
+  - from: arxiv_cs
+    to: paperswithcode
+    weight: 0.55
+  - from: arxiv_cs
+    to: openreview
+    weight: 0.5
+  - from: arxiv_cs
+    to: semantic_scholar
+    weight: 0.65
+  - from: arxiv_math
+    to: project_euclid
+    weight: 0.5
+  - from: arxiv_math
+    to: zbmath
+    weight: 0.45
+  - from: semantic_scholar
+    to: core_ac_uk
+    weight: 0.4
+  - from: doaj
+    to: core_ac_uk
+    weight: 0.45
+  - from: cas_ihb
+    to: cafs
+    weight: 0.6
+  - from: nstl
+    to: cnki
+    weight: 0.5
+  - from: base_search
+    to: dart_europe
+    weight: 0.55
+  - from: base_search
+    to: ndltd
+    weight: 0.5
+  - from: base_search
+    to: oaister
+    weight: 0.55
+  - from: ubc_circle
+    to: uw_researchworks
+    weight: 0.45
+  - from: ubc_circle
+    to: fishbase
+    weight: 0.5
+  - from: wageningen_ur
+    to: fao_fisheries
+    weight: 0.5
+  - from: jcu_researchonline
+    to: fishbase
+    weight: 0.55
+  - from: mit_dspace
+    to: arxiv_cs
+    weight: 0.55
+  - from: mit_dspace
+    to: biorxiv
+    weight: 0.45
+  - from: uc_escholarship
+    to: dryad
+    weight: 0.4
+  - from: uc_escholarship
+    to: gbif
+    weight: 0.45
+  context_rules:
+  - if:
+    - molecular_genetics
+    - genomics
+    target: genomics
+    type: boost
+    factor: 1.5
+  - if:
+    - toxicology
+    - biomedical
+    target: toxicology
+    type: boost
+    factor: 1.3
+  - if:
+    - fisheries_ichthyology
+    - conservation
+    target: fisheries_ichthyology
+    type: boost
+    factor: 1.2
+  - if:
+    - general_academic
+    target: fisheries_ichthyology
+    type: suppress
+    factor: 0.5
+  - if:
+    - fisheries_ichthyology
+    - ecology_biodiversity
+    target: fishbase
+    type: boost
+    factor: 1.6
+  - if:
+    - conservation
+    - ecology_biodiversity
+    target: iucn_redlist
+    type: boost
+    factor: 1.5
+  - if:
+    - ecology_biodiversity
+    - morphology
+    target: biodiversity_heritage_library
+    type: boost
+    factor: 1.3
+  - if:
+    - genomics
+    - bioinformatics
+    target: biorxiv
+    type: boost
+    factor: 1.4
+  - if:
+    - ai_ml
+    - bioinformatics
+    target: arxiv_cs
+    type: boost
+    factor: 1.3
+  - if:
+    - ai_ml
+    - mathematics_statistics
+    target: arxiv_math
+    type: boost
+    factor: 1.2
+  - if:
+    - fisheries_ichthyology
+    - chinese_institutions
+    target: cas_ihb
+    type: boost
+    factor: 1.5
+  - if:
+    - chinese_institutions
+    target: cnki
+    type: boost
+    factor: 1.3
+  - if:
+    - toxicology
+    - ecology_biodiversity
+    target: gbif
+    type: boost
+    factor: 1.2
+  - if:
+    - aquatic_species_db
+    - ecology_biodiversity
+    target: worms
+    type: boost
+    factor: 1.4
+  - if:
+    - fisheries_ichthyology
+    - university_repositories
+    target: fisheries_ichthyology
+    type: boost
+    factor: 2.0
+  - if:
+    - aquatic_species_db
+    - university_repositories
+    target: aquatic_species_db
+    type: boost
+    factor: 2.5
+  - if:
+    - ecology_biodiversity
+    - university_repositories
+    target: ecology_biodiversity
+    type: boost
+    factor: 3.0
+  - if:
+    - ai_ml
+    - university_repositories
+    target: ai_ml
+    type: boost
+    factor: 2.5
+  - if:
+    - bioinformatics
+    - university_repositories
+    target: bioinformatics
+    type: boost
+    factor: 2.5
+  - if:
+    - university_repositories
+    target: university_repositories
+    type: boost
+    factor: 1.8
+  tendril_map:
+    ncbi_pubmed: ncbi_tendril
+    ncbi_nucleotide: ncbi_tendril
+    ncbi_sra: ncbi_tendril
+    scholar_google: scholar_tendril
+    cnki: cnki_tendril
+    cqvip: cnki_tendril
+    wanfang: cnki_tendril
+    crossref: crossref_tendril
+    gbif: gbif_tendril
+    iucn_redlist: iucn_tendril
+    fishbase: fishbase_tendril
+    worms: worms_tendril
+    fao_fisheries: fao_tendril
+    biorxiv: biorxiv_tendril
+    arxiv_cs: arxiv_tendril
+    arxiv_qbio: arxiv_tendril
+    arxiv_math: arxiv_tendril
+    semantic_scholar: semantic_scholar_tendril
+    cas_ihb: cas_tendril
+    cafs: cafs_tendril
+    nstl: nstl_tendril
+    base_search: base_tendril
+    ubc_circle: ubc_tendril
+    mit_dspace: mit_tendril
+  tendril_unhealthy_penalty: 0.2

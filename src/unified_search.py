@@ -24,7 +24,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # HTTP fallback engines (from parallel_search)
-from src.parallel_search import (
+from .parallel_search import (
     _search_pubmed, _search_europe_pmc, _search_crossref, _search_openalex, _search_arxiv,
     _search_crossref_direct, _search_semantic_scholar,
     _search_biorxiv_medrxiv, _search_researchgate,

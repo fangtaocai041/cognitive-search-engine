@@ -109,6 +109,18 @@ class MesoAgent:
         self._CredibilityScorer: Any = None
         self._EvolutionExecutor: Any = None
         self._InferenceEngine: Any = None
+        # v5.9+: 死代码复活 — 新接入模块
+        self._MPCWorldModel: Any = None          # mpc_world.py
+        self._CatalogLoader: Any = None          # catalog_loader.py (graph_route, record_search_result)
+        self._AgentJudge: Any = None             # agent_judge.py
+        self._ReportFormatter: Any = None        # report_formatter.py (generate_quick_report)
+        self._CognitiveSearchEngine: Any = None  # search_engine.py (health/info)
+        # RCCA 核心组件 (自我感知 + 情绪调节)
+        self._rcca_self: Any = None        # SelfModelEngine
+        self._rcca_emotion: Any = None     # EmotionEngine
+        self._rcca_transposition: Any = None  # TranspositionLayer
+        self._rcca_reflection: Any = None  # ReflectionLoop
+        self._rcca_initialized: bool = False
         # 涌现状态追踪 (per-species)
         self._emergence_signals: Dict[str, list[dict]] = {}
         self._emergence_mode: Dict[str, str] = {}  # "normal" | "surge" | "stalled"
@@ -153,6 +165,58 @@ class MesoAgent:
             self._InferenceEngine = _IE
         except ImportError:
             pass
+
+        # ── v5.9+: 死代码复活 — 懒加载新接入模块 ──
+        try:
+            from src.mpc_world import MPCWorldModel as _MPC
+            self._MPCWorldModel = _MPC
+        except ImportError:
+            pass
+
+        try:
+            from src.catalog_loader import graph_route as _gr
+            from src.catalog_loader import record_search_result as _rsr
+            from src.catalog_loader import load_catalog as _lc
+            self._CatalogLoader = (_gr, _rsr, _lc)
+        except ImportError:
+            pass
+
+        try:
+            from src.agent_judge import AgentJudge as _AJ
+            self._AgentJudge = _AJ
+        except ImportError:
+            pass
+
+        try:
+            from src.report_formatter import generate_quick_report as _gqr
+            from src.report_formatter import classify_papers as _cp
+            self._ReportFormatter = (_gqr, _cp)
+        except ImportError:
+            pass
+
+        try:
+            from src.search_engine import CognitiveSearchEngine as _CSE
+            self._CognitiveSearchEngine = _CSE
+        except ImportError:
+            pass
+
+        # ── RCCA 核心初始化 (一次) ──
+        if not self._rcca_initialized:
+            try:
+                from src.rcca_core import (
+                    SelfModelEngine, EmotionEngine,
+                    TranspositionLayer, ReflectionLoop,
+                )
+                self._rcca_transposition = TranspositionLayer()
+                self._rcca_emotion = EmotionEngine(
+                    transposition_layer=self._rcca_transposition
+                )
+                self._rcca_self = SelfModelEngine()
+                self._rcca_reflection = ReflectionLoop(max_steps=3)
+                self._rcca_initialized = True
+                logger.info("RCCA core initialized: SelfModel + Emotion + Transposition + Reflection")
+            except ImportError:
+                pass
 
     def _get_mcp(self) -> Any:
         """Lazy-init McpClient."""
@@ -288,7 +352,7 @@ class MesoAgent:
         def _fetch_openalex():
             nonlocal openalex_count
             try:
-                url = f"https://api.openalex.org/works?filter=title.search:{_url_quote(scientific_name)}&per_page=0"
+                url = f"https://api.openalex.org/works?filter=title.search:{_url_quote(scientific_name)}&per_page=1"
                 with _urlreq.urlopen(url, timeout=6) as resp:
                     data = _json.loads(resp.read())
                 openalex_count = int(data.get("meta", {}).get("count", 0) or 0)
@@ -604,6 +668,42 @@ class MesoAgent:
         result.volume_estimate = volume
 
         # ── Phase I: Intention — 执行搜索 ──
+
+        # ── v5.9+: MPC 成本优化引擎选择 ──
+        mpc_plan = None
+        if self._MPCWorldModel:
+            try:
+                mpc = self._MPCWorldModel()
+                available_engines = ["pubmed", "crossref", "openalex", "scholar", "cnki", "tavily"]
+                mpc_plan = mpc.plan(species_id, available_engines,
+                                    budget_tokens=self.config.max_tokens)
+                result.meso_log.append({
+                    "phase": "mpc_plan",
+                    "selected_engines": mpc_plan.engines,
+                    "predicted_papers": mpc_plan.predicted_papers,
+                    "predicted_tokens": mpc_plan.predicted_tokens,
+                    "confidence": round(mpc_plan.confidence, 3),
+                })
+            except Exception as e:
+                result.errors.append(f"MPC plan: {e}")
+
+        # ── v5.9+: 编目图谱路由 (最优数据库选择) ──
+        catalog_routes = None
+        if self._CatalogLoader:
+            try:
+                _gr, _rsr, _lc = self._CatalogLoader
+                catalog = _lc()
+                species_info = self._species_map.get(species_id, {})
+                query_text = species_info.get("name", species_id.replace("_", " "))
+                catalog_routes = _gr(catalog, query_text, top_n=5, health_aware=True)
+                result.meso_log.append({
+                    "phase": "catalog_route",
+                    "databases": [(r["id"], r.get("_graph_score", 0)) for r in catalog_routes],
+                })
+            except Exception as e:
+                result.errors.append(f"Catalog route: {e}")
+
+        # ── 原始 Phase I ──
         if self.config.mode == "http" or plan.get("full_pipeline"):
             # 快速检测 MCP 是否可用 (npx/uvx 是否存在)
             mcp_available = self._probe_mcp_available()
@@ -664,7 +764,59 @@ class MesoAgent:
 
             self._score_papers(result.papers)
 
+            # ── v5.9+: AgentJudge LLM 语义评估排序 ──
+            if self._AgentJudge:
+                try:
+                    species_info = self._species_map.get(species_id, {})
+                    query_text = species_info.get("name", species_id.replace("_", " "))
+                    judge = self._AgentJudge()
+                    result.papers = judge.rank(query_text, result.papers)
+                    result.meso_log.append({
+                        "phase": "agent_judge",
+                        "papers_evaluated": len(result.papers),
+                    })
+                except Exception as e:
+                    result.errors.append(f"AgentJudge: {e}")
+
+            # ── v5.9+: 编目反馈记录 (搜索→权重自进化) ──
+            if self._CatalogLoader and catalog_routes:
+                try:
+                    _gr, _rsr, _lc = self._CatalogLoader
+                    for route in catalog_routes[:3]:
+                        _rsr(species_id, route["id"], found=len(result.papers), useful=True)
+                except Exception:
+                    pass
+
+            # ── v5.9+: RCCA 情绪刺激 (搜索结果→情绪状态) ──
+            if self._rcca_initialized:
+                try:
+                    if result.new_papers > 0:
+                        self._rcca_emotion.stimulate("discovery", intensity=min(1.0, result.new_papers / 10))
+                    elif len(result.papers) < self.config.min_papers_satisfice:
+                        self._rcca_emotion.stimulate("timeout", intensity=0.5)
+                    if result.errors:
+                        self._rcca_emotion.stimulate("error", intensity=min(1.0, len(result.errors) / 3))
+                except Exception:
+                    pass
+
             result.new_papers = self._detect_new_papers(result.papers)
+
+            # ── v5.9+: MPC 学习更新 (实际结果→引擎模型) ──
+            if self._MPCWorldModel and mpc_plan and result.papers:
+                try:
+                    mpc = self._MPCWorldModel()
+                    for engine in mpc_plan.engines:
+                        engine_papers = [p for p in result.papers
+                                         if p.get("source", "").lower() == engine.lower()
+                                         or engine.lower() in p.get("source", "").lower()]
+                        mpc.update(
+                            engine,
+                            actual_papers=len(engine_papers),
+                            actual_tokens=result.total_cost,
+                            success=len(engine_papers) > 0,
+                        )
+                except Exception:
+                    pass
 
         # ── Inference (P3) ──
         if self.config.enable_inference and self._InferenceEngine and result.papers:
@@ -712,6 +864,57 @@ class MesoAgent:
                 pass
 
         # ── Stop reason ──
+
+        # ── v5.9+: Hub-and-Spoke 分类报告生成 ──
+        if self._ReportFormatter and result.papers:
+            try:
+                _gqr, _cp = self._ReportFormatter
+                species_info = self._species_map.get(species_id, {})
+                sci_name = species_info.get("name", species_id.replace("_", " "))
+                cn_name = species_info.get("chinese", "")
+                report_md = _gqr(
+                    result.papers,
+                    species_name=sci_name,
+                    chinese_name=cn_name,
+                    genus=sci_name.split(" ")[0] if " " in sci_name else "",
+                    species_ep=sci_name.split(" ")[1] if " " in sci_name else "",
+                    detail="summary",
+                )
+                result.meso_log.append({
+                    "phase": "report",
+                    "report_preview": report_md[:500] if report_md else "",
+                })
+            except Exception as e:
+                result.errors.append(f"Report: {e}")
+
+        # ── v5.9+: RCCA 反思循环 (自我模型更新) ──
+        if self._rcca_initialized:
+            try:
+                # 更新自我模型
+                experience = {
+                    "truth_seeking": 0.9 if not result.errors else 0.5,
+                    "uncertainty": 0.3 if result.papers else 0.8,
+                    "curiosity": 0.7 if result.new_papers else 0.3,
+                    "efficiency": min(1.0, len(result.papers) / max(result.total_cost / 1000, 1)),
+                }
+                state = self._rcca_self.update_with_experience(
+                    experience,
+                    prediction_error=1.0 - min(1.0, len(result.papers) / max(result.volume_estimate, 1)),
+                )
+                # 反思
+                channels = ["search", "verify", "infer"]
+                self._rcca_reflection.run(channels, transposition=self._rcca_transposition)
+                result.meso_log.append({
+                    "phase": "rcca",
+                    "stability": round(state.stability, 3),
+                    "meta_stability": round(state.meta_stability, 3),
+                    "emotion": self._rcca_emotion.behavioral_tendency,
+                    "self_reflections": self._rcca_self._self_identity.reflection_count,
+                })
+            except Exception as e:
+                result.errors.append(f"RCCA: {e}")
+
+        # ── 原始 Stop reason ──
         if not result.stop_reason:
             if len(result.papers) >= self.config.min_papers_satisfice:
                 result.stop_reason = f"satisfice ({len(result.papers)} >= {self.config.min_papers_satisfice})"
@@ -729,10 +932,93 @@ class MesoAgent:
 
         return result
 
+    # ── Health / Info (v5.9+: 集成 search_engine + RCCA) ──────────
 
-# ═══════════════════════════════════════════════════════════
-# Helpers
-# ═══════════════════════════════════════════════════════════
+    def health(self) -> Dict[str, Any]:
+        """健康检查：汇总所有子模块状态."""
+        self._ensure_deps()
+        status = {
+            "project": "cognitive-search-engine",
+            "agent": "MesoAgent",
+            "status": "HEALTHY",
+            "modules": {},
+        }
+        # 各模块健康状态
+        module_checks = [
+            ("WorldModel", self._WorldModel),
+            ("SearchCoordinator", self._SearchCoordinator),
+            ("Validator", self._Validator),
+            ("CredibilityScorer", self._CredibilityScorer),
+            ("EvolutionExecutor", self._EvolutionExecutor),
+            ("InferenceEngine", self._InferenceEngine),
+            ("MPCWorldModel", self._MPCWorldModel),
+            ("CatalogLoader", self._CatalogLoader),
+            ("AgentJudge", self._AgentJudge),
+            ("ReportFormatter", self._ReportFormatter),
+        ]
+        for name, mod in module_checks:
+            status["modules"][name] = "available" if mod else "unavailable"
+
+        # CognitiveSearchEngine
+        if self._CognitiveSearchEngine:
+            try:
+                cse = self._CognitiveSearchEngine()
+                status["modules"]["CognitiveSearchEngine"] = cse.health()
+            except Exception:
+                status["modules"]["CognitiveSearchEngine"] = "error"
+        else:
+            status["modules"]["CognitiveSearchEngine"] = "unavailable"
+
+        # RCCA
+        if self._rcca_initialized:
+            try:
+                status["rcca"] = {
+                    "self_model": self._rcca_self.report(),
+                    "emotion": self._rcca_emotion.report(),
+                    "transposition": self._rcca_transposition.report(),
+                    "reflection": self._rcca_reflection.report(),
+                }
+            except Exception:
+                status["rcca"] = "error"
+        else:
+            status["rcca"] = "not_initialized"
+
+        # Overall health
+        unavailable = sum(1 for v in status["modules"].values() if v == "unavailable")
+        if unavailable >= 5:
+            status["status"] = "DEGRADED"
+        return status
+
+    def info(self) -> Dict[str, Any]:
+        """能力信息."""
+        self._ensure_deps()
+        info = {
+            "project": "cognitive-search-engine",
+            "version": "5.9.0",
+            "agent": "MesoAgent (BDI + ReAct + RCCA)",
+            "capabilities": {
+                "bdi_search": True,
+                "multi_source_parallel_search": True,
+                "mpc_cost_optimization": self._MPCWorldModel is not None,
+                "catalog_graph_routing": self._CatalogLoader is not None,
+                "llm_semantic_evaluation": self._AgentJudge is not None,
+                "hub_and_spoke_report": self._ReportFormatter is not None,
+                "rcca_self_model": self._rcca_initialized,
+                "credibility_scoring": self._CredibilityScorer is not None,
+                "evolution_feedback": self._EvolutionExecutor is not None,
+            },
+        }
+        if self._CognitiveSearchEngine:
+            try:
+                cse = self._CognitiveSearchEngine()
+                info["cognitive_search_engine"] = cse.info()
+            except Exception:
+                pass
+        return info
+
+    # ═══════════════════════════════════════════════════════════
+    # Helpers
+    # ═══════════════════════════════════════════════════════════
 
 def _extract_papers(mcp_results: List[dict], source: str) -> List[Dict[str, Any]]:
     """从 MCP 工具返回的结果中提取结构化论文数据.

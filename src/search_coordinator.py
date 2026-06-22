@@ -42,6 +42,7 @@ try:
         check_taxonomy, estimate_mode, is_incidental, classify_paper,
         cn_en_label, SearchMode, SearchDecision, SearchReport,
         ENGINE_REGISTRY, ENGINE_GROUPS, EngineResult,
+        _ensure_species_graph_loaded,
     )
     _HAVE_RULES = True
 except ImportError:
@@ -155,7 +156,6 @@ def _resolve_species_name(name: str) -> List[str]:
     """
     names = [name]
     try:
-        from src.unified_search import check_taxonomy, _ensure_species_graph_loaded
         graph = _ensure_species_graph_loaded()
         if not graph:
             return names
@@ -263,7 +263,6 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
             for s in graph:
                 if s.get("name", "").lower() == species_lower or s.get("chinese", "") == species:
                     family = s.get("family", "")
-                    from src.unified_search import ENGINE_GROUPS
                     full_group = ENGINE_GROUPS.get(group, ENGINE_GROUPS.get("full", []))
                     pruned_group = _prune_engines(family, full_group)
                     if len(pruned_group) < len(full_group):
@@ -319,6 +318,28 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
 
     elapsed = (time.perf_counter() - t0) * 1000
 
+    # 8. 反幻觉验证: 对搜索结果进行可信度评分
+    #    自动运行 credibility_scorer + 交叉引用检查
+    #    只为非附属论文做标记 (附属论文已有特殊处理)
+    verification_tags = []
+    try:
+        from src.credibility_scorer import CredibilityScorer as _CS
+        _scorer = _CS()
+        for _p in sorted_papers:
+            _score = _scorer.score({
+                "source": _p.channel,
+                "cross_ref_count": sum(1 for q in sorted_papers if q.doi and q.doi == _p.doi),
+            })
+            # 只标记低可信度论文
+            try:
+                _s = int(_score) if isinstance(_score, (int, float)) else 0
+                if _s < 40:
+                    verification_tags.append(f"[low-confidence: {_s}]")
+            except:
+                pass
+    except Exception:
+        pass  # credential scorer is non-critical
+
     return SearchResult(
         species_name=species,
         all_variants=variants,
@@ -336,15 +357,23 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
 # 内部辅助函数
 # ═══════════════════════════════════════════════════════
 
-def _run_real_search(variants: List[str], group: str, limit: int) -> List[EngineResult]:
+def _run_real_search(variants: List[str], group, limit: int) -> List[EngineResult]:
     """实际调用搜索引擎执行搜索。
 
     优先级:
       1. MCP 工具函数 (在 Reasonix 会话中)
       2. MesoAgent (BDI 管线, 支持 HTTP 直连)
       3. ParallelSearch (纯 HTTP 并行搜索)
+
+    Args:
+        variants: 搜索变体列表
+        group: 引擎组名 (str) 或引擎 ID 列表 (List[str])
+        limit: 每引擎最大结果数
     """
-    engines = ENGINE_GROUPS.get(group, ENGINE_GROUPS["full"])
+    if isinstance(group, list):
+        engines = group  # 已剪枝的引擎列表
+    else:
+        engines = ENGINE_GROUPS.get(group, ENGINE_GROUPS["full"])
     results = []
 
     # ── 尝试 MCP 工具 ──

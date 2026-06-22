@@ -518,6 +518,42 @@ def run_search(species_name: str, max_results: int = 20,
 
     papers = search_mcp_priority(search_queries, max_results)
 
+    # Step 4b: 如果 MCP 返回过少 (< max_results), 桥接到 reasonix_parallel_search
+    if len(papers) < max_results:
+        try:
+            from scripts.reasonix_parallel_search import parallel_search as reasonix_search
+            bridge_result = reasonix_search(scientific_name, max_results=max_results * 2, timeout=20)
+            bridge_papers = []
+            for h in bridge_result.get("hits", []):
+                bridge_papers.append({
+                    "doi": h.doi,
+                    "title": h.title,
+                    "authors": [{"name": a} for a in h.authors] if isinstance(h.authors, list) else h.authors,
+                    "year": str(h.year),
+                    "journal": h.journal,
+                    "abstract": h.abstract if isinstance(h.abstract, str) else "",
+                    "source": f"bridge_{h.source}",
+                    "pmid": h.pmid or "",
+                    "pmcid": "",
+                    "url": h.url or f"https://doi.org/{h.doi}" if h.doi else "",
+                    "credibility_score": h.credibility,
+                    "category": "🌊 生态与资源",
+                    "lang": ["EN", 10],
+                })
+            # Merge with MCP results, bridge papers have lower priority
+            existing_dois = set()
+            for p in papers:
+                d = (p.get("doi") or "").lower().strip()
+                if d:
+                    existing_dois.add(d)
+            for bp in bridge_papers:
+                d = (bp.get("doi") or "").lower().strip()
+                if d and d not in existing_dois:
+                    existing_dois.add(d)
+                    papers.append(bp)
+        except Exception:
+            pass  # Bridge is optional enhancement
+
     # Step 5: DOI去重
     seen_doi: set = set()
     deduped: List[Dict] = []
