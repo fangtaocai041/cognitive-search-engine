@@ -118,6 +118,7 @@ class SearchResult:
     engine_stats: Dict[str, int]  # 引擎统计
     elapsed_ms: float           # 总耗时
     error: str = ""             # 错误信息
+    emergence_signals: list = field(default_factory=list)  # v8.0: 涌现检测信号
 
     def summary(self) -> str:
         """生成分类概览 — 按需展开"""
@@ -132,6 +133,15 @@ class SearchResult:
         total_engines = sum(self.engine_stats.values())
         ok = self.engine_stats.get("ok", 0)
         lines.append(f"引擎: {ok}/{total_engines} OK ({self.elapsed_ms:.0f}ms)")
+        # v8.0: 涌现信号
+        if self.emergence_signals:
+            lines.append("")
+            lines.append("🔮 涌现检测:")
+            for sig in self.emergence_signals:
+                desc = sig.get("description", str(sig))
+                conf = sig.get("confidence", 0)
+                icon = "🔴" if conf > 0.7 else "🟡" if conf > 0.4 else "🟢"
+                lines.append(f"  {icon} {desc} (置信度: {conf:.0%})")
         lines.append("")
         for cat, papers in self.categories.items():
             if papers:
@@ -341,7 +351,7 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
         pass  # credential scorer is non-critical
 
     # ── 涌现检测钩子 (v8.0) — 搜索完成后自动检测研究趋势涌现 ──
-    _record_emergence(species, sorted_papers, categories, engine_stats, search_mode)
+    emergence_signals = _record_emergence(species, sorted_papers, categories, engine_stats, search_mode)
 
     return SearchResult(
         species_name=species,
@@ -353,6 +363,7 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
         accidental_count=accidental_count,
         engine_stats=engine_stats,
         elapsed_ms=elapsed,
+        emergence_signals=emergence_signals,
     )
 
 
@@ -366,13 +377,9 @@ def _record_emergence(
     categories: dict,
     engine_stats: dict,
     search_mode: str,
-) -> None:
-    """搜索后自动记录指标到涌现检测引擎。
-
-    记录每次搜索的论文数、分类分布、引擎统计，
-    由 EmergenceMonitor 检测异常模式（如某物种论文激增）。
-    静默失败——涌现检测不可用时不影响搜索。
-    """
+) -> list:
+    """搜索后自动记录指标到涌现检测引擎，返回检测到的涌现信号。"""
+    signals = []
     try:
         from unified_emergence import EmergenceMonitor, DimensionalLevel
 
@@ -416,10 +423,11 @@ def _record_emergence(
                     f"[emergence] {species}: {sig.get('description', str(sig))} "
                     f"(confidence={sig.get('confidence', 0):.2f})"
                 )
+        return signals or []
     except ImportError:
-        pass  # unified_emergence not available
+        return []
     except Exception:
-        pass  # 涌现检测不影响搜索主流程
+        return []
 
 
 # ═══════════════════════════════════════════════════════
