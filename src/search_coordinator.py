@@ -335,8 +335,8 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
                 _s = int(_score) if isinstance(_score, (int, float)) else 0
                 if _s < 40:
                     verification_tags.append(f"[low-confidence: {_s}]")
-            except:
-                pass
+            except (TypeError, ValueError):
+                pass  # 非数字类型，跳过低可信度标记
     except Exception:
         pass  # credential scorer is non-critical
 

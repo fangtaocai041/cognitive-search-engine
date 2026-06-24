@@ -1,6 +1,14 @@
 """
 MesoAgent — 中宇宙协调层 (Mesocosm Orchestrator)
 
+⚠️ 50KB monster module — TODO Phase 4: split into sub-modules:
+  - meso_agent/_config.py     → MesoConfig, MesoSearchResult
+  - meso_agent/_execute.py    → _execute_search_http, _execute_search_mcp (200+ lines)
+  - meso_agent/_validate.py   → _validate_papers, _score_papers, _dedup_papers
+  - meso_agent/_volume.py     → _estimate_volume, _estimate_literature_volume_multi
+  - meso_agent/_agent.py      → MesoAgent core (search, health, info)
+  For now, section markers (═══) serve as logical boundaries.
+
 Cognitive-search-engine 的 BDI 认知架构入口：
   Belief  (信念)  → 加载物种图谱 + 文献量估算
   Desire  (欲望)  → 规划搜索策略 (自适应模式选择)

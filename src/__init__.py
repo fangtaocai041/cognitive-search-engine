@@ -52,7 +52,20 @@ def _load_dotenv(path: _Optional[str] = None) -> None:
 
 _load_dotenv()
 
-__version__ = "5.9.0"
+def _load_version():
+    """Read version from VERSION.yaml — single source of truth."""
+    try:
+        from pathlib import Path as _VP
+        import yaml
+        _vpath = _VP(__file__).resolve().parent.parent.parent / "VERSION.yaml"
+        with open(_vpath, encoding="utf-8") as _f:
+            _data = yaml.safe_load(_f)
+        _key = _VP(__file__).resolve().parent.parent.name
+        return _data.get("projects", {}).get(_key, {}).get("version", "0.0.0")
+    except Exception:
+        return "0.0.0"
+
+__version__ = _load_version()
 
 from .adapter import CognitiveSearchAdapter
 from .meso_agent import create_agent, MesoAgent

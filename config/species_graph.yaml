@@ -1,3 +1,6 @@
+# ⚠️ NON-CANONICAL COPY — canonical: fish-ecology-assistant/config/fish_species_kb.yaml
+# This species graph is maintained by cognitive-search-engine for search optimization.
+# Authoritative species data and profiles are at fish-ecology-assistant.
 graph:
   papers:
   - authors:

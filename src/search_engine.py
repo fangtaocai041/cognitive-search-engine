@@ -1,8 +1,15 @@
-"""CognitiveSearchEngine — 多源并行搜索编排器。"""
+"""CognitiveSearchEngine — 多源并行搜索编排器。
+
+⚠️ DEPRECATED (v5.9+): 此模块为早期 stub，实际搜索功能已迁移至
+   search_coordinator.py + unified_search.py + parallel_search.py。
+   保留此文件仅因为 meso_agent.py 和测试中存在向后兼容引用。
+   计划 v6.0 移除。
+"""
 
 from __future__ import annotations
 
 import logging
+import warnings
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -26,7 +33,7 @@ class SearchResult:
 
 
 class CognitiveSearchEngine:
-    """多源并行搜索引擎.
+    """多源并行搜索引擎 — ⚠️ STUB (已废弃).
 
     Features:
       - Google Scholar 优先搜索
@@ -36,19 +43,29 @@ class CognitiveSearchEngine:
     """
 
     def __init__(self) -> None:
+        warnings.warn(
+            "CognitiveSearchEngine is DEPRECATED. "
+            "Use search_coordinator.search() or unified_search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self._initialized = True
 
     def search(self, query: str, max_results: int = 20) -> List[SearchResult]:
-        """执行多源并行搜索.
+        """⚠️ STUB: 始终返回空列表。
 
-        Args:
-            query: 搜索关键词
-            max_results: 最大返回结果数
-
-        Returns:
-            按可信度排序的搜索结果列表
+        实际搜索请使用: from src.search_coordinator import search
         """
-        logger.info(f"Search: {query} (max={max_results})")
+        warnings.warn(
+            "CognitiveSearchEngine.search() is a STUB that always returns []. "
+            "Use search_coordinator.search(species=..., group=..., limit=...) instead.",
+            FutureWarning,
+            stacklevel=2,
+        )
+        logger.warning(
+            f"CognitiveSearchEngine.search() called but is a STUB. "
+            f"Query: {query} — returning empty list."
+        )
         return []
 
     def health(self) -> Dict[str, Any]:

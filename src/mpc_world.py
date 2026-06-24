@@ -93,7 +93,8 @@ class MPCWorldModel:
                     for e, m in self._models.items()}
             with open(self._state_file, 'w') as f:
                 json.dump(data, f)
-        except: pass
+        except Exception:
+            pass  # 状态文件写入失败不影响引擎运行
 
     def _load(self):
         try:
@@ -105,4 +106,5 @@ class MPCWorldModel:
                         papers_per_query=d.get('ppq', 10),
                         tokens_per_paper=d.get('tpp', 200),
                         success_rate=d.get('sr', 0.9))
-        except: pass
+        except Exception:
+            pass  # 状态文件读取失败，使用默认模型参数
