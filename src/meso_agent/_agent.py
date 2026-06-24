@@ -58,9 +58,11 @@ class MesoAgent:
         self._rcca_transposition: Any = None  # TranspositionLayer
         self._rcca_reflection: Any = None  # ReflectionLoop
         self._rcca_initialized: bool = False
-        # 涌现状态追踪 (per-species)
+        # 涌现状态追踪 (per-species) — v8.0: 跨搜索持久化
         self._emergence_signals: Dict[str, list[dict]] = {}
         self._emergence_mode: Dict[str, str] = {}  # "normal" | "surge" | "stalled"
+        self._emergence_file = self._engine_root / "data" / "emergence_state.json"
+        self._load_emergence_state()
 
     # ── Lazy imports ──────────────────────────────────────────────
 
@@ -791,6 +793,8 @@ class MesoAgent:
                 else:
                     self._emergence_signals.pop(species_id, None)
 
+                self._save_emergence_state()  # v8.0: 持久化跨搜索
+
                 result.adaptations = actions
                 result.meso_log.append({
                     "phase": "evolution",
@@ -868,6 +872,30 @@ class MesoAgent:
             p.pop("_phase", None)
 
         return result
+
+    # ── Emergence Persistence (v8.0) ────────────────────────────────
+
+    def _load_emergence_state(self) -> None:
+        """从磁盘加载跨搜索涌现状态。"""
+        try:
+            if self._emergence_file.exists():
+                data = json.loads(self._emergence_file.read_text(encoding="utf-8"))
+                self._emergence_signals = data.get("signals", {})
+                self._emergence_mode = data.get("modes", {})
+        except Exception:
+            pass
+
+    def _save_emergence_state(self) -> None:
+        """持久化涌现状态到磁盘。"""
+        try:
+            self._emergence_file.parent.mkdir(parents=True, exist_ok=True)
+            self._emergence_file.write_text(json.dumps({
+                "signals": self._emergence_signals,
+                "modes": self._emergence_mode,
+                "updated": time.strftime("%Y-%m-%d %H:%M:%S"),
+            }, ensure_ascii=False, default=str), encoding="utf-8")
+        except Exception:
+            pass
 
     # ── Health / Info (v5.9+: 集成 search_engine + RCCA) ──────────
 

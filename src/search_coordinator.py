@@ -340,6 +340,9 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
     except Exception:
         pass  # credential scorer is non-critical
 
+    # ── 涌现检测钩子 (v8.0) — 搜索完成后自动检测研究趋势涌现 ──
+    _record_emergence(species, sorted_papers, categories, engine_stats, search_mode)
+
     return SearchResult(
         species_name=species,
         all_variants=variants,
@@ -351,6 +354,72 @@ def search(species: str, group: str = "full", limit: int = 10) -> SearchResult:
         engine_stats=engine_stats,
         elapsed_ms=elapsed,
     )
+
+
+# ═══════════════════════════════════════════════════════
+# 涌现检测钩子 (v8.0)
+# ═══════════════════════════════════════════════════════
+
+def _record_emergence(
+    species: str,
+    papers: list,
+    categories: dict,
+    engine_stats: dict,
+    search_mode: str,
+) -> None:
+    """搜索后自动记录指标到涌现检测引擎。
+
+    记录每次搜索的论文数、分类分布、引擎统计，
+    由 EmergenceMonitor 检测异常模式（如某物种论文激增）。
+    静默失败——涌现检测不可用时不影响搜索。
+    """
+    try:
+        from unified_emergence import EmergenceMonitor, DimensionalLevel
+
+        monitor = EmergenceMonitor(emergence_threshold_sigma=2.5, min_sources=2)
+
+        # 记录论文总量
+        monitor.record(
+            metric=f"papers:{species}",
+            value=len(papers),
+            source="search_coordinator",
+            level=DimensionalLevel.D1,
+        )
+
+        # 记录各分类论文数（检测研究热点转移）
+        for cat, count in (categories or {}).items():
+            if count > 0:
+                monitor.record(
+                    metric=f"category:{species}:{cat}",
+                    value=count,
+                    source="search_coordinator",
+                    level=DimensionalLevel.D1,
+                )
+
+        # 记录搜索引擎成功率（检测数据源退化）
+        for engine, stats in (engine_stats or {}).items():
+            if isinstance(stats, dict) and stats.get("count", 0) > 0:
+                monitor.record(
+                    metric=f"engine:{engine}:success",
+                    value=stats["count"],
+                    source="search_coordinator",
+                    level=DimensionalLevel.D0,
+                )
+
+        # 检测涌现
+        signals = monitor.check_emergence()
+        if signals:
+            import logging
+            logger = logging.getLogger(__name__)
+            for sig in signals:
+                logger.info(
+                    f"[emergence] {species}: {sig.get('description', str(sig))} "
+                    f"(confidence={sig.get('confidence', 0):.2f})"
+                )
+    except ImportError:
+        pass  # unified_emergence not available
+    except Exception:
+        pass  # 涌现检测不影响搜索主流程
 
 
 # ═══════════════════════════════════════════════════════
