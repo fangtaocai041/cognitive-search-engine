@@ -21,7 +21,7 @@
 > **Meso-Cosmos Agent**  — BDI + ReAct + Authority Scoring + CN/EN Dynamic Graph + Lazy Loading
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-5.4.0-8b5cf6)](config/agent.yaml)
+[![Version](https://img.shields.io/badge/version-5.6.0-8b5cf6)](config/agent.yaml)
 [![Skills](https://img.shields.io/badge/skills-5-22c55e)](skills/)
 [![MCP](https://img.shields.io/badge/MCP-7-f59e0b)](config/mcp_servers.yaml)
 [![Architecture](https://img.shields.io/badge/architecture-meso_cosmos-8b5cf6)](docs/ARCHITECTURE.md)
