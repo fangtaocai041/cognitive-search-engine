@@ -22,7 +22,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-5.4.0-8b5cf6)](config/agent.yaml)
-[![Skills](https://img.shields.io/badge/skills-5-22c55e)](skills/)
+[![Skills](https://img.shields.io/badge/skills-workspace_level-8b5cf6)](../workspace/skills/)
 [![MCP](https://img.shields.io/badge/MCP-7-f59e0b)](config/mcp_servers.yaml)
 [![Architecture](https://img.shields.io/badge/architecture-meso_cosmos-8b5cf6)](docs/ARCHITECTURE.md)
 [![Multi-LLM](https://img.shields.io/badge/LLM-DeepSeek_%7C_Gemini_%7C_OpenAI-8b5cf6)]()
@@ -30,7 +30,6 @@
 [![Authority Score](https://img.shields.io/badge/authority-scoring_0_100-ec4899)]()
 [![DeepWiki](https://devin.ai/assets/askdeepwiki.png)](https://deepwiki.com/fangtaocai041/cognitive-search-engine)
 [![Docker](https://img.shields.io/badge/Docker-planning-lightgrey)]()
-[![Self-Evolve](https://img.shields.io/badge/self_evolve-feedback_loop-10b981)](skills/self-evolve.md)
 [![Thompson](https://img.shields.io/badge/Thompson_Sampling-bandit-EC4899)]()
 [![PID](https://img.shields.io/badge/PID_control-adaptive-F59E0B)]()
 
@@ -162,7 +161,7 @@ UNDERSTAND → ROUTE → EXECUTE → VALIDATE → SYNTHESIZE → EVOLVE
 | **Dynamic Graph v2.0** | CN/EN-aware auto-update — Chinese journals auto-fill `authors_zh`, new journals auto-register, bilingual dedup | `src/meso_agent.py` (integrated) |
 | **CN/EN Literature Rule** | Chinese journals use Chinese names (杨计平), English use English (Yang Jiping); prevents dual-version duplication | `project memory (high)` |
 | **MCP Timeout Protection** | 15s threading timeout prevents MCP subprocess hang | `src/mcp_client.py` |
-| **Chinese Academic Search Skill** | Specialized search for 8 Chinese journals | `skills/chinese-academic-search.md` |
+| **Chinese Academic Search** | Specialized search for 8 Chinese journals | `workspace/skills/chinese-academic-search.md` |
 
 </details>
 
@@ -477,12 +476,6 @@ cognitive-search-engine/
 │   ├── inference_engine.py       → 🧠 Post-search gap + contradiction detection
 │   ├── evolution_executor.py     → 🔄 7-trigger self-evolution (contradiction-driven)
 │   └── adapter.py                → 🔗 IProjectAdapter + verify_claims()
-├── skills/
-│   ├── graph-search-engine.md    → v4 core: graph traversal + Pareto-optimal
-│   ├── cognitive-species-search.md → v3: semiotics + linguistics + phonetics
-│   ├── chinese-academic-search.md  → 中文期刊搜索 (8 journals)
-│   ├── meso-orchestrator.md      → 🧠 Meso-Cosmos coordination
-│   └── self-evolve.md            → 🧬 Post-search feedback → auto-adjust
 ├── docs/
 │   ├── ARCHITECTURE.md           → 5-layer agent architecture (full docs)
 │   ├── STV_TRIANGLE_ARCHITECTURE.md → Cross-project triangle architecture
