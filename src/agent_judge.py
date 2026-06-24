@@ -10,7 +10,7 @@ Usage:
     ranked = sorted(papers, key=lambda p: scores.get(p['doi'], 0), reverse=True)
 """
 
-import json, logging
+import json, logging, os
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
@@ -50,7 +50,34 @@ Score each dimension 0-10:
 Return JSON: {{"relevance": X, "credibility": X, "novelty": X, "completeness": X, "reasoning": "..."}}"""
 
     def __init__(self, model_func: Callable = None):
-        self._model = model_func  # LLM call function
+        self._model = model_func  # LLM call function (optional, falls back to heuristic)
+        self._api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("DEEPSEEK_API_KEY")
+        self._api_base = os.environ.get("LLM_API_BASE", "https://api.openai.com/v1/chat/completions")
+
+    def _call_llm(self, prompt: str) -> Optional[str]:
+        """Call LLM API if credentials available, otherwise return None."""
+        if not self._api_key:
+            return None
+        try:
+            import urllib.request
+            payload = json.dumps({
+                "model": os.environ.get("LLM_MODEL", "gpt-4o-mini"),
+                "messages": [
+                    {"role": "system", "content": "You are a research paper evaluator. Respond with JSON only."},
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.0,
+                "max_tokens": 200,
+            }).encode()
+            req = urllib.request.Request(self._api_base, data=payload, headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self._api_key}",
+            })
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode())
+                return data["choices"][0]["message"]["content"]
+        except Exception:
+            return None
 
     def evaluate(self, query: str, papers: List[Dict]) -> Dict[str, PaperEval]:
         """Evaluate a list of papers and return scores."""
@@ -67,7 +94,11 @@ Return JSON: {{"relevance": X, "credibility": X, "novelty": X, "completeness": X
                     response = self._model(prompt)
                     scores = json.loads(response) if isinstance(response, str) else response
                 else:
-                    scores = self._heuristic_score(query, paper)
+                    llm_response = self._call_llm(prompt)
+                    if llm_response:
+                        scores = json.loads(llm_response)
+                    else:
+                        scores = self._heuristic_score(query, paper)
 
                 eval_result = PaperEval(
                     doi=paper.get('doi', ''),
