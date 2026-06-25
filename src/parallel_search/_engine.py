@@ -1,5 +1,5 @@
 from __future__ import annotations
-from ._shared import _HEADERS, _TIMEOUT_S, logger
+from ._shared import _HEADERS, _TIMEOUT_S, logger, retry_call, ErrorTier, classify_error, get_engine_breaker
 
 import re
 import time
@@ -58,6 +58,36 @@ _CN_PROVIDERS: Dict[str, Tuple[Callable, int]] = {
     "baidu_scholar": (_search_baidu_scholar, 10),
     "wanfang_web": (_search_wanfang_web, 10),
 }
+
+
+# ═══════════════════════════════════════════════════════════════
+# Cache provider — species_graph 预计算查找 (0 token, <1ms)
+# ═══════════════════════════════════════════════════════════════
+
+def _search_species_graph_cache(query: str, max_results: int = 50) -> List[Dict]:
+    """从 species_graph.yaml 缓存中查找已知论文 (0 token, 即时)."""
+    try:
+        from src.unified_search import _ensure_species_graph_loaded
+        graph = _ensure_species_graph_loaded()
+        if not graph:
+            return []
+        species_list = graph.get("graph", {}).get("species", [])
+        query_lower = query.lower().strip()
+        for species in species_list:
+            name = (species.get("name") or "").lower()
+            sci_name = (species.get("scientific_name") or "").lower()
+            if query_lower in name or query_lower in sci_name:
+                papers = species.get("papers", [])
+                for p in papers:
+                    p["source"] = "cache(species_graph)"
+                    p["_cached"] = True
+                return papers[:max_results]
+    except Exception:
+        pass
+    return []
+
+
+_CACHE_PROVIDER = ("cache", (_search_species_graph_cache, 100))
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -214,9 +244,20 @@ class ParallelSearch:
         """
         t0 = time.perf_counter()
         all_papers: List[Dict[str, Any]] = []
+        per_engine_results: List[List[Dict]] = []  # for RRF fusion
         succeeded: List[str] = []
         failed: List[str] = []
         futures = []
+
+        # ── Cache-first: 0-token graph lookup (Semantic Scholar hybrid pattern) ──
+        cache_name, (cache_fn, cache_max) = _CACHE_PROVIDER
+        cache_results = cache_fn(query, max_per_provider)
+        if cache_results:
+            per_engine_results.append(cache_results)
+            succeeded.append(f"{cache_name}({len(cache_results)})")
+        else:
+            per_engine_results.append([])
+            failed.append(f"{cache_name}(empty)")
 
         # ── Thompson Sampling: select optimal provider subset ──
         active_providers = self._providers
@@ -233,38 +274,64 @@ class ParallelSearch:
                     selected.append(e)
             active_providers = selected
 
-        # 提交国际源
+        # 提交国际源 (带重试 + 熔断)
         for name in active_providers:
             fn, default_max = _PROVIDERS.get(name, (None, 0))
             if fn is None:
                 continue
+            # ── 熔断检查 ──
+            breaker = get_engine_breaker(name)
+            if not breaker.can_pass():
+                failed.append(f"{name}(suspended)")
+                per_engine_results.append([])
+                continue
             limit = min(max_per_provider, default_max)
-            futures.append((name, self._pool.submit(fn, query, limit)))
+            futures.append((name, self._pool.submit(
+                lambda f=fn, q=query, l=limit: retry_call(f, q, l, max_retries=2),  # noqa: E501
+            )))
 
-        # 提交中文源
+        # 提交中文源 (带重试 + 熔断)
         if chinese_name:
             for name, (fn_cn, default_max_cn) in _CN_PROVIDERS.items():
+                breaker = get_engine_breaker(name)
+                if not breaker.can_pass():
+                    failed.append(f"{name}(suspended)")
+                    per_engine_results.append([])
+                    continue
                 limit = min(max_per_provider, default_max_cn)
-                futures.append((name, self._pool.submit(fn_cn, chinese_name, limit)))
+                futures.append((name, self._pool.submit(
+                    lambda f=fn_cn, q=chinese_name, l=limit: retry_call(f, q, l, max_retries=2),  # noqa: E501
+                )))
 
-        # 收集结果
+        # 收集结果 (带错误分类 + 熔断反馈)
         for name, future in futures:
+            breaker = get_engine_breaker(name)
             try:
-                result = future.result(timeout=_TIMEOUT_S + 5)
+                result = future.result(timeout=_TIMEOUT_S + 10)
                 if result:
                     all_papers.extend(result)
+                    per_engine_results.append(result)
                     succeeded.append(name)
+                    breaker.record_success()
                 else:
-                    failed.append(name)
+                    failed.append(f"{name}(empty)")
+                    per_engine_results.append([])
+                    breaker.record_failure()
             except Exception as e:
-                logger.debug(f"Provider '{name}' failed: {e}")
-                failed.append(name)
+                tier = classify_error(e)
+                label = f"{name}({tier.value})"
+                failed.append(label)
+                per_engine_results.append([])
+                if tier in (ErrorTier.SUSPEND, ErrorTier.FATAL):
+                    breaker.record_failure()
+                logger.debug("[%s] %s: %s", tier.value, name, e)
 
-        # 去重
-        deduped = _deduplicate(all_papers)
+        # ── 结果融合 (RRF 默认, CombMNZ 可选) ──
+        from ._shared import fuse_results
+        fused = fuse_results(per_engine_results, method="rrf")
 
         # 属名校验 — 过滤标题不含目标属名的噪音论文
-        filtered = _filter_by_genus(query, deduped)
+        filtered = _filter_by_genus(query, fused)
 
         # ── Thompson update: record engine performance ──
         if self._use_thompson:

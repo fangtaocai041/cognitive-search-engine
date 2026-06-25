@@ -272,7 +272,7 @@ class MesoAgent:
             try:
                 url = (f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?"
                        f"db=pubmed&term={_url_quote(scientific_name)}&retmax=0&retmode=json")
-                with _urlreq.urlopen(url, timeout=6) as resp:
+                with _urlreq.urlopen(url, timeout=15) as resp:
                     data = _json.loads(resp.read())
                 pubmed_count = int(data.get("esearchresult", {}).get("count", "0") or "0")
             except Exception as _e:
@@ -282,7 +282,7 @@ class MesoAgent:
             nonlocal scholar_count
             try:
                 url = f"https://api.crossref.org/works?query={_url_quote(scientific_name)}&rows=0"
-                with _urlreq.urlopen(url, timeout=6) as resp:
+                with _urlreq.urlopen(url, timeout=15) as resp:
                     data = _json.loads(resp.read())
                 scholar_count = int(data.get("message", {}).get("total-results", 0) or 0)
             except Exception as _e:
@@ -292,7 +292,7 @@ class MesoAgent:
             nonlocal openalex_count
             try:
                 url = f"https://api.openalex.org/works?filter=title.search:{_url_quote(scientific_name)}&per_page=1"
-                with _urlreq.urlopen(url, timeout=6) as resp:
+                with _urlreq.urlopen(url, timeout=15) as resp:
                     data = _json.loads(resp.read())
                 openalex_count = int(data.get("meta", {}).get("count", 0) or 0)
             except Exception as _e:
@@ -302,7 +302,7 @@ class MesoAgent:
             futs = [pool.submit(f) for f in (_fetch_pubmed, _fetch_crossref, _fetch_openalex)]
             for fut in as_completed(futs):
                 try:
-                    fut.result(timeout=8)
+                    fut.result(timeout=15)
                 except Exception as _e:
                     logger.warning(f"Suppressed in meso_agent.py: {type(_e).__name__}: {_e}")
 

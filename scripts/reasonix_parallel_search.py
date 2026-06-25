@@ -71,7 +71,7 @@ def _http_get(url: str, timeout: int = 20, headers: dict = None) -> Tuple[int, s
 
 def _safe_int(s: Any) -> Optional[int]:
     try: return int(s)
-    except: return None
+    except (ValueError, TypeError): return None
 
 # ── Engine implementations ─────────────────────────────────────
 

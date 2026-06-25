@@ -360,7 +360,7 @@ class McpClient:
                 name = future_map[future]
                 try:
                     remaining = deadline - time.monotonic()
-                    per_timeout = min(remaining, 30)
+                    per_timeout = min(remaining, 60)
                     if per_timeout <= 0:
                         per_timeout = 5
                     call_results = future.result(timeout=per_timeout)

@@ -8,9 +8,9 @@ and writes back adapted parameters.
 Triggers (from THREE_PROJECTS_EVOLUTION.md §5.1):
   T1: pipeline_failure     — single pipeline success rate < 60%
   T2: contradiction        — triangulation contradiction rate > 30%
-  T3: emergence_noise      — new paper emergence rate > 20%
+  T3: emergence_noise      — new paper emergence rate > 35%
   T4: recall_drop          — recall rate < 85%
-  T5: token_exceed         — token consumption > 2500/query
+  T5: token_exceed         — token consumption > 10000/query (tuned for DeepSeek)
   T6: dead_end             — 3 consecutive routing failures
   T7: health_check_failure — project health check fails 2 consecutive times
 
@@ -88,9 +88,9 @@ TRIGGERS: list[Trigger] = [
     ),
     Trigger(
         id="T3", name="emergence_noise",
-        condition="new_paper_emergence_rate > 0.20 for 3 consecutive sessions",
+        condition="new_paper_emergence_rate > 0.35 for 3 consecutive sessions",
         metric_key="new_paper_emergence_rate",
-        threshold=0.20, comparator=">", consecutive_required=3,
+        threshold=0.35, comparator=">", consecutive_required=3,
         action="decrease emergence_threshold by 1 (raise bar)",
         param_to_adjust="emergence_threshold",
         adjust_direction="increase", adjust_amount=1,  # increase threshold = stricter
@@ -106,9 +106,9 @@ TRIGGERS: list[Trigger] = [
     ),
     Trigger(
         id="T5", name="token_exceed",
-        condition="avg_tokens_per_query > 2500 for 3 consecutive sessions",
+        condition="avg_tokens_per_query > 10000 for 3 consecutive sessions",
         metric_key="avg_tokens_per_query",
-        threshold=2500, comparator=">", consecutive_required=3,
+        threshold=10000, comparator=">", consecutive_required=3,
         action="decrease max_revision_rounds by 1",
         param_to_adjust="max_revision_rounds",
         adjust_direction="decrease", adjust_amount=1,

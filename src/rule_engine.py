@@ -60,14 +60,94 @@ class SearchRuleEngine:
         condition = phase.get("activation")
         if condition is None:
             return True
-        return eval(condition, {"__builtins__": {}}, {**ctx, **self._builtins()})
+        return self._safe_eval(condition, {**ctx, **self._builtins()})
 
     def _should_stop_global(self, ctx: dict) -> bool:
         """Check global stop conditions."""
         for sc in self.stop_conditions:
-            if eval(sc["condition"], {"__builtins__": {}}, {**ctx, **self._builtins()}):
+            if self._safe_eval(sc["condition"], {**ctx, **self._builtins()}):
                 return True
         return False
+
+    def _safe_eval(self, expr: str, namespace: dict) -> bool:
+        """Safely evaluate a condition expression using AST whitelist.
+
+        Only allows: Compare, BoolOp, UnaryOp(Not), Name, Constant,
+        Call(to whitelisted functions), and safe operators.
+        No attribute access, no comprehensions, no imports.
+        """
+        import ast
+
+        # Whitelisted function names
+        _SAFE_FUNCS = {"len", "any", "max", "min", "filter"}
+
+        # Whitelisted operator types
+        _SAFE_OPS = {
+            ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE,
+            ast.Is, ast.IsNot, ast.In, ast.NotIn,
+            ast.And, ast.Or,
+            ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Mod,
+            ast.Not, ast.USub,
+        }
+
+        try:
+            tree = ast.parse(expr.strip(), mode="eval")
+        except SyntaxError:
+            import logging
+            logging.getLogger("cognitive.rule_engine").warning(
+                "Invalid condition syntax: %s", expr
+            )
+            return False
+
+        def _check(node):
+            """Recursively validate AST node against whitelist."""
+            if isinstance(node, ast.Expression):
+                return _check(node.body)
+            if isinstance(node, ast.Constant):
+                return True
+            if isinstance(node, ast.Name):
+                return True
+            if isinstance(node, ast.BoolOp):
+                return all(_check(v) for v in node.values)
+            if isinstance(node, ast.Compare):
+                return _check(node.left) and all(_check(c) for c in node.comparators)
+            if isinstance(node, ast.UnaryOp):
+                if type(node.op) not in _SAFE_OPS:
+                    return False
+                return _check(node.operand)
+            if isinstance(node, ast.BinOp):
+                if type(node.op) not in _SAFE_OPS:
+                    return False
+                return _check(node.left) and _check(node.right)
+            if isinstance(node, ast.Call):
+                # Only allow calls to whitelisted function names
+                if isinstance(node.func, ast.Name) and node.func.id in _SAFE_FUNCS:
+                    return all(_check(a) for a in node.args)
+                return False
+            if isinstance(node, ast.Subscript):
+                # Allow dict access: config["key"]
+                return True
+            if isinstance(node, ast.Index):
+                return _check(node.value)  # py<3.9 compat
+            # Reject: Attribute, ListComp, DictComp, Lambda, etc.
+            return False
+
+        if not _check(tree):
+            import logging
+            logging.getLogger("cognitive.rule_engine").warning(
+                "Unsafe condition rejected: %s", expr
+            )
+            return False
+
+        # Now safe to eval with empty builtins + provided namespace
+        try:
+            return bool(eval(expr, {"__builtins__": {}}, namespace))
+        except Exception:
+            import logging
+            logging.getLogger("cognitive.rule_engine").debug(
+                "Condition evaluation failed: %s", expr, exc_info=True
+            )
+            return False
 
     def _execute_phase(self, name: str, phase: dict, ctx: dict) -> dict:
         """Execute a single phase. Stub — delegates to MCP tools in production."""
@@ -77,10 +157,16 @@ class SearchRuleEngine:
         return {"phase": name, "function": fn, "tools_used": tools, "new_papers": []}
 
     def _builtins(self) -> dict:
+        # Dynamic budget: read from workspace token_budget system
+        try:
+            from workspace import get_token_budget
+            _budget = get_token_budget()
+        except Exception:
+            _budget = 150000  # fallback
         return {
             "len": len, "any": any, "max": max, "min": min, "filter": filter,
             "config": {
-                "search": {"energy": {"min_papers_satisfice": 8, "max_total_tokens": 50000}}
+                "search": {"energy": {"min_papers_satisfice": 15, "max_total_tokens": _budget}}
             }
         }
 

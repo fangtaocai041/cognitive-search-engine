@@ -1,5 +1,8 @@
-# Self-Evolution Config — 自适应自进化
+# Self-Evolution Config — 自适应自进化 (DeepSeek-optimized v2.0)
 # "活的系统": 搜索参数根据历史效果自动调整
+# 
+# DeepSeek API pricing: ~$0.27/1M input + $1.10/1M output ≈ cheap enough to be aggressive
+# All thresholds relaxed 3-5x vs original OpenAI-era settings
 
 evolution:
   enabled: true
@@ -7,10 +10,10 @@ evolution:
   # 自适应参数
   adaptive_params:
     satisfice_threshold:
-      current: 8
-      range: [5, 20]
+      current: 15
+      range: [8, 30]
       adjust_by: "recall_gap"  # 如果经常遗漏论文 → 提高阈值
-      last_adjusted: "2026-06-06"
+      last_adjusted: "2026-06-26"
       
     ig_prune_threshold:
       current: 0.005
@@ -47,9 +50,9 @@ evolution:
 
     # 触发自进化的条件
     evolution_triggers:
-      recall_drop:            # 连续 3 次搜索 recall < 50%
-        condition: "recall_vs_expected < 0.5 for 3 consecutive searches"
-        action: "increase satisfice_threshold by 2 AND activate more layers"
+      recall_drop:            # 连续 3 次搜索 recall < 35%
+        condition: "recall_vs_expected < 0.35 for 3 consecutive searches"
+        action: "increase satisfice_threshold by 3 AND activate more layers"
       efficiency_gain:         # 连续 5 次搜索效率提升
         condition: "token_efficiency > baseline × 1.2 for 5 consecutive searches"
         action: "prune lowest-IG layer"

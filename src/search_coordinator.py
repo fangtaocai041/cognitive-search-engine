@@ -55,8 +55,8 @@ except ImportError:
 # 江汉大学课题组 — 论文优先级标记
 # ═══════════════════════════════════════════════════════
 
-# 本课题组作者列表 (按字母排序)
-JHU_AUTHORS = {
+# 本课题组作者列表 (按字母排序, 不可变集合防止误改)
+JHU_AUTHORS = frozenset({
     # 导师组
     "fei xiong", "熊飞",
     "hongyan liu", "刘红艳",
@@ -72,10 +72,10 @@ JHU_AUTHORS = {
     # 合作者 (江汉大学)
     "xinbin duan", "段辛斌",
     "huiwu tian", "田辉伍",
-}
+})
 
-# 中文期刊白名单 (引用自 ZN_EN_RULES.md)
-CN_JOURNALS = {
+# 中文期刊白名单 (不可变集合防止误改, 引用自 ZN_EN_RULES.md)
+CN_JOURNALS = frozenset({
     "水生生物学报", "acta hydrobiologica sinica",
     "生物多样性", "biodiversity science",
     "中国水产科学", "journal of fishery sciences of china",
@@ -84,7 +84,7 @@ CN_JOURNALS = {
     "南方水产科学", "south china fisheries science",
     "生态学报", "acta ecologica sinica",
     "生态科学", "ecological science",
-}
+})
 
 
 # ═══════════════════════════════════════════════════════
@@ -548,24 +548,57 @@ def _run_real_search(variants: List[str], group, limit: int) -> List[EngineResul
     return results
 
 
+# ── MCP 参数合约 + 超时控制 ──
+
+# 每个引擎的 (参数名, 单次超时秒数) 映射
+_MCP_CONTRACT = {
+    "scholar":      ({"query": "query", "limit": "limit"}, 60),
+    "ncbi_esearch": ({"query": "query", "limit": "maxResults"}, 50),
+    "article":      ({"query": "keyword", "limit": "max_results"}, 60),
+    "tavily":       ({"query": "query", "limit": "max_results"}, 40),
+    "web_search":   ({"query": "query", "limit": "topK"}, 40),
+    "exa":          ({"query": "query", "limit": "numResults"}, 40),
+    "search_literature": ({"query": "keyword", "limit": "max_results"}, 60),
+    "crawl":        ({"url": "url", "limit": "limit"}, 90),
+    "_default":     ({"query": "query"}, 40),
+}
+
+
 def _call_mcp(fn: Callable, query: str, limit: int) -> Any:
-    """调用MCP工具并返回结果。"""
+    """调用MCP工具，带超时控制和统一参数合约。
+
+    参数合约: 每个引擎的参数名不同(query/keyword, limit/maxResults/numResults/topK),
+    这里统一映射，避免传错参数导致静默失败。
+    """
+    import concurrent.futures
+
     name = getattr(fn, "__name__", str(fn))
 
-    if "scholar" in name and "graph" in name:
-        return fn(query=query, limit=limit)
-    elif "ncbi_esearch" in name:
-        return fn(query=query, maxResults=limit)
-    elif "article_search" in name:
-        return fn(keyword=query, max_results=limit)
-    elif "tavily" in name:
-        return fn(query=query, max_results=min(limit, 20))
-    elif "web_search" in name:
-        return fn(query=query, topK=min(limit, 10))
-    elif "exa" in name:
-        return fn(query=query, numResults=min(limit, 20))
-    else:
-        return fn(query=query)
+    # 匹配引擎合约
+    contract, timeout_s = _MCP_CONTRACT["_default"]
+    for key, (ctr, tmo) in _MCP_CONTRACT.items():
+        if key != "_default" and key in name:
+            contract, timeout_s = ctr, tmo
+            break
+
+    # 构建标准化参数
+    kwargs = {}
+    if "query" in contract:
+        kwargs[contract["query"]] = query
+    if "limit" in contract and contract["limit"]:
+        kwargs[contract["limit"]] = min(limit, 50)  # 硬上限防止超大数据
+
+    # 带超时执行
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(fn, **kwargs)
+            return future.result(timeout=timeout_s)
+    except concurrent.futures.TimeoutError:
+        logger.warning("MCP call %s timed out after %ds", name, timeout_s)
+        return None
+    except Exception as e:
+        logger.debug("MCP call %s failed: %s", name, e)
+        return None
 
 
 def _extract_paper_data(p: Dict) -> Paper:

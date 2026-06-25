@@ -57,6 +57,7 @@ Return JSON: {{"relevance": X, "credibility": X, "novelty": X, "completeness": X
     def _call_llm(self, prompt: str) -> Optional[str]:
         """Call LLM API if credentials available, otherwise return None."""
         if not self._api_key:
+            logger.debug("No API key configured, skipping LLM evaluation")
             return None
         try:
             import urllib.request
@@ -76,7 +77,11 @@ Return JSON: {{"relevance": X, "credibility": X, "novelty": X, "completeness": X
             with urllib.request.urlopen(req, timeout=30) as resp:
                 data = json.loads(resp.read().decode())
                 return data["choices"][0]["message"]["content"]
-        except Exception:
+        except (KeyError, IndexError, TypeError) as e:
+            logger.warning("LLM response structure unexpected: %s", e)
+            return None
+        except Exception as e:
+            logger.warning("LLM call failed: %s", e)
             return None
 
     def evaluate(self, query: str, papers: List[Dict]) -> Dict[str, PaperEval]:

@@ -681,7 +681,7 @@ def search_streaming(
     group: str = "standard",
     limit: int = 10,
     max_retries: int = 5,
-    per_engine_timeout_s: float = 60.0,
+    per_engine_timeout_s: float = 120.0,
     on_result: Callable = None,
 ) -> List[EngineResult]:
     """

@@ -69,11 +69,12 @@ class EngineStats:
 class ThompsonEngineSelector:
     """Thompson Sampling multi-armed bandit for search engine selection."""
 
-    def __init__(self, state_file: str = None):
+    def __init__(self, state_file: str = None, seed: int = 42):
         self._engines: Dict[str, EngineStats] = {}
         self._state_file = state_file or str(
             Path(__file__).parent.parent / "data" / "engine_stats.json"
         )
+        self._rng = random.Random(seed)
         self._load_state()
 
     def select_engines(self, query: str, available: List[str], k: int = 5,
@@ -93,7 +94,7 @@ class ThompsonEngineSelector:
         for engine in available:
             stats = self._engines.get(engine, EngineStats())
             # Thompson sample from Beta distribution
-            theta = random.betavariate(stats.alpha, stats.beta)
+            theta = self._rng.betavariate(stats.alpha, stats.beta)
             # Context boost: if engine historically succeeds for this category
             if context and context.get('family'):
                 cat_hits = stats.category_hits.get(context['family'], 0)
@@ -106,8 +107,8 @@ class ThompsonEngineSelector:
         
         # Always include at least one exploration engine (random among unused)
         unused = [e for e in available if e not in selected[:k-1]]
-        if unused and random.random() < 0.1:  # 10% exploration
-            selected[-1] = random.choice(unused)
+        if unused and self._rng.random() < 0.1:  # 10% exploration
+            selected[-1] = self._rng.choice(unused)
 
         return selected
 
