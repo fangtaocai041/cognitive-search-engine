@@ -644,3 +644,49 @@ def _infer_conservation_status(title: str, journal: str) -> str:
     if "cites appendix ii" in text:
         return "CITES Appendix II"
     return "unknown"
+
+
+# ═══════════════════════════════════════════════════════════
+# v8.1 Layer 6: AI 幻觉检测集成
+# ═══════════════════════════════════════════════════════════
+
+def verify_papers_real(papers: list[dict], timeout: float = 5.0
+                       ) -> dict:
+    """Layer 6: 验证每篇论文的真实性 (DOI/PMID 外部 API 确认)。
+
+    宁可慢, 必须真 — 每条 DOI 通过 Crossref, 每条 PMID 通过 NCBI。
+
+    Returns:
+        {
+            "total": int,
+            "verified": int,
+            "suspicious": int,
+            "avg_hallucination_score": float,
+            "verified_papers": [...],    # 过滤后的真实论文
+            "suspicious_papers": [...], # 可疑论文 (附原因)
+            "report": {...},            # 详细报告
+        }
+    """
+    try:
+        from src.hallucination_detector import HallucinationDetector
+    except ImportError:
+        return {"error": "hallucination_detector not available",
+                "verified": 0, "suspicious": 0}
+
+    detector = HallucinationDetector(timeout=timeout)
+    results = detector.verify_papers(papers)
+    report = detector.hallucination_report(results)
+
+    verified_papers, rejected = detector.filter_verified(
+        papers, min_verified_ratio=0.2
+    )
+
+    return {
+        "total": len(papers),
+        "verified": report["verified"],
+        "suspicious": report["suspicious"],
+        "avg_hallucination_score": report["avg_hallucination_score"],
+        "verified_papers": verified_papers,
+        "suspicious_papers": rejected,
+        "report": report,
+    }
