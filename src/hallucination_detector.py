@@ -69,95 +69,125 @@ class HallucinationDetector:
 
     @classmethod
     def _load_dictionary(cls):
-        """加载双语生态学词典 (内建 + JSON 扩展)。"""
+        """加载渔业术语词典 (Wikipedia Fishery Glossary 为主源)。"""
         import json
         from pathlib import Path
 
-        # 内建核心词典
-        terms = {
-            # 种群/资源
-            "生物量": ["biomass", "standing stock"],
-            "资源量": ["stock", "resource abundance"],
-            "丰度": ["abundance", "population size"],
-            "密度": ["density"],
-            "渔获量": ["catch", "landing", "CPUE"],
-            "CPUE": ["catch per unit effort"],
-            "补充量": ["recruitment"],
-            "死亡率": ["mortality", "mortality rate"],
-            # 多样性/群落
-            "多样性": ["diversity", "biodiversity"],
-            "物种数": ["species richness", "species number"],
-            "均匀度": ["evenness"],
-            # 形态/生长
-            "体长": ["length", "body length", "TL", "SL"],
-            "体重": ["weight", "body weight", "mass"],
-            "生长率": ["growth rate"],
-            "条件因子": ["condition factor", "Fulton's K"],
-            # 水文/环境
-            "水温": ["temperature", "water temperature"],
-            "径流": ["discharge", "runoff", "flow"],
-            "流量": ["flow", "discharge"],
-            "水位": ["water level", "stage"],
-            "溶解氧": ["dissolved oxygen", "DO"],
-            # 人类活动
-            "捕捞": ["fishing", "catch", "harvest"],
-            "过度捕捞": ["overfishing", "overfished"],
-            "污染": ["pollution", "contaminant"],
-            "富营养化": ["eutrophication"],
-            "栖息地丧失": ["habitat loss", "degradation"],
-            # 迁徙/分布
-            "洄游": ["migration", "migratory"],
-            "分布": ["distribution", "range"],
-            "栖息地": ["habitat"],
-            "产卵场": ["spawning ground", "spawning site"],
-            # 繁殖
-            "繁殖": ["reproduction", "spawning", "breeding"],
-            "产卵": ["spawning"],
-            "怀卵量": ["fecundity"],
-            "性腺指数": ["gonadosomatic index", "GSI"],
-            # 食性
-            "食性": ["diet", "feeding habit"],
-            "胃含物": ["stomach content", "gut content"],
-            "营养级": ["trophic level"],
-            "稳定同位素": ["stable isotope", "δ13C", "δ15N"],
-            # 遗传
-            "遗传": ["genetic", "genetics"],
-            "遗传多样性": ["genetic diversity"],
-            "遗传结构": ["genetic structure", "population structure"],
-            "基因流": ["gene flow"],
-            "线粒体DNA": ["mitochondrial DNA", "mtDNA"],
-            # 方法
-            "模型": ["model", "modelling"],
-            "显著": ["significant", "p < 0.05"],
-            "监测": ["monitoring", "survey"],
-            "趋势": ["trend"],
-        }
-
-        # 尝试加载 JSON 扩展词典
-        candidates = [
-            Path(__file__).resolve().parent.parent / "config" / "bilingual_ecology_dict.json",
-            Path("config/bilingual_ecology_dict.json"),
+        # ── 核心: Wikipedia Fishery Glossary (权威英文术语) ──
+        terms = {}
+        wiki_paths = [
+            Path(__file__).resolve().parent.parent / "config" / "fishery_glossary_wikipedia.json",
+            Path("config/fishery_glossary_wikipedia.json"),
         ]
-        for p in candidates:
+        for p in wiki_paths:
             if p.exists():
                 try:
                     with open(p, "r", encoding="utf-8") as f:
-                        ext = json.load(f)
-                    # 合并所有域
-                    for domain_data in ext.values():
-                        if isinstance(domain_data, dict):
-                            for cn, ens in domain_data.items():
-                                if cn not in terms and isinstance(ens, list) and ens:
-                                    terms[cn] = ens
+                        wiki_terms = json.load(f)
+                    for en_term in wiki_terms:
+                        cn = cls._infer_chinese(en_term)
+                        if cn and cn not in terms:
+                            terms[cn] = []
+                        if cn:
+                            terms[cn].append(en_term.lower())
                 except Exception:
                     pass
                 break
+
+        # ── 补充: 高频渔业中英对照 (手工校对版, 保守) ──
+        verified_mappings = {
+            "丰度": ["abundance"],
+            "生物量": ["biomass"],
+            "资源量": ["stock"],
+            "补充量": ["recruitment"],
+            "死亡率": ["mortality", "mortality rate"],
+            "捕捞死亡率": ["fishing mortality"],
+            "自然死亡": ["natural mortality"],
+            "洄游": ["migration"],
+            "溯河": ["anadromous"],
+            "降河": ["catadromous"],
+            "产卵": ["spawning"],
+            "怀卵量": ["fecundity"],
+            "捕捞": ["fishing", "harvest"],
+            "过度捕捞": ["overfishing"],
+            "渔获量": ["catch", "landing"],
+            "栖息地": ["habitat"],
+            "底栖": ["benthos", "benthic"],
+            "浮游动物": ["zooplankton"],
+            "浮游植物": ["phytoplankton"],
+            "营养级": ["trophic level"],
+            "食物网": ["food web"],
+            "最大可持续产量": ["maximum sustainable yield"],
+            "环境容纳量": ["carrying capacity"],
+            "种群": ["population", "stock"],
+            "世代": ["cohort"],
+            "多样性": ["biodiversity"],
+            "濒危": ["endangered"],
+            "特有": ["endemic"],
+            "可持续": ["sustainable"],
+            "保护区": ["protected area", "marine protected area"],
+            "增殖放流": ["stock enhancement"],
+            "人工繁殖": ["captive breeding"],
+        }
+        for cn, ens in verified_mappings.items():
+            if cn not in terms:
+                terms[cn] = []
+            for en in ens:
+                if en.lower() not in terms[cn]:
+                    terms[cn].append(en.lower())
 
         cls.BILINGUAL_TERMS = terms
         cls._EN_TO_CN = {}
         for cn, ens in terms.items():
             for en in ens:
                 cls._EN_TO_CN[en.lower()] = cn
+
+    @staticmethod
+    def _infer_chinese(en_term: str) -> str:
+        """保守推断英文术语对应的中文 (只做高置信度映射)。"""
+        mapping = {
+            "abundance": "丰度", "biomass": "生物量", "stock": "资源量",
+            "recruitment": "补充量", "mortality": "死亡率",
+            "fishing mortality": "捕捞死亡率", "natural mortality": "自然死亡",
+            "migration": "洄游", "anadromous": "溯河", "catadromous": "降河",
+            "spawning": "产卵", "fecundity": "怀卵量",
+            "fishing": "捕捞", "overfishing": "过度捕捞",
+            "harvest": "渔获量", "catch": "渔获量", "landing": "渔获量",
+            "habitat": "栖息地", "benthos": "底栖", "benthic": "底栖",
+            "zooplankton": "浮游动物", "phytoplankton": "浮游植物",
+            "trophic level": "营养级", "food chain": "食物链",
+            "food web": "食物网", "maximum sustainable yield": "最大可持续产量",
+            "carrying capacity": "环境容纳量",
+            "population": "种群", "cohort": "世代",
+            "biodiversity": "多样性", "endangered": "濒危",
+            "endemic": "特有", "sustainable": "可持续",
+            "bycatch": "副渔获", "selectivity": "选择性",
+            "growth rate": "生长率", "density": "密度",
+            "pelagic": "中上层", "demersal": "底层",
+            "upwelling": "上升流", "ecosystem": "生态系统",
+            "aquaculture": "养殖", "depletion": "资源枯竭",
+            "precautionary": "预防性", "quota": "配额",
+            "shoaling": "集群", "predator": "捕食者",
+            "prey": "饵料", "species": "物种",
+            "distribution": "分布", "range": "分布区",
+            "extinct": "灭绝", "threatened": "受威胁",
+            "vulnerable": "易危", "conservation": "保护",
+            "restoration": "恢复", "management": "管理",
+            "pollution": "污染", "eutrophication": "富营养化",
+            "hypoxia": "缺氧", "climate change": "气候变化",
+            "temperature": "温度", "salinity": "盐度",
+            "dissolved oxygen": "溶解氧", "turbidity": "浊度",
+            "primary productivity": "初级生产力",
+            "genetic": "遗传", "morphology": "形态",
+            "otolith": "耳石", "length": "体长",
+            "weight": "体重", "age": "年龄",
+            "reproduction": "繁殖", "feeding": "摄食",
+            "diet": "食性", "isotope": "同位素",
+            "diversity index": "多样性指数",
+            "sampling": "采样", "survey": "调查",
+            "monitoring": "监测", "model": "模型",
+        }
+        return mapping.get(en_term.lower(), "")
 
     @classmethod
     def _normalize_metric(cls, term: str) -> set[str]:
