@@ -4,7 +4,7 @@ build-backend = "setuptools.backends._legacy:_Backend"
 
 [project]
 name = "cognitive-search-engine"
-version = "5.8.0"
+version = "5.7.0"
 description = "多引擎物种文献搜索验证引擎 — BDI + ReAct + 权威评分 + Hub-and-Spoke 图谱搜索"
 readme = "README.md"
 license = { text = "MIT" }
@@ -24,7 +24,6 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["cognitive_search_engine*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "scripts"]

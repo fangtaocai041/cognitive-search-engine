@@ -189,8 +189,8 @@ def test_unified_search_cn_en_label():
 # ═══════════════════════════════════════════════════════════════
 
 def test_credibility_pipeline_scoring():
-    """搜索→评分: 论文列表 → 可信度评分并排序."""
-    from src.credibility_scorer import score_paper, score_papers, JOURNAL_TIERS
+    """搜索→评分: 论文列表 → 可信度评分并排序 (v5.4+ authority-tier)."""
+    from src.credibility_scorer import score_paper, score_papers
 
     papers = [
         {"journal": "Nature", "title": "Paper A", "citation_count": 30},
@@ -202,19 +202,19 @@ def test_credibility_pipeline_scoring():
     assert len(scored) == 4
     # 排序: 高分在前
     assert scored[0]["credibility_score"] >= scored[-1]["credibility_score"]
-    # Nature 应高于 Unknown
+    # 所有论文都被评分
     for p in scored:
         assert "credibility_score" in p
 
 
 def test_credibility_pipeline_journal_tier():
-    """期刊层级检测."""
+    """期刊层级检测 (v5.4+ tiers: top/excellent/standard_sci/core_cn)."""
     from src.credibility_scorer import detect_journal_tier
 
-    assert detect_journal_tier("Nature") == "top"
-    assert detect_journal_tier("Science") == "top"
-    assert detect_journal_tier("PLOS ONE") == "core"
-    assert detect_journal_tier("水生生物学报") == "core"
+    assert detect_journal_tier("Nature") == "excellent"
+    assert detect_journal_tier("Science") == "excellent"
+    assert detect_journal_tier("PLOS ONE") == "standard_sci"
+    assert detect_journal_tier("水生生物学报") == "core_cn"
     assert detect_journal_tier("Unknown Journal") == "unknown"
 
 
@@ -228,31 +228,33 @@ def test_credibility_pipeline_predatory_detection():
 
 
 def test_credibility_pipeline_format():
-    """可信度格式化."""
+    """可信度格式化 (v5.4+ bracket-symbol format)."""
     from src.credibility_scorer import format_credibility
 
-    assert "极高" in format_credibility(45)
-    assert "高" in format_credibility(35)
-    assert "中等" in format_credibility(25)
-    assert "低" in format_credibility(15)
-    assert "待验证" in format_credibility(5)
+    assert "[闻]" in format_credibility(45)
+    assert "新闻报道" in format_credibility(45)
+    assert "[闻]" in format_credibility(35)
+    assert "[--]" in format_credibility(15)
+    assert "未验证" in format_credibility(5)
 
 
 def test_credibility_pipeline_citation_bonus_boundaries():
-    """引用数加分边界测试."""
+    """引用数加分边界测试 (v5.4+ tiers: >5:+1, >20:+2, >50:+3, >100:+5)."""
     from src.credibility_scorer import score_paper
 
     base = score_paper({"journal": "PLOS ONE", "citation_count": 0})
-    assert base == 30  # PLOS ONE base
+    assert base == 78  # PLOS ONE base
 
-    # 0-5: no bonus
-    assert score_paper({"journal": "PLOS ONE", "citation_count": 5}) == 30
+    # 0-5: no bonus (not strictly > 5)
+    assert score_paper({"journal": "PLOS ONE", "citation_count": 5}) == 78
     # 6-20: +1
-    assert score_paper({"journal": "PLOS ONE", "citation_count": 10}) == 31
-    # 21-50: +3
-    assert score_paper({"journal": "PLOS ONE", "citation_count": 25}) == 33
-    # >50: +5
-    assert score_paper({"journal": "PLOS ONE", "citation_count": 60}) == 35
+    assert score_paper({"journal": "PLOS ONE", "citation_count": 10}) == 79
+    # 21-50: +2
+    assert score_paper({"journal": "PLOS ONE", "citation_count": 25}) == 80
+    # 51-100: +3
+    assert score_paper({"journal": "PLOS ONE", "citation_count": 60}) == 81
+    # >100: +5
+    assert score_paper({"journal": "PLOS ONE", "citation_count": 120}) == 83
 
 
 def test_credibility_pipeline_score_capped_at_100():
@@ -391,10 +393,10 @@ def test_empty_paper_list_scoring():
 
 
 def test_paper_without_journal_scoring():
-    """无期刊论文评分使用默认值."""
+    """无期刊论文评分使用默认值 (v5.4+ default base=30)."""
     from src.credibility_scorer import score_paper
     s = score_paper({"title": "No journal paper", "citation_count": 0})
-    assert s == 10  # 默认 base=10
+    assert s == 30  # default base=30
 
 
 def test_paper_with_null_fields():
