@@ -136,6 +136,25 @@ class HallucinationDetector:
                 if en.lower() not in terms[cn]:
                     terms[cn].append(en.lower())
 
+        # ── 补充: GB/T 8588-2024 国家标准 (中国渔业术语法定标准) ──
+        gbt_paths = [
+            Path(__file__).resolve().parent.parent / "config" / "gbt8588_terms.json",
+            Path("config/gbt8588_terms.json"),
+        ]
+        for p in gbt_paths:
+            if p.exists():
+                try:
+                    with open(p, "r", encoding="utf-8") as f:
+                        gbt = json.load(f)
+                    for cn, en in gbt.items():
+                        if cn not in terms:
+                            terms[cn] = []
+                        if en.lower() not in terms[cn]:
+                            terms[cn].append(en.lower())
+                except Exception:
+                    pass
+                break
+
         cls.BILINGUAL_TERMS = terms
         cls._EN_TO_CN = {}
         for cn, ens in terms.items():
