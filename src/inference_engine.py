@@ -185,3 +185,130 @@ def infer_from_search(papers: list[dict], species_id: str = "",
     """One-liner: 对搜索结果执行推理增强。"""
     ie = InferenceEngine()
     return ie.infer(papers, species_id, known_topics)
+
+
+# ═══════════════════════════════════════════════════════════
+# v6.0: DeepSeek + Holland 增强推理 (MoE + 投机 + 涌现)
+# ═══════════════════════════════════════════════════════════
+
+class DeepInferenceEngine(InferenceEngine):
+    """DeepSeek 增强推理引擎: MoE 路由 + 投机假说 + Holland 涌现。
+
+    继承 InferenceEngine, 添加:
+      - MoE 稀疏理论匹配 (替代全量模式遍历)
+      - 投机假说生成 (Draft-then-Verify)
+      - Holland 涌现评分集成
+    """
+
+    def __init__(self, min_confidence_gain: float = 0.05,
+                 max_followup_rounds: int = 3):
+        super().__init__(min_confidence_gain, max_followup_rounds)
+        self._moe_router = None     # lazy init
+        self._spec_engine = None    # lazy init
+        self._holland_cas = None    # lazy init
+
+    def _ensure_deepseek(self):
+        """延迟加载 DeepSeek 模块 (避免循环导入)。"""
+        if self._moe_router is None:
+            try:
+                import sys
+                from pathlib import Path as _P
+                _infra = _P(__file__).resolve().parent.parent.parent / "infrastructure" / "src"
+                if str(_infra) not in sys.path:
+                    sys.path.insert(0, str(_infra))
+                from deepseek.moe_router import MoETheoryRouter
+                from deepseek.speculative import SpeculativeEngine
+                self._moe_router = MoETheoryRouter()
+                self._spec_engine = SpeculativeEngine(n_drafts=4, top_k=3)
+            except ImportError:
+                pass
+
+    def _ensure_holland(self):
+        """延迟加载 Holland 模块。"""
+        if self._holland_cas is None:
+            try:
+                import sys
+                from pathlib import Path as _P
+                _infra = _P(__file__).resolve().parent.parent.parent / "infrastructure" / "src"
+                if str(_infra) not in sys.path:
+                    sys.path.insert(0, str(_infra))
+                from holland.cas_engine import CASCognitiveEngine
+                self._holland_cas = CASCognitiveEngine()
+            except ImportError:
+                pass
+
+    def deep_infer(self, papers: list[dict], species_id: str = "",
+                   observations: dict[str, float] | None = None
+                   ) -> dict:
+        """DeepSeek 增强推理: MoE 路由 → 投机假说 → Holland 涌现。
+
+        Returns:
+            {
+                "papers": int,
+                "gaps": [...],
+                "contradictions": [...],
+                "moe_matches": [...],        # MoE 路由结果
+                "hypotheses": [...],          # 投机假说
+                "holland_score": HollandScore, # 涌现评分
+            }
+        """
+        # Step 0: 基础推理 (父类)
+        base = self.infer(papers, species_id)
+
+        # Step 1: MoE 稀疏理论匹配
+        self._ensure_deepseek()
+        moe_matches = []
+        if self._moe_router and observations:
+            moe_matches = self._moe_router.match(observations, top_k=3)
+
+        # Step 2: 投机假说
+        hypotheses = []
+        if self._spec_engine and observations:
+            specs = self._spec_engine.run(observations)
+            hypotheses = [
+                {"statement": h.statement, "confidence": h.confidence,
+                 "evidence": h.evidence}
+                for h in specs
+            ]
+
+        # Step 3: Holland 涌现评分
+        self._ensure_holland()
+        holland_score = None
+        if self._holland_cas:
+            holland_score = self._holland_cas.scan(
+                papers=papers, species=species_id,
+                data=observations,
+            )
+            # 如果涌现, 追加假说
+            if holland_score.is_emergent:
+                holland_hyps = self._holland_cas.generate_hypotheses(
+                    holland_score, species_id
+                )
+                hypotheses.extend(
+                    {"statement": h, "confidence": holland_score.holland_index,
+                     "source": "holland_emergence"}
+                    for h in holland_hyps
+                )
+
+        return {
+            "papers": base.original_papers,
+            "gaps": base.knowledge_gaps,
+            "contradictions": base.contradictions_found,
+            "moe_matches": moe_matches,
+            "hypotheses": hypotheses,
+            "holland_score": (
+                {"index": holland_score.holland_index,
+                 "emergent": holland_score.is_emergent,
+                 "dims_active": holland_score.dimensions_active}
+                if holland_score else None
+            ),
+        }
+
+
+# Convenience
+def deep_infer(papers: list[dict], species_id: str = "",
+               observations: dict[str, float] | None = None) -> dict:
+    """One-liner: DeepSeek 增强推理。"""
+    return DeepInferenceEngine().deep_infer(
+        papers, species_id, observations
+    )
