@@ -62,55 +62,102 @@ class HallucinationDetector:
     """
 
     # ── 中英双语生态学术语词典 ──
-    BILINGUAL_TERMS = {
-        # 种群/资源
-        "生物量": ["biomass"],
-        "资源量": ["stock", "resource", "abundance"],
-        "丰度": ["abundance"],
-        "密度": ["density"],
-        "渔获量": ["catch", "CPUE", "landing"],
-        "CPUE": ["cpue", "catch per unit effort"],
-        "补充量": ["recruitment"],
-        # 多样性/群落
-        "多样性": ["diversity", "biodiversity"],
-        "物种数": ["species richness", "species number"],
-        "均匀度": ["evenness"],
-        # 形态/生长
-        "体长": ["length", "body size", "total length"],
-        "体重": ["weight", "body weight", "mass"],
-        "生长率": ["growth rate"],
-        "条件因子": ["condition factor", "Fulton"],
-        # 水文/环境
-        "水温": ["temperature", "water temperature", "SST"],
-        "径流": ["discharge", "runoff", "flow"],
-        "流量": ["flow", "discharge"],
-        "水位": ["water level", "stage"],
-        "溶解氧": ["dissolved oxygen", "DO"],
-        "pH": ["ph"],
-        "透明度": ["transparency", "secchi depth"],
-        # 人类活动
-        "捕捞": ["fishing", "catch", "harvest"],
-        "过度捕捞": ["overfishing", "overfished"],
-        "污染": ["pollution", "contaminant"],
-        "富营养化": ["eutrophication"],
-        "栖息地丧失": ["habitat loss", "habitat degradation"],
-        # 迁徙/分布
-        "洄游": ["migration", "migratory"],
-        "分布": ["distribution", "range"],
-        "栖息地": ["habitat"],
-        "产卵场": ["spawning ground", "spawning site"],
-        "索饵场": ["feeding ground", "foraging area"],
-        # 时间
-        "年": ["year", "annual"],
-        "月": ["month", "monthly"],
-        "季节": ["season", "seasonal"],
-    }
+    BILINGUAL_TERMS: dict[str, list[str]] = {}
 
     # 扁平化为反向索引: English → Chinese
     _EN_TO_CN: dict[str, str] = {}
-    for _cn, _ens in BILINGUAL_TERMS.items():
-        for _en in _ens:
-            _EN_TO_CN[_en.lower()] = _cn
+
+    @classmethod
+    def _load_dictionary(cls):
+        """加载双语生态学词典 (内建 + JSON 扩展)。"""
+        import json
+        from pathlib import Path
+
+        # 内建核心词典
+        terms = {
+            # 种群/资源
+            "生物量": ["biomass", "standing stock"],
+            "资源量": ["stock", "resource abundance"],
+            "丰度": ["abundance", "population size"],
+            "密度": ["density"],
+            "渔获量": ["catch", "landing", "CPUE"],
+            "CPUE": ["catch per unit effort"],
+            "补充量": ["recruitment"],
+            "死亡率": ["mortality", "mortality rate"],
+            # 多样性/群落
+            "多样性": ["diversity", "biodiversity"],
+            "物种数": ["species richness", "species number"],
+            "均匀度": ["evenness"],
+            # 形态/生长
+            "体长": ["length", "body length", "TL", "SL"],
+            "体重": ["weight", "body weight", "mass"],
+            "生长率": ["growth rate"],
+            "条件因子": ["condition factor", "Fulton's K"],
+            # 水文/环境
+            "水温": ["temperature", "water temperature"],
+            "径流": ["discharge", "runoff", "flow"],
+            "流量": ["flow", "discharge"],
+            "水位": ["water level", "stage"],
+            "溶解氧": ["dissolved oxygen", "DO"],
+            # 人类活动
+            "捕捞": ["fishing", "catch", "harvest"],
+            "过度捕捞": ["overfishing", "overfished"],
+            "污染": ["pollution", "contaminant"],
+            "富营养化": ["eutrophication"],
+            "栖息地丧失": ["habitat loss", "degradation"],
+            # 迁徙/分布
+            "洄游": ["migration", "migratory"],
+            "分布": ["distribution", "range"],
+            "栖息地": ["habitat"],
+            "产卵场": ["spawning ground", "spawning site"],
+            # 繁殖
+            "繁殖": ["reproduction", "spawning", "breeding"],
+            "产卵": ["spawning"],
+            "怀卵量": ["fecundity"],
+            "性腺指数": ["gonadosomatic index", "GSI"],
+            # 食性
+            "食性": ["diet", "feeding habit"],
+            "胃含物": ["stomach content", "gut content"],
+            "营养级": ["trophic level"],
+            "稳定同位素": ["stable isotope", "δ13C", "δ15N"],
+            # 遗传
+            "遗传": ["genetic", "genetics"],
+            "遗传多样性": ["genetic diversity"],
+            "遗传结构": ["genetic structure", "population structure"],
+            "基因流": ["gene flow"],
+            "线粒体DNA": ["mitochondrial DNA", "mtDNA"],
+            # 方法
+            "模型": ["model", "modelling"],
+            "显著": ["significant", "p < 0.05"],
+            "监测": ["monitoring", "survey"],
+            "趋势": ["trend"],
+        }
+
+        # 尝试加载 JSON 扩展词典
+        candidates = [
+            Path(__file__).resolve().parent.parent / "config" / "bilingual_ecology_dict.json",
+            Path("config/bilingual_ecology_dict.json"),
+        ]
+        for p in candidates:
+            if p.exists():
+                try:
+                    with open(p, "r", encoding="utf-8") as f:
+                        ext = json.load(f)
+                    # 合并所有域
+                    for domain_data in ext.values():
+                        if isinstance(domain_data, dict):
+                            for cn, ens in domain_data.items():
+                                if cn not in terms and isinstance(ens, list) and ens:
+                                    terms[cn] = ens
+                except Exception:
+                    pass
+                break
+
+        cls.BILINGUAL_TERMS = terms
+        cls._EN_TO_CN = {}
+        for cn, ens in terms.items():
+            for en in ens:
+                cls._EN_TO_CN[en.lower()] = cn
 
     @classmethod
     def _normalize_metric(cls, term: str) -> set[str]:
@@ -128,6 +175,8 @@ class HallucinationDetector:
         self.timeout = timeout
         self.max_retries = max_retries
         self._cache: dict[str, dict] = {}  # DOI → API 响应缓存
+        if not self.BILINGUAL_TERMS:
+            self._load_dictionary()
 
     def verify_paper(self, paper: dict) -> VerificationResult:
         """验证单篇论文。
