@@ -119,6 +119,7 @@ class SearchResult:
     elapsed_ms: float           # 总耗时
     error: str = ""             # 错误信息
     emergence_signals: list = field(default_factory=list)  # v8.0: 涌现检测信号
+    intelligence_source: str = "ontogenetic"  # 个体发生(运行时搜索)
 
     def summary(self) -> str:
         """生成分类概览 — 按需展开"""

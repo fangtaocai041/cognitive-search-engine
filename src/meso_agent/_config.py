@@ -38,6 +38,7 @@ class MesoSearchResult:
     mode_used: str = ""          # 实际使用的搜索模式
     volume_estimate: int = 0
     adaptations: List[Dict[str, Any]] = field(default_factory=list)
+    intelligence_source: str = "ontogenetic"  # 个体发生(运行时搜索验证)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -51,4 +52,5 @@ class MesoSearchResult:
             "elapsed_s": self.elapsed_s,
             "mode_used": self.mode_used,
             "volume_estimate": self.volume_estimate,
+            "intelligence_source": self.intelligence_source,
         }
