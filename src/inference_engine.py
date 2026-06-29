@@ -270,18 +270,51 @@ class DeepInferenceEngine(InferenceEngine):
                      "source": "holland_emergence"}
                     for h in holland_hyps
                 )
+        # v6.8: 知识更新建议 — 当新证据与知识库冲突时生成
+        suggested_updates = []
+        holland_score_data = None
+        if holland_score:
+            holland_score_data = {
+                "index": holland_score.holland_index,
+                "emergent": holland_score.is_emergent,
+                "dims_active": holland_score.dimensions_active,
+            }
+            if holland_score.is_emergent:
+                suggested_updates.append({
+                    "type": "conservation_review",
+                    "species": species_id,
+                    "reason": f"涌现指数={holland_score.holland_index:.2f}, 激活{len(holland_score_data['dims_active'])}维",
+                    "suggestion": "建议重新评估该物种的保护等级, 现有知识库条目可能过时",
+                    "auto_apply": False,
+                })
+        if base.knowledge_gaps:
+            suggested_updates.append({
+                "type": "conservation_review",
+                "species": species_id,
+                "reason": f"Holland涌现指数={holland_score.holland_index:.2f}, 激活维度={holland_score.dimensions_active}",
+                "suggestion": "建议重新评估该物种的保护等级, 现有知识库条目可能过时",
+                "evidence_from": [h.get("source", "search") for h in hypotheses[:3]],
+                "auto_apply": False,  # 需人工审核
+            })
+        if base.knowledge_gaps:
+            for gap in base.knowledge_gaps:
+                if "NO_RECENT" in gap:
+                    suggested_updates.append({
+                        "type": "data_freshness",
+                        "species": species_id,
+                        "reason": "知识库缺少近期数据",
+                        "suggestion": "建议用最新搜索结果更新知识库条目",
+                        "auto_apply": False,
+                    })
+
         return {
             "papers": base.original_papers,
             "gaps": base.knowledge_gaps,
             "contradictions": base.contradictions_found,
             "moe_matches": moe_matches,
             "hypotheses": hypotheses,
-            "holland_score": (
-                {"index": holland_score.holland_index,
-                 "emergent": holland_score.is_emergent,
-                 "dims_active": holland_score.dimensions_active}
-                if holland_score else None
-            ),
+            "holland_score": holland_score_data,
+            "suggested_kb_updates": suggested_updates,  # v6.8: 科学式主动更新
         }
 
     def closed_loop_verify(self, papers: list[dict], species_id: str = "",
