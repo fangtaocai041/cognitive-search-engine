@@ -416,22 +416,6 @@ class DeepInferenceEngine(InferenceEngine):
                     for h in holland_hyps
                 )
 
-        # v9.0: 闭环验证 — 如果发现 gap, 自动触发一次闭环修正
-        if base.knowledge_gaps and observations:
-            try:
-                loop_result = self.closed_loop_verify(
-                    papers, species_id, observations, max_iterations=2
-                )
-                if loop_result.get("converged"):
-                    result["closed_loop"] = loop_result
-                    hypotheses.append({
-                        "statement": f"[闭环验证] {loop_result['hypothesis'][:80]}",
-                        "confidence": 0.7,
-                        "source": "wiener_closed_loop",
-                    })
-            except Exception:
-                pass
-
         return {
             "papers": base.original_papers,
             "gaps": base.knowledge_gaps,
