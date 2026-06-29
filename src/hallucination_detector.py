@@ -75,7 +75,9 @@ class HallucinationDetector:
 
         # ── 核心: Wikipedia Fishery Glossary (权威英文术语) ──
         terms = {}
+        # 优先从 infrastructure 统一术语库加载
         wiki_paths = [
+            Path(__file__).resolve().parent.parent.parent / "infrastructure" / "config" / "fishery_glossary_wikipedia.json",
             Path(__file__).resolve().parent.parent / "config" / "fishery_glossary_wikipedia.json",
             Path("config/fishery_glossary_wikipedia.json"),
         ]
@@ -138,6 +140,7 @@ class HallucinationDetector:
 
         # ── 补充: GB/T 8588-2024 国家标准 (中国渔业术语法定标准) ──
         gbt_paths = [
+            Path(__file__).resolve().parent.parent.parent / "infrastructure" / "config" / "gbt8588_terms.json",
             Path(__file__).resolve().parent.parent / "config" / "gbt8588_terms.json",
             Path("config/gbt8588_terms.json"),
         ]
