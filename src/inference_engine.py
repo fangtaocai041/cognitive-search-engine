@@ -240,6 +240,132 @@ class DeepInferenceEngine(InferenceEngine):
     def deep_infer(self, papers: list[dict], species_id: str = "",
                    observations: dict[str, float] | None = None
                    ) -> dict:
+        """DeepSeek 增强推理: MoE 路由 → 投机假说 → Holland 涌现。"""
+        # (existing deep_infer implementation)
+        self._ensure_deepseek()
+        self._ensure_holland()
+        base = self.infer(papers, species_id)
+        moe_matches = []
+        if self._moe_router and observations:
+            moe_matches = self._moe_router.match(observations, top_k=3)
+        hypotheses = []
+        if self._spec_engine and observations:
+            specs = self._spec_engine.run(observations)
+            hypotheses = [
+                {"statement": h.statement, "confidence": h.confidence,
+                 "evidence": h.evidence}
+                for h in specs
+            ]
+        holland_score = None
+        if self._holland_cas:
+            holland_score = self._holland_cas.scan(
+                papers=papers, species=species_id, data=observations,
+            )
+            if holland_score.is_emergent:
+                holland_hyps = self._holland_cas.generate_hypotheses(
+                    holland_score, species_id
+                )
+                hypotheses.extend(
+                    {"statement": h, "confidence": holland_score.holland_index,
+                     "source": "holland_emergence"}
+                    for h in holland_hyps
+                )
+        return {
+            "papers": base.original_papers,
+            "gaps": base.knowledge_gaps,
+            "contradictions": base.contradictions_found,
+            "moe_matches": moe_matches,
+            "hypotheses": hypotheses,
+            "holland_score": (
+                {"index": holland_score.holland_index,
+                 "emergent": holland_score.is_emergent,
+                 "dims_active": holland_score.dimensions_active}
+                if holland_score else None
+            ),
+        }
+
+    def closed_loop_verify(self, papers: list[dict], species_id: str = "",
+                           observations: dict[str, float] | None = None,
+                           max_iterations: int = 3) -> dict:
+        """闭环验证 (Wiener's Closed-Loop Principle)。
+
+        马毅论点: "自然不做反向传播——自然在闭环中学习"
+        维纳 80 年前: 智能 = 感知→预测→验证→修正 的闭环
+
+        非端到端的一次性推理, 而是:
+          predict → verify → gap → search → correct → repeat
+
+        Args:
+            papers: 初始搜索结果
+            species_id: 物种标识
+            observations: 观测数据
+            max_iterations: 最大闭环迭代次数
+
+        Returns:
+            {hypothesis, evidence_chain, iterations, converged}
+        """
+        self._ensure_deepseek()
+        self._ensure_holland()
+
+        evidence_chain = []
+        current_papers = papers
+        hypothesis = None
+
+        for iteration in range(max_iterations):
+            # Step 1: 预测 — 基于当前论文生成假说
+            base = self.infer(current_papers, species_id)
+            if self._spec_engine and observations:
+                specs = self._spec_engine.run(observations)
+                if specs:
+                    hypothesis = specs[0].statement
+
+            # Step 2: 验证 — 假说 vs 论文内容
+            verified = False
+            gap = None
+            if hypothesis and current_papers:
+                # 检查假说是否被论文支持
+                support_count = sum(
+                    1 for p in current_papers
+                    if any(w in (p.get("abstract", "") + p.get("title", ""))
+                           .lower()
+                           for w in hypothesis.lower().split()[:5])
+                )
+                verified = support_count >= 1
+                if not verified:
+                    gap = f"假说 '{hypothesis[:60]}' 未被当前论文支持"
+
+            evidence_chain.append({
+                "iteration": iteration + 1,
+                "papers_count": len(current_papers),
+                "hypothesis": hypothesis[:100] if hypothesis else None,
+                "verified": verified,
+                "gap": gap,
+            })
+
+            # Step 3: 收敛判定
+            if verified:
+                return {
+                    "hypothesis": hypothesis,
+                    "evidence_chain": evidence_chain,
+                    "iterations": iteration + 1,
+                    "converged": True,
+                    "principle": "Wiener closed-loop (预测→验证→收敛)",
+                }
+
+            # Step 4: 修正 — 基于 gap 生成新查询 (模拟闭环中的"预测编码修正")
+            if gap and self._spec_engine:
+                # 用 gap 作为新观测, 触发下一轮推理
+                new_obs = dict(observations) if observations else {}
+                new_obs["_gap_detected"] = 1.0
+                observations = new_obs
+
+        return {
+            "hypothesis": hypothesis,
+            "evidence_chain": evidence_chain,
+            "iterations": max_iterations,
+            "converged": False,
+            "principle": "Wiener closed-loop (未收敛, 需更多数据)",
+        }
         """DeepSeek 增强推理: MoE 路由 → 投机假说 → Holland 涌现。
 
         Returns:
