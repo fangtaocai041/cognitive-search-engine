@@ -32,9 +32,9 @@ from pathlib import Path
 # 涌现检测集成
 try:
     import sys
-    _infra_path = str(Path(__file__).resolve().parent.parent.parent / "infrastructure")
-    if _infra_path not in sys.path:
-        sys.path.insert(0, _infra_path)
+    _eon_core_path = str(Path(__file__).resolve().parent.parent.parent / "eon-core" / "src")
+    if _eon_core_path not in sys.path:
+        sys.path.insert(0, _eon_core_path)
     from unified_emergence import EmergenceMonitor, DimensionalLevel
     _EMERGENCE_AVAILABLE = True
 except ImportError:

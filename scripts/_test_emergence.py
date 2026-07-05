@@ -1,4 +1,6 @@
-from infrastructure.unified_emergence import EmergenceEngine
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'eon-core', 'src'))
+from unified_emergence import EmergenceEngine
 import json
 
 engine = EmergenceEngine()

@@ -1,5 +1,7 @@
 """用 c项目检索的真实数据 喂入 涌现引擎，检测跨物种信号"""
-from infrastructure.unified_emergence import EmergenceEngine
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'eon-core', 'src'))
+from unified_emergence import EmergenceEngine
 import json
 
 engine = EmergenceEngine()

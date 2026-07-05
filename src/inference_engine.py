@@ -213,9 +213,9 @@ class DeepInferenceEngine(InferenceEngine):
             try:
                 import sys
                 from pathlib import Path as _P
-                _infra = _P(__file__).resolve().parent.parent.parent / "infrastructure" / "src"
-                if str(_infra) not in sys.path:
-                    sys.path.insert(0, str(_infra))
+                _cortex = _P(__file__).resolve().parent.parent.parent / "san-sheng-wanwu-core" / "src" / "cortex"
+                if str(_cortex) not in sys.path:
+                    sys.path.insert(0, str(_cortex))
                 from deepseek.moe_router import MoETheoryRouter
                 from deepseek.speculative import SpeculativeEngine
                 self._moe_router = MoETheoryRouter()
@@ -229,9 +229,9 @@ class DeepInferenceEngine(InferenceEngine):
             try:
                 import sys
                 from pathlib import Path as _P
-                _infra = _P(__file__).resolve().parent.parent.parent / "infrastructure" / "src"
-                if str(_infra) not in sys.path:
-                    sys.path.insert(0, str(_infra))
+                _cortex = _P(__file__).resolve().parent.parent.parent / "san-sheng-wanwu-core" / "src" / "cortex"
+                if str(_cortex) not in sys.path:
+                    sys.path.insert(0, str(_cortex))
                 from holland.cas_engine import CASCognitiveEngine
                 self._holland_cas = CASCognitiveEngine()
             except ImportError:
