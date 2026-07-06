@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 交互式物种文献检索 — KB-First 两阶段搜索
 
@@ -41,7 +41,7 @@ def main():
     kb_found = False
     sci_name = species
     try:
-        f_db = REASONIX.parent / "fish-ecology-assistant" / "data" / "species.db"
+        f_db = fish_ecology.parent / "fish-ecology-assistant" / "data" / "species.db"
         if f_db.exists():
             from fish_ecology_assistant.db import KnowledgeDB
             db = KnowledgeDB(f_db)
