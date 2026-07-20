@@ -22,6 +22,18 @@ import urllib.request
 from typing import Any, Dict, List, Optional
 
 _DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+
+# 如果环境变量没有，尝试从 Reasonix 全局 .env 读取
+if not _DEEPSEEK_API_KEY:
+    _reasonix_env = os.path.expanduser("~/AppData/Roaming/reasonix/.env")
+    try:
+        with open(_reasonix_env) as f:
+            for line in f:
+                if line.startswith("DEEPSEEK_API_KEY="):
+                    _DEEPSEEK_API_KEY = line.strip().split("=", 1)[1]
+                    break
+    except Exception:
+        pass
 _DEEPSEEK_URL = "https://api.deepseek.com/v1/chat/completions"
 _DEEPSEEK_MODEL = "deepseek-chat"
 
