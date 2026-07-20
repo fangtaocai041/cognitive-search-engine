@@ -360,21 +360,6 @@ class CognitiveSearchAdapter(IProjectAdapter):
         except Exception as e:
             return {"status": "error", "error": str(e)}
 
-    # ── 论文分析（借鉴 SciSpace） ──
-
-    def analyze_paper(self, doi: str) -> dict:
-        """结构化分析一篇论文 — 提取方法/发现/局限性/结论
-
-        通过 DeepSeek API 分析 CrossRef 获取的论文元数据。
-        需设置环境变量 DEEPSEEK_API_KEY。
-        """
-        try:
-            from .paper_analyzer import analyze_paper as _analyze
-            result = _analyze(doi)
-            return {"status": "ok", **result}
-        except Exception as e:
-            return {"status": "error", "error": str(e)}
-
 
 def get_adapter() -> CognitiveSearchAdapter:
     """Factory function for project_loader."""
