@@ -285,6 +285,44 @@ class CognitiveSearchAdapter(IProjectAdapter):
         }
 
 
+    # ── AMiner 实体搜索（学者/机构/专利） ──
+
+    def aminer_search_person(self, name: str, max_results: int = 10) -> dict:
+        """AMiner 学者搜索 — 按姓名查找学术档案"""
+        try:
+            from .entity import search_person
+            results = search_person(name, max_results)
+            return {"status": "ok", "source": "aminer_person", "count": len(results), "results": results}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    def aminer_search_org(self, name: str, max_results: int = 10) -> dict:
+        """AMiner 机构搜索 — 按名称查找学术机构"""
+        try:
+            from .entity import search_org
+            results = search_org(name, max_results)
+            return {"status": "ok", "source": "aminer_org", "count": len(results), "results": results}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    def aminer_search_patent(self, query: str, max_results: int = 10) -> dict:
+        """AMiner 专利搜索 — 按关键词搜索专利"""
+        try:
+            from .entity import search_patent
+            results = search_patent(query, max_results)
+            return {"status": "ok", "source": "aminer_patent", "count": len(results), "results": results}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    def get_llm_tools(self) -> list:
+        """获取 LLM function calling 工具定义"""
+        try:
+            from .tool_schema import ALL_TOOLS
+            return ALL_TOOLS
+        except Exception:
+            return []
+
+
 def get_adapter() -> CognitiveSearchAdapter:
     """Factory function for project_loader."""
     return CognitiveSearchAdapter()
