@@ -322,6 +322,24 @@ class CognitiveSearchAdapter(IProjectAdapter):
         except Exception:
             return []
 
+    # ── 论文问答（借鉴 SciSpace） ──
+
+    def ask_paper(self, identifier: str, question: str, api_key: str = "") -> dict:
+        """对一篇论文提问
+
+        参数:
+            identifier: 论文标识 (DOI/PMID/PMCID/arXiv)
+            question: 你的问题
+
+        返回:
+            {"answer": str, "title": str, "source": str}
+        """
+        try:
+            from .paper_qa import ask_paper as _ask
+            return _ask(identifier, question, api_key)
+        except Exception as e:
+            return {"answer": "", "title": "", "error": str(e)}
+
 
 def get_adapter() -> CognitiveSearchAdapter:
     """Factory function for project_loader."""
