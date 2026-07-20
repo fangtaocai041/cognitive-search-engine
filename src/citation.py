@@ -16,7 +16,7 @@ citation — 引用导出工具
 """
 
 from __future__ import annotations
-from ._shared import _HEADERS, _TIMEOUT_S, logger
+from parallel_search._shared import _HEADERS, _TIMEOUT_S, logger
 
 import json
 import re

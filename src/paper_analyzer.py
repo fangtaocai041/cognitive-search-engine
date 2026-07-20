@@ -14,7 +14,7 @@ paper_analyzer — 论文结构化分析（借鉴 SciSpace）
 """
 
 from __future__ import annotations
-from ._shared import _HEADERS, _TIMEOUT_S, logger
+from parallel_search._shared import _HEADERS, _TIMEOUT_S, logger
 
 import json
 import os
