@@ -340,6 +340,26 @@ class CognitiveSearchAdapter(IProjectAdapter):
         except Exception as e:
             return {"answer": "", "title": "", "error": str(e)}
 
+    # ── 引用导出（借鉴 SciSpace） ──
+
+    def export_bibtex(self, doi: str) -> dict:
+        """通过 CrossRef 获取 BibTeX 格式引用"""
+        try:
+            from .citation import export_bibtex as _export
+            result = _export(doi)
+            return {"status": "ok" if result else "empty", "bibtex": result}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    def export_bibtex_batch(self, dois: list) -> dict:
+        """批量导出 BibTeX"""
+        try:
+            from .citation import export_bibtex_batch
+            result = export_bibtex_batch(dois)
+            return {"status": "ok" if result else "empty", "bibtex": result}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
 
 def get_adapter() -> CognitiveSearchAdapter:
     """Factory function for project_loader."""
